@@ -56,14 +56,14 @@ export function SiteHeader({ user, profile }: SiteHeaderProps) {
           <div className="hidden md:flex items-center gap-4">
             {user && profile?.role === 'professional' ? (
               <>
-                <Link href="/pro" className="text-ink text-sm font-medium hover:text-mint transition-colors">
-                  My Pro
+                <Link href="/professional" className="text-ink text-sm font-medium hover:text-mint transition-colors">
+                  My Professional
                 </Link>
               </>
             ) : user && profile?.role === 'customer' ? (
               <>
-                <Link href="/app" className="text-ink text-sm font-medium hover:text-mint transition-colors">
-                  My Fixify
+                <Link href="/customer" className="text-ink text-sm font-medium hover:text-mint transition-colors">
+                  My Dashboard
                 </Link>
               </>
             ) : (
@@ -72,7 +72,7 @@ export function SiteHeader({ user, profile }: SiteHeaderProps) {
               </Link>
             )}
 
-            <Link href={user && profile?.role === 'customer' ? '/app' : '/'}>
+            <Link href={user && profile?.role === 'customer' ? '/customer' : '/'}>
               <button className="px-4 py-2 bg-mint text-dark rounded-lg font-medium text-sm hover:bg-mint/90 transition-colors">
                 {user && profile?.role === 'customer'
                   ? 'Describe a problem'
@@ -129,21 +129,21 @@ export function SiteHeader({ user, profile }: SiteHeaderProps) {
                 {user && profile?.role === 'professional' ? (
                   <>
                     <Link
-                      href="/pro"
+                      href="/professional"
                       className="block text-ink hover:text-mint transition-colors text-sm font-medium"
                       onClick={() => setIsOpen(false)}
                     >
-                      My Pro
+                      My Professional
                     </Link>
                   </>
                 ) : user && profile?.role === 'customer' ? (
                   <>
                     <Link
-                      href="/app"
+                      href="/customer"
                       className="block text-ink hover:text-mint transition-colors text-sm font-medium"
                       onClick={() => setIsOpen(false)}
                     >
-                      My Fixify
+                      My Dashboard
                     </Link>
                   </>
                 ) : (
@@ -156,7 +156,7 @@ export function SiteHeader({ user, profile }: SiteHeaderProps) {
                   </Link>
                 )}
 
-                <Link href={user && profile?.role === 'customer' ? '/app' : '/'}>
+                <Link href={user && profile?.role === 'customer' ? '/customer' : '/'}>
                   <button
                     className="w-full px-4 py-2 bg-mint text-dark rounded-lg font-medium text-sm hover:bg-mint/90 transition-colors"
                     onClick={() => setIsOpen(false)}

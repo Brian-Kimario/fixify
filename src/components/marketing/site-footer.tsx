@@ -20,7 +20,7 @@ export function SiteFooter() {
 
           {/* Customer */}
           <div>
-            <h3 className="font-display font-bold text-ink mb-4">Customers</h3>
+            <h3 className="font-display font-bold text-ink mb-4">For Customers</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/services" className="text-line hover:text-ink transition-colors text-sm">
@@ -47,7 +47,7 @@ export function SiteFooter() {
 
           {/* Professional */}
           <div>
-            <h3 className="font-display font-bold text-ink mb-4">Professionals</h3>
+            <h3 className="font-display font-bold text-ink mb-4">For Professionals</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/professionals" className="text-line hover:text-ink transition-colors text-sm">
@@ -55,12 +55,12 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/pro/login" className="text-line hover:text-ink transition-colors text-sm">
+                <Link href="/professional/login" className="text-line hover:text-ink transition-colors text-sm">
                   Professional sign in
                 </Link>
               </li>
               <li>
-                <Link href="/pro/onboarding" className="text-line hover:text-ink transition-colors text-sm">
+                <Link href="/professional/onboarding" className="text-line hover:text-ink transition-colors text-sm">
                   Get started
                 </Link>
               </li>

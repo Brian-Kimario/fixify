@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { type User } from '@supabase/supabase-js';
 import { logoutUser } from './actions';
 
-interface AppNavbarProps {
+interface CustomerNavbarProps {
   user: User;
 }
 
-export function AppNavbar({ user }: AppNavbarProps) {
+export function CustomerNavbar({ user }: CustomerNavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,7 +23,7 @@ export function AppNavbar({ user }: AppNavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/app" className="text-mint font-display font-bold text-xl hover:opacity-80 transition-opacity">
+          <Link href="/customer" className="text-mint font-display font-bold text-xl hover:opacity-80 transition-opacity">
             Fixify
           </Link>
 
@@ -38,19 +38,19 @@ export function AppNavbar({ user }: AppNavbarProps) {
               </button>
               <div className="absolute right-0 mt-0 w-48 bg-panel border border-line rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <Link
-                  href="/app/profile"
+                  href="/customer/profile"
                   className="block px-4 py-2 text-sm text-ink hover:bg-line rounded-t-lg transition-colors"
                 >
                   View Profile
                 </Link>
                 <Link
-                  href="/app/profile/edit"
+                  href="/customer/profile/edit"
                   className="block px-4 py-2 text-sm text-ink hover:bg-line transition-colors"
                 >
                   Edit Profile
                 </Link>
                 <Link
-                  href="/app/settings"
+                  href="/customer/settings"
                   className="block px-4 py-2 text-sm text-ink hover:bg-line transition-colors"
                 >
                   Settings
@@ -86,21 +86,21 @@ export function AppNavbar({ user }: AppNavbarProps) {
               {user.email}
             </div>
             <Link
-              href="/app/profile"
+              href="/customer/profile"
               className="block text-ink hover:text-mint transition-colors text-sm"
               onClick={() => setIsOpen(false)}
             >
               View Profile
             </Link>
             <Link
-              href="/app/profile/edit"
+              href="/customer/profile/edit"
               className="block text-ink hover:text-mint transition-colors text-sm"
               onClick={() => setIsOpen(false)}
             >
               Edit Profile
             </Link>
             <Link
-              href="/app/settings"
+              href="/customer/settings"
               className="block text-ink hover:text-mint transition-colors text-sm"
               onClick={() => setIsOpen(false)}
             >

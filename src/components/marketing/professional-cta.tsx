@@ -49,12 +49,12 @@ export function ProfessionalCTA() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Link href="/pro/onboarding" className="flex-1">
+            <Link href="/professional/onboarding" className="flex-1">
               <Button variant="primary" size="lg" className="w-full">
                 Become a Fixify professional
               </Button>
             </Link>
-            <Link href="/pro/login" className="flex-1">
+            <Link href="/professional/login" className="flex-1">
               <Button variant="secondary" size="lg" className="w-full">
                 Already registered? Sign in
               </Button>

@@ -1,11 +1,11 @@
 import { getCurrentUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { AppNavbar } from './AppNavbar';
+import { CustomerNavbar } from './CustomerNavbar';
 
 /**
  * Protected Layout for Customer Dashboard
  * 
- * This layout ensures only authenticated users can access /app routes.
+ * This layout ensures only authenticated users can access /customer routes.
  * Server-side check happens before rendering.
  */
 
@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-dark">
-      <AppNavbar user={user} />
+      <CustomerNavbar user={user} />
 
       <main>{children}</main>
     </div>

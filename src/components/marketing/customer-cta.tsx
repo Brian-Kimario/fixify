@@ -15,7 +15,7 @@ export function CustomerCTA() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/app">
+          <Link href="/customer">
             <Button variant="primary" size="lg">
               Describe a problem →
             </Button>

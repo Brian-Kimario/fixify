@@ -25,7 +25,7 @@ export function Hero() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/app" className="flex-1 sm:flex-none">
+              <Link href="/customer" className="flex-1 sm:flex-none">
                 <Button variant="primary" size="lg" className="w-full">
                   Describe a problem →
                 </Button>
