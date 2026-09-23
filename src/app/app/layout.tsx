@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { AppNavbar } from './AppNavbar';
 
 /**
  * Protected Layout for Customer Dashboard
@@ -28,14 +29,7 @@ export default async function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-dark">
-      <nav className="border-b border-line bg-panel">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="text-mint font-display font-bold text-xl">Fixify</div>
-            <div className="text-ink text-sm">{user.email}</div>
-          </div>
-        </div>
-      </nav>
+      <AppNavbar user={user} />
 
       <main>{children}</main>
     </div>
