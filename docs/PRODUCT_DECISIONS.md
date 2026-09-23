@@ -1,17 +1,23 @@
-# FIXIFY — Product Decisions
+# FIXIFY — PRODUCT DECISIONS
 
 **Document status:** Working draft  
-**Version:** 0.1  
+**Version:** 0.2  
 **Last updated:** 2026-09-23  
-**Purpose:** Single source of truth for business decisions that affect Fixify product behavior, pricing, marketplace operations, and future implementation.
+**Purpose:** Single source of truth for business decisions that affect Fixify product behavior, pricing, marketplace operations, customer/professional experience, and future implementation.
 
 ---
 
 ## 1. How to use this document
 
-This file records decisions that must not be silently invented by the coding agents.
+This document prevents coding agents from silently inventing commercially meaningful behavior.
 
-For every unresolved decision, use:
+Every decision has one of these states:
+
+```text
+STATUS: DECIDED
+```
+
+or, while unresolved:
 
 ```text
 STATUS: OPEN
@@ -19,13 +25,23 @@ CURRENT DEVELOPMENT DEFAULT: <temporary implementation assumption>
 BUSINESS DECISION REQUIRED: <decision the product owner must make>
 ```
 
-A development default is **not** a business decision. Code must be written so that an open decision can be changed without a major rewrite.
+A **CURRENT DEVELOPMENT DEFAULT is not a business decision**.
+
+When a decision is open:
+
+- code must remain configurable where practical;
+- customer-facing copy must not present the default as a promise;
+- financial, permission, and workflow logic must not hard-code an arbitrary value;
+- the open decision must remain visible to the product owner;
+- changing the final decision should not require a fundamental rewrite.
 
 ### Source grounding
 
-The original Fixify project brief supports the following general product direction: initial focus on urban/high-population cities, multiple home-service categories, verified professionals, service booking, material/brand preferences, and a future pan-India expansion. It does **not** specify a launch city, exact prices, commission percentage, cancellation/refund rules, verification-document list, warranty duration, or final payment policy.
+The supplied Fixify project brief establishes the broad product direction: an urban-focused home-repair/maintenance platform, multiple service categories, smart problem description, image/video upload, customer material/brand choices, verified professionals, flexible booking, rebooking, a backend/database, service-provider module, admin panel, and possible future expansion. It does **not** establish the exact launch city, exact launch catalogue, prices, commission percentage, cancellation/refund rules, verification-document list, warranty duration, or final payment policy.
 
-Where the source material is silent, this document marks the decision **OPEN** rather than presenting an invented answer as settled fact.
+The expanded Fixify business definition additionally establishes AI-assisted intake, voice/text/photo/video input, service matching, job tracking, payment/invoice handling, customer approval before additional work, reviews, complaint resolution, professional operations, property maintenance history, and possible Premium/B2B expansion.
+
+Where the sources are silent, this document deliberately marks the item **OPEN** rather than turning an assumption into a hidden product rule.
 
 ---
 
@@ -33,11 +49,19 @@ Where the source material is silent, this document marks the decision **OPEN** r
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** One Indian urban market/city only. Configure the application so service availability, professional coverage, pricing, and service areas are city/zone based.
+**CURRENT DEVELOPMENT DEFAULT:** Launch in one Indian urban market/city. Model service coverage as city/zone based rather than hard-coding one geographic location into the application.
 
-**BUSINESS DECISION REQUIRED:** Select the exact first launch city and initial serviceable zones.
+**BUSINESS DECISION REQUIRED:** Select the exact first launch city and the initial serviceable zones/pincodes.
 
-**Why this must remain configurable:** The project brief says Fixify will initially focus on urban and highly populated cities and may later expand into a pan-India platform, but it does not identify the first city. Do not hard-code a city into the core application.
+**Implementation implications:**
+
+- service availability must be location-aware;
+- professionals must have service areas;
+- pricing may vary by city/zone;
+- the same service catalogue should be reusable across cities;
+- future expansion must not require a new schema.
+
+**Source basis:** The project brief says Fixify will initially focus on urban/high-population cities and may later expand into a pan-India platform, but it does not specify the first city.
 
 ---
 
@@ -45,7 +69,7 @@ Where the source material is silent, this document marks the decision **OPEN** r
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Build the catalogue architecture for these categories, based on the project materials:
+**CURRENT DEVELOPMENT DEFAULT:** Build a database-driven catalogue capable of supporting at least:
 
 - Electrical
 - Plumbing
@@ -56,11 +80,11 @@ Where the source material is silent, this document marks the decision **OPEN** r
 - Cleaning
 - Renovation / interior-related maintenance
 
-Keep categories database-driven so additional categories can be added without frontend rewrites.
+The exact launch catalogue must be controlled by active/inactive service records rather than frontend hard-coding.
 
-**BUSINESS DECISION REQUIRED:** Approve the exact launch categories and the exact services under each category.
+**BUSINESS DECISION REQUIRED:** Approve the exact launch categories and the exact bookable services under each category.
 
-**Source basis:** The original brief explicitly mentions electrical repairs, plumbing, carpentry, interior work, image/video-supported maintenance requests, and expansion to multiple service categories. The expanded Fixify description additionally names AC technicians, appliance technicians, painters and cleaners.
+**Source basis:** The original brief explicitly names electrical, plumbing, carpentry and interior work and says the platform can expand to multiple categories. The expanded Fixify definition additionally names AC technicians, appliance technicians, painters and cleaners.
 
 ---
 
@@ -68,11 +92,11 @@ Keep categories database-driven so additional categories can be added without fr
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** INR (₹) for the initial product prototype and data model.
+**CURRENT DEVELOPMENT DEFAULT:** INR (₹) for the initial prototype/development environment because the supplied proposal is India-oriented.
 
-**BUSINESS DECISION REQUIRED:** Confirm the launch currency and whether multi-currency support is required at launch.
+**BUSINESS DECISION REQUIRED:** Confirm launch currency and whether multi-currency support is required at launch.
 
-**Implementation rule:** Currency must be represented as data/configuration, not hard-coded into financial calculations. Monetary values should use integer minor units where appropriate.
+**Implementation rule:** Currency is data/configuration, not a UI constant. Monetary calculations must use a consistent precise representation; use integer minor units where the selected payment/accounting model supports that approach.
 
 ---
 
@@ -82,15 +106,33 @@ Keep categories database-driven so additional categories can be added without fr
 
 **CURRENT DEVELOPMENT DEFAULT:** Support three pricing models from the beginning:
 
-1. **FIXED_PRICE** — customer sees an authoritative service price before booking.
-2. **INSPECTION_FEE** — customer pays a defined inspection/visit fee; repair cost may be determined after inspection.
-3. **QUOTE_AFTER_INSPECTION** — professional inspects first, then submits a quote for additional work.
+### FIXED_PRICE
 
-All authoritative totals are calculated server-side.
+A customer sees an authoritative service price before booking.
 
-**BUSINESS DECISION REQUIRED:** Define the actual pricing model for every launch service, including whether inspection fees are refundable, adjustable against repair charges, or separate.
+### INSPECTION_FEE
 
-**Important product rule:** “Transparent pricing” must not be implemented as a promise of an exact repair price when the job genuinely requires inspection.
+The customer pays a defined visit/inspection charge. Repair pricing may be determined after inspection.
+
+### QUOTE_AFTER_INSPECTION
+
+The professional inspects the problem and submits a quote before variable/additional work proceeds.
+
+**BUSINESS DECISION REQUIRED:** Define the pricing model for every launch service, including:
+
+- base price;
+- inspection fee;
+- labour treatment;
+- material treatment;
+- taxes/fees;
+- discounts;
+- minimum charges;
+- whether inspection fees are separate or adjustable against repair work;
+- whether any service allows customer-selected material substitution.
+
+**Non-negotiable product rule:** Transparency does not mean pretending every repair has a fixed price. If reliable pricing requires physical inspection, the UI must say so.
+
+**Implementation rule:** Final totals are calculated server-side. Client-submitted totals are never authoritative.
 
 ---
 
@@ -98,11 +140,18 @@ All authoritative totals are calculated server-side.
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Services that cannot be reliably priced from the initial request use an inspection-first flow. The professional's physical inspection remains the final basis for repair work.
+**CURRENT DEVELOPMENT DEFAULT:** Use inspection-first workflows for services where the initial description/media cannot reliably establish repair scope or final price.
 
-**BUSINESS DECISION REQUIRED:** Identify which launch services require inspection and define the inspection fee/policy for each one.
+**BUSINESS DECISION REQUIRED:** Identify which services require inspection and define:
 
-**Product rule:** AI and customer-submitted media can assist assessment, but the application must not represent an AI assessment as a guaranteed technical diagnosis.
+- inspection fee;
+- expected inspection duration;
+- whether inspection can itself resolve the problem;
+- whether inspection fee is refundable/creditable;
+- what happens if the professional cannot diagnose the issue;
+- what evidence is captured during inspection.
+
+**Product rule:** AI, photographs, videos and customer descriptions can assist triage. A professional inspection remains the basis for actual repair decisions where required.
 
 ---
 
@@ -110,20 +159,22 @@ All authoritative totals are calculated server-side.
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Store platform commission as configurable service/category-level data. Do not assume a percentage in production logic.
+**CURRENT DEVELOPMENT DEFAULT:** Commission is configurable by service/category and is not hard-coded as one global percentage.
 
 **BUSINESS DECISION REQUIRED:** Define:
 
-- Fixify platform commission model
-- percentage vs fixed fee
-- whether commission applies to labour only or total service value
-- whether material charges are commissionable
-- treatment of discounts
-- treatment of refunds
-- treatment of taxes/fees
-- professional payout timing
+- percentage vs fixed platform fee;
+- labour-only vs total-order commission;
+- material commissionability;
+- tax/fee treatment;
+- discounts;
+- refunds;
+- cancelled jobs;
+- professional payout timing;
+- adjustments/disputes;
+- whether commission changes by category or service area.
 
-**Implementation rule:** Never hard-code the commission percentage in frontend components or client-side calculations.
+**Implementation rule:** Customer and professional clients never calculate authoritative platform commission.
 
 ---
 
@@ -131,17 +182,22 @@ All authoritative totals are calculated server-side.
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Cancellation is state-based and policy-driven. A booking is not physically deleted. The cancellation event is recorded with actor, reason, timestamp, and resulting financial outcome.
+**CURRENT DEVELOPMENT DEFAULT:** Cancellation is a controlled operation, not deletion of a booking. The cancellation event is recorded with actor, reason, time, and resulting financial outcome.
 
-Potential policy stages:
+Evaluate cancellation by lifecycle stage:
 
-- Before professional assignment
-- After assignment
-- After professional acceptance
-- After professional arrival
-- After work starts
+```text
+Before professional assignment
+After assignment
+After professional acceptance
+Professional on the way
+Professional arrived
+Work started
+```
 
-**BUSINESS DECISION REQUIRED:** Define who can cancel at each stage, whether cancellation fees apply, and how those fees affect customer/professional payouts.
+**BUSINESS DECISION REQUIRED:** Define who may cancel at each stage, notice periods, fees, refunds, professional compensation, and customer compensation.
+
+**Implementation rule:** Cancellation behavior is policy-driven and configurable.
 
 ---
 
@@ -149,16 +205,19 @@ Potential policy stages:
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Support rescheduling as a controlled operation that checks professional availability again on the server. A successful reschedule creates a new event in the booking/job timeline instead of overwriting historical data.
+**CURRENT DEVELOPMENT DEFAULT:** Rescheduling is a controlled operation that revalidates availability and records the old and new schedule in the audit/timeline history.
 
 **BUSINESS DECISION REQUIRED:** Define:
 
-- how close to the appointment a customer may reschedule
-- whether professionals may reschedule
-- whether repeated rescheduling is allowed
-- whether price changes when the slot changes
-- whether fees apply
-- what happens if the original professional becomes unavailable
+- customer reschedule window;
+- professional reschedule rights;
+- maximum/repeated rescheduling;
+- whether fees apply;
+- whether price can change;
+- what happens if the original professional becomes unavailable;
+- whether customer reapproval is required.
+
+**Implementation rule:** Never simply overwrite the historical appointment without an event showing the change.
 
 ---
 
@@ -166,26 +225,29 @@ Potential policy stages:
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Support at least:
+**CURRENT DEVELOPMENT DEFAULT:** Financial model supports at least:
 
-- full refund
-- partial refund
-- no refund
-- refund pending
-- refund completed
+```text
+REFUND_PENDING
+PARTIALLY_REFUNDED
+REFUNDED
+```
 
-Refunds are initiated through controlled server-side/payment-provider workflows, never by client-side flags.
+with no-refund outcomes also possible through explicit policy.
 
 **BUSINESS DECISION REQUIRED:** Define refund eligibility for:
 
-- customer cancellation
-- professional cancellation
-- no-show
-- failed service
-- disputed service
-- duplicate payment
-- quote cancellation
-- service under warranty
+- customer cancellation;
+- professional cancellation;
+- no-show;
+- failed service;
+- duplicate payment;
+- dispute resolution;
+- rejected/declined quote;
+- warranty/rework;
+- system/payment errors.
+
+**Implementation rule:** Refunds are created by controlled server/provider workflows. A browser flag cannot create or finalize a refund.
 
 ---
 
@@ -193,9 +255,9 @@ Refunds are initiated through controlled server-side/payment-provider workflows,
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** A professional must pass a Fixify verification workflow before being eligible for live job assignment. The system should support separate verification states rather than a single boolean.
+**CURRENT DEVELOPMENT DEFAULT:** Professionals must pass a Fixify verification workflow before they are eligible for live job assignment.
 
-Suggested states:
+Suggested verification states:
 
 ```text
 PENDING
@@ -206,19 +268,19 @@ REJECTED
 SUSPENDED
 ```
 
-Potential verification domains to support structurally:
+Potential verification domains:
 
-- identity
-- phone/contact information
-- address
-- service categories
-- skills/experience
-- relevant eligibility documents
-- background/identity checks where applicable
+- identity;
+- phone/contact information;
+- address;
+- service category;
+- skill/experience;
+- relevant eligibility/licensing documents where applicable;
+- background/identity checks where applicable.
 
-**BUSINESS DECISION REQUIRED:** Define the exact documents, checks, expiry handling, manual review process, re-verification interval, and category-specific requirements.
+**BUSINESS DECISION REQUIRED:** Define exact document/check requirements, review process, expiry handling, re-verification interval, category-specific rules, and consequences of failed verification.
 
-**Important:** Do not claim a professional is “verified” until the required checks are actually complete.
+**Important:** An account existing is not the same as a professional being verified.
 
 ---
 
@@ -226,9 +288,9 @@ Potential verification domains to support structurally:
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Model warranty/rework as configurable job-level information so the product can support service-specific warranty periods later. Do not promise a universal warranty in customer-facing copy until the policy is approved.
+**CURRENT DEVELOPMENT DEFAULT:** Support configurable job-level warranty/rework information without promising a universal warranty in public marketing.
 
-Suggested conceptual states:
+Possible conceptual states:
 
 ```text
 NOT_APPLICABLE
@@ -240,15 +302,16 @@ RESOLVED
 
 **BUSINESS DECISION REQUIRED:** Define:
 
-- whether Fixify provides a warranty
-- duration by service/category
-- what workmanship is covered
-- what parts are covered
-- exclusions
-- claim window
-- who pays for rework
-- whether the original professional handles the claim
-- escalation rules
+- whether Fixify provides workmanship warranty;
+- duration by service/category;
+- parts coverage;
+- labour coverage;
+- exclusions;
+- claim window;
+- responsibility for supplied materials;
+- who performs rework;
+- escalation rules;
+- refund/replacement interaction.
 
 ---
 
@@ -256,28 +319,31 @@ RESOLVED
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Support three customer choices:
+**CURRENT DEVELOPMENT DEFAULT:** Support three customer choices where a service permits material selection:
 
-- Fixify standard option
-- customer preferred brand/material
-- no preference
+```text
+Fixify standard
+Customer preferred brand/material
+No preference
+```
 
-Also allow the professional to recommend materials after inspection where appropriate.
+Professionals may recommend an alternative after inspection where appropriate.
 
-Material price changes must be visible before customer approval when they alter the payable amount.
+Price changes must be disclosed before they become payable.
 
 **BUSINESS DECISION REQUIRED:** Define:
 
-- whether Fixify supplies materials
-- whether professionals purchase materials
-- whether customers may supply their own materials
-- approved brands/suppliers
-- markup policy
-- proof/record of material purchase
-- return/replacement responsibility
-- warranty responsibility for supplied materials
+- whether Fixify supplies materials;
+- whether professionals purchase materials;
+- whether customers may supply their own materials;
+- approved brands/suppliers;
+- markup policy;
+- proof of purchase;
+- replacement/return responsibility;
+- warranty responsibility;
+- material quality verification.
 
-**Source basis:** The original brief explicitly states that customers should be able to choose required materials and preferred brands such as wires, fittings, wood types, and fabrics. fileciteturn2file1L556-L565
+**Source basis:** The original brief explicitly allows customers to choose required materials such as wires, fittings, wood types or fabrics and select branded/preferred materials. fileciteturn2file1L556-L565
 
 ---
 
@@ -285,9 +351,9 @@ Material price changes must be visible before customer approval when they alter 
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Do not advertise emergency service as a guaranteed launch feature until operational coverage exists.
+**CURRENT DEVELOPMENT DEFAULT:** Do not advertise guaranteed emergency service at launch unless Fixify has real operational coverage.
 
-The system should remain extensible for an emergency flag/priority level:
+The data model should remain capable of supporting:
 
 ```text
 NORMAL
@@ -295,16 +361,16 @@ URGENT
 EMERGENCY
 ```
 
-**BUSINESS DECISION REQUIRED:** Decide whether Fixify will offer emergency services at launch and define:
+**BUSINESS DECISION REQUIRED:** Define:
 
-- supported categories
-- supported hours
-- service-area restrictions
-- emergency fees
-- matching priority
-- expected response time
-- professional availability requirements
-- cancellation rules
+- categories eligible for emergency service;
+- hours;
+- service areas;
+- emergency pricing;
+- response-time target;
+- professional eligibility;
+- priority matching;
+- cancellation/no-show treatment.
 
 ---
 
@@ -316,25 +382,38 @@ EMERGENCY
 
 Eligibility order:
 
-1. Correct service/category skill
-2. Verified professional status
-3. Service-area coverage
-4. Availability for the requested slot
-5. Reasonable travel distance
+```text
+Correct service/category skill
+        ↓
+Verified professional
+        ↓
+Service-area coverage
+        ↓
+Availability
+        ↓
+Reasonable travel distance
+```
 
-Ranking can then consider configurable operational factors such as availability, workload, distance, rating, and reliability.
+After eligibility, ranking may consider:
+
+```text
+availability
+workload
+travel distance
+customer-visible rating
+reliability/completion metrics
+```
 
 **BUSINESS DECISION REQUIRED:** Define whether:
 
-- Fixify auto-assigns the professional
-- customer selects from available professionals
-- both modes are supported
-- customers can explicitly request/rebook a professional
-- professional ranking is customer-visible
-- customer choice overrides automatic matching
-- emergency requests use a different matching rule
+- Fixify auto-assigns professionals;
+- customers choose from eligible professionals;
+- both modes exist;
+- rebooking a preferred professional is guaranteed only when available;
+- customer preference can override automated ranking;
+- emergency jobs have separate matching logic.
 
-**Source basis:** The brief says customers can book skilled professionals based on availability and rebook preferred workers. fileciteturn2file1L556-L565
+**Source basis:** The original brief says customers can book skilled professionals based on availability and rebook preferred workers. fileciteturn2file1L556-L565
 
 ---
 
@@ -342,26 +421,27 @@ Ranking can then consider configurable operational factors such as availability,
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Preserve transactional records needed for service history, payments, invoices, complaints, verification/audit purposes. Use soft-delete/archive patterns for operational records rather than destructive deletion.
+**CURRENT DEVELOPMENT DEFAULT:** Preserve transactional and accountability records needed for service history, payments, invoices, complaints, verification, and audit. Use archive/soft-delete patterns rather than destructive deletion for historical operational records.
 
-Media should have configurable retention policies, with stricter controls for professional verification documents.
+Media and verification documents should have separate retention/access policies.
 
-**BUSINESS DECISION REQUIRED:** Define actual retention periods for:
+**BUSINESS DECISION REQUIRED:** Define retention periods for:
 
-- customer accounts
-- job records
-- invoices
-- payments
-- complaints
-- reviews
-- photos/videos
-- voice recordings/transcripts
-- AI conversations
-- professional verification documents
-- audit logs
-- deleted accounts
+- customer accounts;
+- properties;
+- job records;
+- invoices;
+- payments;
+- complaints;
+- reviews;
+- photos/videos;
+- voice recordings/transcripts;
+- AI conversations;
+- professional verification documents;
+- audit logs;
+- deleted accounts.
 
-Also define the process for data export and deletion requests where required by applicable law.
+Also define applicable data export/deletion processes.
 
 ---
 
@@ -369,37 +449,37 @@ Also define the process for data export and deletion requests where required by 
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** AI is an intake/classification assistant, not the final technical authority.
+**CURRENT DEVELOPMENT DEFAULT:** AI is a service-intake and classification assistant, not the final technical authority.
 
 AI may:
 
-- ask clarifying questions
-- summarize the customer's problem
-- identify a likely service category
-- request useful media
-- provide a confidence level
-- recommend inspection
-- escalate to a human/professional
+- ask clarifying questions;
+- summarize the problem;
+- identify likely service category;
+- request useful media;
+- provide confidence;
+- recommend inspection;
+- escalate to human/professional assistance.
 
 AI must not:
 
-- present uncertain findings as a guaranteed diagnosis
-- invent prices
-- approve work
-- authorize additional charges
-- override professional inspection
-- claim that an unsafe situation is safe
+- present uncertain findings as guaranteed diagnosis;
+- invent prices;
+- approve additional work;
+- authorize charges;
+- override professional findings;
+- claim a safety-critical situation is safe without a reliable basis.
 
-Escalate when:
+Escalation should occur when:
 
-- classification confidence is low
-- symptoms are ambiguous
-- uploaded media is inconclusive
-- the customer requests certainty beyond available evidence
-- the case is outside supported categories
-- a potential safety-critical condition is detected
+- confidence is low;
+- symptoms are ambiguous;
+- media is inconclusive;
+- the case is outside supported categories;
+- a user requests certainty beyond available evidence;
+- potential safety-critical conditions are detected.
 
-**BUSINESS DECISION REQUIRED:** Define the exact confidence threshold/logic, supported categories, human-support escalation process, AI data retention policy, customer-facing disclaimer wording, and whether AI is available on every request or only selected categories.
+**BUSINESS DECISION REQUIRED:** Define exact confidence/escalation thresholds, supported categories, escalation destination, customer disclosure, AI retention period, and whether AI is optional or mandatory for selected flows.
 
 ---
 
@@ -407,29 +487,29 @@ Escalate when:
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Premium/subscription is Phase 2+ and disabled in MVP unless explicitly activated.
+**CURRENT DEVELOPMENT DEFAULT:** Premium is Phase 2+ and disabled from the MVP unless explicitly activated.
 
-Potential benefits described in the product concept include:
+Potential benefits from the business concept:
 
-- priority support
-- selected discounts
-- maintenance reminders
-- preferential booking
+- priority support;
+- selected discounts;
+- maintenance reminders;
+- preferential booking.
 
 **BUSINESS DECISION REQUIRED:** Define:
 
-- subscription price
-- billing frequency
-- exact benefits
-- exclusions
-- cancellation/refund rules
-- whether discounts apply to labour, materials, or platform fees
-- whether premium affects matching priority
-- unit economics target
+- price;
+- billing frequency;
+- exact benefits;
+- exclusions;
+- discount scope;
+- premium cancellation/refund;
+- whether premium changes matching priority;
+- unit-economics target.
 
-**Product rule:** Do not build premium around the assumption that customers will subscribe. Validate customer value and economics first.
+**Product rule:** Do not assume subscription demand before validating customer value.
 
-The original project brief lists subscription plans as a possible business strategy, not as a validated launch requirement. fileciteturn1file0L603-L608
+The original brief presents subscription plans as a possible business strategy, not as a validated MVP requirement. fileciteturn1file0L603-L608
 
 ---
 
@@ -437,100 +517,179 @@ The original project brief lists subscription plans as a possible business strat
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** B2B is a later expansion, but the property/domain model should support multiple properties and controlled organization access without requiring a database redesign.
+**CURRENT DEVELOPMENT DEFAULT:** B2B is a later expansion, but the property/data model must support multiple properties and controlled organizational access without a fundamental redesign.
 
-Potential B2B customers:
+Potential B2B segments:
 
-- offices
-- commercial properties
-- property managers
-- landlords
-- institutions
+- offices;
+- shops/commercial properties;
+- property managers;
+- landlords;
+- institutions.
 
 Potential capabilities:
 
-- multiple properties/units
-- staff permissions
-- centralized maintenance requests
-- recurring maintenance
-- service contracts
-- consolidated invoices
-- approval workflows
+- multiple properties/units;
+- staff permissions;
+- centralized maintenance requests;
+- recurring services;
+- service contracts;
+- consolidated invoices;
+- approval workflows.
 
-**BUSINESS DECISION REQUIRED:** Define whether B2B launches alongside the consumer marketplace or later, target customer segment, contract model, SLA expectations, pricing, invoicing, permissions, and account hierarchy.
+**BUSINESS DECISION REQUIRED:** Define target B2B segment, launch timing, account hierarchy, contract/SLA model, pricing, permissions, invoicing, and recurring-maintenance model.
 
 ---
 
-# 20. Additional open decisions that must not be silently invented
+# 20. Additional business decisions required before commercial launch
 
-The following are also necessary for a complete implementation even though they are not part of the requested 18-item decision list.
+These are not merely implementation details. They can materially change the product and economics.
 
 ## 20.1 Payment timing
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Support payment states and allow payment timing to be configured by service type.
+**CURRENT DEVELOPMENT DEFAULT:** Support the architecture for upfront, inspection-upfront, post-service, deposit, and mixed strategies without committing the UI to one universal pattern.
 
-**BUSINESS DECISION REQUIRED:** Pay before service, inspection-only upfront, pay after service, deposit, or mixed model?
+**BUSINESS DECISION REQUIRED:** Define payment timing by service/pricing model.
+
+---
 
 ## 20.2 Customer/professional communication
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** In-app status updates first; direct chat/phone masking can be added later.
+**CURRENT DEVELOPMENT DEFAULT:** In-app operational status updates first. Direct chat/calling can be added behind an explicit communication policy.
 
-**BUSINESS DECISION REQUIRED:** Should customers and professionals have direct messaging/calling? If yes, when is it available and what information is masked?
+**BUSINESS DECISION REQUIRED:** Decide whether direct messaging/calling is allowed, at what job stages, and whether phone numbers are masked.
+
+---
 
 ## 20.3 Professional no-show
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Record no-show as a job event and trigger reassignment/support workflow.
+**CURRENT DEVELOPMENT DEFAULT:** Record a no-show event, notify the customer, attempt reassignment where operationally possible, and route the incident into the appropriate policy.
 
-**BUSINESS DECISION REQUIRED:** Customer compensation, professional penalties, and escalation policy.
+**BUSINESS DECISION REQUIRED:** Define compensation, penalties, customer refund, rebooking priority, and evidence requirements.
+
+---
 
 ## 20.4 Customer no-show / inaccessible property
 
 **STATUS: OPEN**
 
-**CURRENT DEVELOPMENT DEFAULT:** Record the event without deleting the booking and route it through the cancellation/no-show policy.
+**CURRENT DEVELOPMENT DEFAULT:** Preserve the booking and record the incident rather than deleting it.
 
-**BUSINESS DECISION REQUIRED:** Fees, rebooking behavior, and evidence required from the professional.
-
-## 20.5 Service completion evidence
-
-**STATUS: OPEN**
-
-**CURRENT DEVELOPMENT DEFAULT:** Professional can submit completion notes and optional photos/evidence; required evidence can be configured by category.
-
-**BUSINESS DECISION REQUIRED:** Which service categories require before/after photos, customer signature, OTP, or other proof of completion?
-
-## 20.6 Rating rules
-
-**STATUS: OPEN**
-
-**CURRENT DEVELOPMENT DEFAULT:** Only customers with eligible completed jobs can submit a review.
-
-**BUSINESS DECISION REQUIRED:** Review window, professional response, moderation, editing/deletion policy, and dispute handling.
+**BUSINESS DECISION REQUIRED:** Define fees, professional compensation, evidence, cancellation effects, and rebooking rules.
 
 ---
 
-# 21. Implementation principles for open decisions
+## 20.5 Completion evidence
 
-Until a business owner makes a final decision:
+**STATUS: OPEN**
 
-1. Store the rule in configuration where practical.
-2. Do not hard-code commercial values into UI components.
-3. Do not make irreversible database assumptions.
-4. Do not present development defaults as customer-facing promises.
-5. Record material changes through migrations and documentation.
-6. Update this file before changing business-critical behavior.
+**CURRENT DEVELOPMENT DEFAULT:** Professionals can submit completion notes and evidence; service-specific required evidence can be configured.
+
+**BUSINESS DECISION REQUIRED:** Define where required:
+
+- before/after photographs;
+- customer signature;
+- OTP/PIN confirmation;
+- checklist;
+- meter readings;
+- material records.
 
 ---
 
-# 22. Decision record format
+## 20.6 Customer review rules
 
-When a decision is finalized, replace the relevant `OPEN` section with:
+**STATUS: OPEN**
+
+**CURRENT DEVELOPMENT DEFAULT:** Only customers with an eligible completed job can review that job/professional.
+
+**BUSINESS DECISION REQUIRED:** Define:
+
+- rating scale;
+- review window;
+- editing;
+- deletion/moderation;
+- professional response;
+- review disputes.
+
+---
+
+## 20.7 Service-area definition
+
+**STATUS: OPEN**
+
+**CURRENT DEVELOPMENT DEFAULT:** Store service coverage by city/zone and professional area rather than assuming platform-wide availability.
+
+**BUSINESS DECISION REQUIRED:** Define whether coverage is:
+
+- pincode based;
+- radius based;
+- ward/zone based;
+- manually managed;
+- hybrid.
+
+---
+
+## 20.8 Job warranty / recurrence handling
+
+**STATUS: OPEN**
+
+**CURRENT DEVELOPMENT DEFAULT:** A customer can report a recurring issue through the original job where a warranty/rework policy applies.
+
+**BUSINESS DECISION REQUIRED:** Define how recurring faults are classified and whether they become a warranty claim, new booking, complaint, or support case.
+
+---
+
+# 21. Product decisions that should NOT be left to coding agents
+
+Coding agents must not independently decide:
+
+```text
+Launch city
+Launch service catalogue
+Currency
+Prices
+Inspection fees
+Commission
+Taxes/fees treatment
+Cancellation fees
+Refund eligibility
+Professional payouts
+Verification requirements
+Warranty promises
+Material markup
+Emergency pricing
+Matching policy visible to customers
+Premium price/benefits
+B2B pricing/contracts
+```
+
+An agent may propose options, but the final value belongs in this document.
+
+---
+
+# 22. Implementation rules for OPEN decisions
+
+Until a business decision is finalized:
+
+1. Use configuration/data rather than hard-coded constants where practical.
+2. Use neutral UI copy that does not promise an unresolved policy.
+3. Keep migrations reversible through additive/configurable design where practical.
+4. Do not create irreversible commercial assumptions inside database functions.
+5. Mark temporary seed values as development data.
+6. Record the affected feature/module when an open decision is implemented with a temporary default.
+7. Update this document before changing production commercial behavior.
+
+---
+
+# 23. Decision record format
+
+When a decision becomes final, replace the relevant OPEN status with:
 
 ```text
 STATUS: DECIDED
@@ -538,36 +697,72 @@ DECISION DATE: YYYY-MM-DD
 DECISION OWNER: <name/role>
 FINAL DECISION: <decision>
 RATIONALE: <short explanation>
-IMPLEMENTATION IMPACT: <what changes>
+IMPLEMENTATION IMPACT: <affected product/backend/UI areas>
 ```
 
-Keep the historical rationale in Git commit history or a dedicated decision log when the change is significant.
+For significant decisions, preserve historical changes in Git and/or a dedicated decision log.
 
 ---
 
-# 23. Current implementation status
+# 24. Current implementation status
 
-| Decision | Status | Safe development assumption |
+| Decision | Status | Safe development default |
 |---|---|---|
 | Launch city | OPEN | One Indian urban market, configurable |
-| Launch categories | OPEN | Core maintenance categories from Fixify concept |
+| Launch categories | OPEN | Core Fixify maintenance categories, database-driven |
 | Currency | OPEN | INR for prototype/development |
 | Pricing model | OPEN | Fixed + inspection + post-inspection quote support |
-| Inspection policy | OPEN | Inspection where pre-service diagnosis/pricing is unreliable |
-| Commission | OPEN | Configurable, no percentage hard-coded |
+| Inspection policy | OPEN | Inspection where reliable pre-service pricing/scope is not possible |
+| Commission | OPEN | Configurable; no percentage hard-coded |
 | Cancellation | OPEN | State/policy driven |
-| Rescheduling | OPEN | Server revalidation of availability |
-| Refund | OPEN | Full/partial/refund-pending/refunded states |
-| Professional verification | OPEN | Verification workflow required before live jobs |
-| Warranty | OPEN | Configurable, no universal promise |
-| Materials | OPEN | Customer preference + professional recommendation |
+| Rescheduling | OPEN | Server revalidation + history |
+| Refunds | OPEN | Full/partial/refund-pending/refunded support |
+| Professional verification | OPEN | Verification workflow required before live work |
+| Warranty | OPEN | Configurable; no universal promise |
+| Materials | OPEN | Standard/preferred/no-preference + professional recommendation |
 | Emergency service | OPEN | Not promised at launch |
-| Matching | OPEN | Deterministic verified/skill/area/availability matching |
-| Data retention | OPEN | Preserve transactional/audit records; configurable media retention |
-| AI escalation | OPEN | AI assists; uncertainty escalates |
+| Matching | OPEN | Verified + skill + area + availability first |
+| Data retention | OPEN | Preserve transactional/audit records; configurable media policy |
+| AI escalation | OPEN | AI assists; uncertainty/safety-sensitive cases escalate |
 | Premium | OPEN | Phase 2+ |
-| B2B | OPEN | Later phase, model extensible |
+| B2B | OPEN | Later phase; extensible property model |
+| Payment timing | OPEN | Configurable by service/pricing model |
+| Communication | OPEN | In-app operational updates first |
+| Professional no-show | OPEN | Record + notify + reassignment workflow |
+| Customer no-show | OPEN | Record + policy-driven financial outcome |
+| Completion evidence | OPEN | Configurable per service |
+| Review rules | OPEN | Completed-job reviews only |
+| Service-area model | OPEN | City/zone-based |
+| Recurrence/warranty claims | OPEN | Supported structurally; final policy undecided |
 
 ---
+
+# 25. Final rule for product and engineering
+
+When a requirement is unclear, do not solve the ambiguity by quietly inventing business behavior.
+
+Use this decision path:
+
+```text
+Is the behavior already defined here?
+        |
+      YES → implement it.
+        |
+       NO
+        ↓
+Is it a low-risk technical implementation detail?
+        |
+   YES → choose the simplest reversible implementation.
+        |
+       NO
+        ↓
+Mark the decision OPEN.
+Record a temporary development default.
+Do not turn it into an irreversible business rule.
+```
+
+The goal of this document is not to eliminate all uncertainty before coding.
+
+The goal is to make uncertainty **visible, isolated, configurable, and owned by the correct decision-maker**.
 
 # END OF PRODUCT DECISIONS

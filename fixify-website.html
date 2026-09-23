@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fixify — Property care, made intelligent</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='11' fill='%230A0B0D'/%3E%3Cpath d='M8 30 L24 13 L40 30' fill='none' stroke='%23F4F5F3' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cline x1='24' y1='13' x2='15' y2='35' stroke='%23F4F5F3' stroke-width='2.2' stroke-linecap='round'/%3E%3Cline x1='24' y1='13' x2='33' y2='35' stroke='%23F4F5F3' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='13' r='3.6' fill='%235FE3B0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0B0D; --bg-2:#101216; --panel:#15171C; --panel-2:#1B1E24; --line:#262A31;
+  --ink:#F4F5F3; --ink-dim:#9BA1AB; --ink-faint:#5E646E;
+  --mint:#5FE3B0; --mint-dim:#274238;
+  --amber:#E3A85F;
+  --font-d:'Space Grotesk',-apple-system,sans-serif; --font-b:'Inter',-apple-system,sans-serif;
+  --r:14px; --rl:22px;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;scroll-padding-top:70px;}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-b);-webkit-font-smoothing:antialiased;line-height:1.5;}
+h1,h2,h3,.disp{font-family:var(--font-d);letter-spacing:-0.015em;margin:0;}
+p{margin:0;}
+a{color:inherit;text-decoration:none;}
+::selection{background:var(--mint);color:#08110D;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+section{padding:100px 0;border-top:1px solid var(--line);}
+.eyebrow{font-size:13px;color:var(--mint);font-weight:500;margin-bottom:14px;}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.in{opacity:1;transform:none;}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 28px;padding-top:calc(16px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;justify-content:space-between;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .3s;}
+.nav.scrolled{border-color:var(--line);}
+.logo{display:flex;align-items:center;gap:9px;font-family:var(--font-d);font-weight:700;font-size:18px;}
+.logo .mk{width:20px;height:20px;border-radius:6px;background:var(--mint);position:relative;}
+.logo .mk::after{content:"";position:absolute;inset:5px;border:2px solid var(--bg);border-radius:2px;}
+.navlinks{display:flex;gap:30px;font-size:14px;color:var(--ink-dim);}
+.navlinks a:hover{color:var(--ink);}
+.navcta{display:flex;align-items:center;gap:16px;}
+.btn{font-family:var(--font-b);font-weight:600;font-size:14px;border-radius:999px;padding:11px 22px;border:1px solid transparent;cursor:pointer;display:inline-block;transition:transform .18s ease;}
+.btn-mint{background:var(--mint);color:#08130E;}
+.btn-line{border-color:var(--line);color:var(--ink);background:transparent;}
+.navmenu-btn{display:none;background:none;border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--ink);}
+@media(max-width:860px){.navlinks{display:none;}.navmenu-btn{display:block;}}
+
+/* hero */
+.hero{padding:170px 0 90px;border-top:none;position:relative;overflow:hidden;}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center;}
+@media(max-width:920px){.hero-grid{grid-template-columns:1fr;}}
+.hero h1{font-size:clamp(38px,5.4vw,64px);font-weight:600;line-height:1.04;max-width:12ch;}
+.hero h1 span{color:var(--ink-dim);}
+.hero .sub{margin-top:22px;font-size:16.5px;color:var(--ink-dim);max-width:46ch;line-height:1.65;}
+.hero .ctas{display:flex;gap:12px;margin-top:32px;}
+.aicard{background:var(--panel);border:1px solid var(--line);border-radius:var(--rl);padding:22px;box-shadow:0 30px 70px -34px rgba(0,0,0,.6);}
+.aicard .field-row{display:flex;align-items:center;gap:10px;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;}
+.aicard .field-row input{background:none;border:none;color:var(--ink);font-family:var(--font-b);font-size:14px;flex:1;outline:none;}
+.aicard .field-row input::placeholder{color:var(--ink-faint);}
+.iconbtns{display:flex;gap:8px;margin-top:12px;}
+.icb{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border:1px solid var(--line);border-radius:10px;font-size:10.5px;color:var(--ink-dim);}
+.icon{width:17px;height:17px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.ai-result{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .5s ease,max-height .6s ease;}
+.ai-result.show{opacity:1;max-height:400px;}
+.ai-result .tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mint);background:var(--mint-dim);border-radius:999px;padding:5px 11px;font-weight:600;}
+.ai-result .kv{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-dim);padding:7px 0;border-bottom:1px dashed var(--line);}
+.ai-result .kv:last-of-type{border:0;}
+.ai-result .kv b{color:var(--ink);font-weight:500;}
+.qline{font-size:12.5px;color:var(--ink-faint);margin-top:10px;}
+.disclaimer{font-size:11px;color:var(--ink-faint);margin-top:14px;}
+
+/* problem list */
+.plist{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--line);border:1px solid var(--line);border-radius:var(--rl);overflow:hidden;}
+@media(max-width:700px){.plist{grid-template-columns:1fr;}}
+.prow{background:var(--panel);padding:22px 26px;display:flex;align-items:center;gap:14px;}
+.prow .n{font-family:var(--font-d);font-size:13px;color:var(--ink-faint);}
+
+/* two-col headline layout */
+.head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;flex-wrap:wrap;margin-bottom:48px;}
+.head-row h2{font-size:clamp(26px,3.2vw,38px);font-weight:600;max-width:16ch;}
+.head-row .desc{color:var(--ink-dim);max-width:38ch;font-size:14.5px;line-height:1.6;}
+
+/* AI experience modes */
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:800px){.modes{grid-template-columns:1fr 1fr;}}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 18px;text-align:center;}
+.mode .ci{width:38px;height:38px;border-radius:10px;background:var(--bg-2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+.mode b{display:block;font-size:13.5px;font-weight:600;}
+.mode span{font-size:11.5px;color:var(--ink-faint);}
+
+/* steps */
+.steps6{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
+@media(max-width:900px){.steps6{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.steps6{grid-template-columns:1fr 1fr;}}
+.step6{padding-top:14px;border-top:2px solid var(--line);}
+.step6 .n{font-family:var(--font-d);font-size:13px;color:var(--mint);}
+.step6 b{display:block;margin:6px 0 6px;font-size:15px;}
+.step6 span{font-size:12.5px;color:var(--ink-dim);}
+
+/* professional card */
+.procard{background:var(--panel);border:1px solid var(--line);border-radius:var(--rl);padding:28px;max-width:480px;}
+.pro-top{display:flex;align-items:center;gap:14px;}
+.pro-av{width:52px;height:52px;border-radius:50%;background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:600;}
+.pro-tag{font-size:11px;color:var(--mint);background:var(--mint-dim);border-radius:999px;padding:3px 9px;display:inline-block;margin-bottom:6px;}
+.pro-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line);}
+.pro-meta div span{display:block;font-size:11px;color:var(--ink-faint);}
+.pro-meta div b{font-size:13.5px;font-weight:500;}
+.skillchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;}
+.skillchip{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--ink-dim);}
+
+/* timeline */
+.timeline{display:flex;justify-content:space-between;position:relative;margin-top:10px;}
+.timeline::before{content:"";position:absolute;top:6px;left:0;right:0;height:2px;background:var(--line);}
+.tstep{flex:1;text-align:center;position:relative;}
+.tstep .d{width:12px;height:12px;border-radius:50%;background:var(--mint);margin:0 auto 10px;position:relative;z-index:2;}
+.tstep.pending .d{background:var(--panel-2);border:2px solid var(--line);}
+.tstep span{font-size:11px;color:var(--ink-dim);}
+
+/* pricing steps */
+.pflow{display:flex;gap:2px;flex-wrap:wrap;}
+.pflow .pf{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;}
+.pflow .pf b{display:block;font-size:13.5px;margin-bottom:5px;}
+.pflow .pf span{font-size:12px;color:var(--ink-dim);}
+.approvebadge{display:inline-block;margin-top:8px;font-size:10.5px;background:var(--mint-dim);color:var(--mint);border-radius:6px;padding:2px 7px;font-weight:600;}
+
+/* passport */
+.passport{background:var(--panel);border:1px solid var(--line);border-radius:26px;padding:32px;position:relative;overflow:hidden;}
+.passport::before{content:"";position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:var(--mint-dim);opacity:.5;filter:blur(30px);}
+.pp-top{display:flex;justify-content:space-between;align-items:center;position:relative;}
+.pp-chip{font-size:11px;color:var(--mint);border:1px solid var(--mint-dim);border-radius:999px;padding:5px 12px;}
+.pp-title{font-family:var(--font-d);font-size:20px;font-weight:600;margin-top:6px;}
+.pp-hist{margin-top:24px;position:relative;}
+.pp-row{display:flex;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:13.5px;}
+.pp-row:first-child{border:0;}
+.pp-row span{color:var(--ink-faint);font-size:12px;}
+.pp-foot{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px;position:relative;}
+.pp-box{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.pp-box b{display:block;font-size:13px;}
+.pp-box span{font-size:11.5px;color:var(--ink-faint);}
+
+/* business / grid feature */
+.chiprow{display:flex;flex-wrap:wrap;gap:10px;}
+.bizchip{border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:13.5px;color:var(--ink-dim);}
+.featgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px;}
+@media(max-width:780px){.featgrid{grid-template-columns:1fr 1fr;}}
+.featbox{border:1px solid var(--line);border-radius:var(--r);padding:18px;background:var(--panel);}
+.featbox b{display:block;font-size:13.5px;margin-bottom:4px;}
+.featbox span{font-size:11.5px;color:var(--ink-faint);}
+
+/* future / cta */
+.future{text-align:left;max-width:60ch;}
+.future h2{font-size:clamp(28px,4vw,42px);font-weight:600;line-height:1.15;}
+.finalcta{text-align:center;padding:130px 0;}
+.finalcta h2{font-size:clamp(36px,6vw,68px);font-weight:600;}
+
+footer{padding:70px 0 44px;}
+.foot-grid{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+.foot-cols{display:flex;gap:56px;flex-wrap:wrap;}
+.foot-col b{display:block;font-size:12px;color:var(--ink-faint);margin-bottom:12px;}
+.foot-col a{display:block;font-size:13.5px;color:var(--ink-dim);margin-bottom:9px;}
+.foot-bottom{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:12px;color:var(--ink-faint);flex-wrap:wrap;gap:10px;}
+
+/* brand mark */
+.fx-mark{color:var(--ink);flex:none;}
+.logo{display:flex;align-items:center;gap:9px;font-family:var(--font-d);font-weight:700;font-size:18px;}
+.markgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+@media(max-width:900px){.markgrid{grid-template-columns:repeat(2,1fr);}}
+.markbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:128px;text-align:center;}
+.markbox.light{background:#EDEEEC;}
+.markbox.light .fx-mark{color:#0A0B0D;}
+.markbox.light .fx-word{color:#0A0B0D;}
+.markbox span{font-size:10.5px;color:var(--ink-faint);letter-spacing:.02em;}
+.fx-word{font-family:var(--font-d);font-weight:700;font-size:17px;color:var(--ink);}
+.favtile{width:42px;height:42px;border-radius:11px;background:#0A0B0D;display:flex;align-items:center;justify-content:center;}
+.lockup{display:flex;align-items:center;gap:9px;}
+
+/* splash */
+.splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .6s ease;}
+.splash.hide{opacity:0;pointer-events:none;}
+#roofPath,#branchL,#branchR{stroke-dasharray:90;stroke-dashoffset:90;animation:fxdraw .9s cubic-bezier(.4,0,.2,1) forwards;}
+#branchL{animation-delay:.45s;}
+#branchR{animation-delay:.55s;}
+#nodeC{opacity:0;transform:scale(.2);transform-origin:24px 13px;animation:fxpop .4s ease forwards .85s;}
+@keyframes fxdraw{to{stroke-dashoffset:0;}}
+@keyframes fxpop{to{opacity:1;transform:scale(1);}}
+.splash-word{font-family:var(--font-d);letter-spacing:.14em;font-size:13px;color:var(--ink-dim);opacity:0;animation:fxfade .5s ease forwards 1.05s;}
+@keyframes fxfade{to{opacity:1;}}
+
+/* network canvas */
+#netCanvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none;z-index:0;}
+.hero-grid{position:relative;z-index:1;}
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash">
+  <svg viewBox="0 0 48 48" width="60" height="60">
+    <path id="roofPath" d="M8 30 L24 13 L40 30" fill="none" stroke="#F4F5F3" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <line id="branchL" x1="24" y1="13" x2="15" y2="35" stroke="#F4F5F3" stroke-width="2.2" stroke-linecap="round"/>
+    <line id="branchR" x1="24" y1="13" x2="33" y2="35" stroke="#F4F5F3" stroke-width="2.2" stroke-linecap="round"/>
+    <circle id="nodeC" cx="24" cy="13" r="3.6" fill="#5FE3B0"/>
+  </svg>
+  <div class="splash-word">FIXIFY</div>
+</div>
+
+<nav class="nav" id="nav">
+  <div class="logo"><svg class="fx-mark" viewBox="0 0 48 48" width="22" height="22"><path d="M8 30 L24 13 L40 30" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="13" x2="15" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="24" y1="13" x2="33" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="13" r="3.6" fill="var(--mint)"/></svg>FIXIFY</div>
+  <div class="navlinks">
+    <a href="#how">How it works</a><a href="#services">Services</a><a href="#ai">AI</a>
+    <a href="#passport">Property Passport</a><a href="#professionals">For professionals</a>
+    <a href="#business">Business</a><a href="#about">About</a>
+  </div>
+  <div class="navcta"><a class="btn btn-mint" href="#ai">Get started</a><button class="navmenu-btn">☰</button></div>
+</nav>
+
+<section class="hero">
+  <canvas id="netCanvas" aria-hidden="true"></canvas>
+  <div class="wrap hero-grid">
+    <div>
+      <h1 class="reveal in">Property care,<br><span>made intelligent.</span></h1>
+      <p class="sub reveal in">Describe the problem. Show us what happened. Fixify understands the issue and connects you with the right professional.</p>
+      <div class="ctas reveal in"><a class="btn btn-mint" href="#ai">Find a professional</a><a class="btn btn-line" href="#how">How it works</a></div>
+    </div>
+    <div class="aicard reveal in" id="aicard">
+      <div class="field-row"><svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg><input id="aiInput" placeholder="What needs fixing?" value="My kitchen sink is leaking."></div>
+      <div class="iconbtns">
+        <div class="icb"><svg class="icon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg>Voice</div>
+        <div class="icb"><svg class="icon" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13.5" r="3"/></svg>Photo</div>
+        <div class="icb"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>Video</div>
+      </div>
+      <div class="ai-result" id="aiResult">
+        <span class="tag"><svg class="icon" width="13" height="13" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>Possible issue: Plumbing</span>
+        <div class="kv"><span>Recommended service</span><b>Plumber</b></div>
+        <div class="qline">Is the leak coming from the pipe or tap?</div>
+        <div class="qline">Is the water supply currently turned off?</div>
+        <a class="btn btn-mint" style="display:block;text-align:center;margin-top:16px;" href="#professionals">Find a professional</a>
+      </div>
+      <p class="disclaimer">Fixify's assistant helps structure the request — it doesn't replace a qualified technician's diagnosis.</p>
+    </div>
+  </div>
+</section>
+
+<section class="reveal" id="mark">
+  <div class="wrap">
+    <div class="head-row"><h2>An original mark</h2><p class="desc">A rooftop resolving into a connection node — property, read by something intelligent. Simple enough to sit on a home screen.</p></div>
+    <div class="markgrid">
+      <div class="markbox"><svg class="fx-mark" viewBox="0 0 48 48" width="34" height="34"><path d="M8 30 L24 13 L40 30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="13" x2="15" y2="35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="24" y1="13" x2="33" y2="35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="13" r="3.4" fill="var(--mint)"/></svg><span>Symbol</span></div>
+      <div class="markbox"><span class="fx-word">FIXIFY</span><span>Wordmark</span></div>
+      <div class="markbox"><div class="lockup"><svg class="fx-mark" viewBox="0 0 48 48" width="24" height="24"><path d="M8 30 L24 13 L40 30" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="13" x2="15" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="24" y1="13" x2="33" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="13" r="3.6" fill="var(--mint)"/></svg><span class="fx-word">FIXIFY</span></div><span>Lockup</span></div>
+      <div class="markbox light"><svg class="fx-mark" viewBox="0 0 48 48" width="30" height="30"><path d="M8 30 L24 13 L40 30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="13" x2="15" y2="35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="24" y1="13" x2="33" y2="35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="13" r="3.4" fill="var(--mint)"/></svg><span>On light</span></div>
+      <div class="markbox"><div class="favtile"><svg class="fx-mark" viewBox="0 0 48 48" width="20" height="20" style="color:#F4F5F3;"><path d="M8 30 L24 13 L40 30" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="13" x2="15" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="24" y1="13" x2="33" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="13" r="3.6" fill="var(--mint)"/></svg></div><span>Favicon</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Property problems shouldn't require guesswork.</h2><p class="desc">Every repair starts the same frustrating way — before Fixify simplifies it.</p></div>
+    <div class="plist">
+      <div class="prow"><span class="n">01</span>Wrong technician for the job</div>
+      <div class="prow"><span class="n">02</span>Unclear, inconsistent pricing</div>
+      <div class="prow"><span class="n">03</span>No way to verify who's arriving</div>
+      <div class="prow"><span class="n">04</span>Explaining the same problem twice</div>
+      <div class="prow"><span class="n">05</span>No record of what was done before</div>
+      <div class="prow"><span class="n">06</span>Little follow-up once the job is done</div>
+    </div>
+  </div>
+</section>
+
+<section id="ai" class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Just tell Fixify what's wrong.</h2><p class="desc">Four ways in, one structured request out.</p></div>
+    <div class="modes">
+      <div class="mode"><div class="ci"><svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg></div><b>Text</b><span>Describe it plainly</span></div>
+      <div class="mode"><div class="ci"><svg class="icon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg></div><b>Voice</b><span>Say what happened</span></div>
+      <div class="mode"><div class="ci"><svg class="icon" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13.5" r="3"/></svg></div><b>Photo</b><span>Show the issue</span></div>
+      <div class="mode"><div class="ci"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg></div><b>Video</b><span>Film it in motion</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>How Fixify works</h2><p class="desc">From a broken tap to a closed ticket, in six steps.</p></div>
+    <div class="steps6">
+      <div class="step6"><span class="n">01</span><b>Describe</b><span>Tell us what's wrong, in any format.</span></div>
+      <div class="step6"><span class="n">02</span><b>Understand</b><span>The assistant structures the problem.</span></div>
+      <div class="step6"><span class="n">03</span><b>Match</b><span>A verified professional is suggested.</span></div>
+      <div class="step6"><span class="n">04</span><b>Book</b><span>Confirm a time that works.</span></div>
+      <div class="step6"><span class="n">05</span><b>Fix</b><span>Inspection, approval, then the work.</span></div>
+      <div class="step6"><span class="n">06</span><b>Remember</b><span>It's logged to your Property Passport.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="services" class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Verified professionals, not a directory</h2><p class="desc">Every professional on Fixify is background-checked and rated on real completed work.</p></div>
+    <div class="procard">
+      <div class="pro-top">
+        <div class="pro-av">RK</div>
+        <div><span class="pro-tag">Verified professional</span><div style="font-family:var(--font-d);font-size:17px;font-weight:600;">Ravi Kumar</div><div style="font-size:12.5px;color:var(--ink-dim);">Electrician · 4.9 ★ · 1,240 services</div></div>
+      </div>
+      <div class="pro-meta">
+        <div><span>Experience</span><b>8 years</b></div>
+        <div><span>Service area</span><b>South Delhi</b></div>
+        <div><span>Response time</span><b>Under 20 min</b></div>
+        <div><span>Languages</span><b>Hindi, English</b></div>
+      </div>
+      <div class="skillchips"><span class="skillchip">Wiring</span><span class="skillchip">Switchboards</span><span class="skillchip">Inverters</span><span class="skillchip">Fault diagnosis</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Follow the job, live</h2><p class="desc">Know exactly where things stand, from confirmation to completion.</p></div>
+    <div class="timeline">
+      <div class="tstep"><div class="d"></div><span>Confirmed</span></div>
+      <div class="tstep"><div class="d"></div><span>Assigned</span></div>
+      <div class="tstep"><div class="d"></div><span>Travelling</span></div>
+      <div class="tstep pending"><div class="d"></div><span>Arrived</span></div>
+      <div class="tstep pending"><div class="d"></div><span>Inspection</span></div>
+      <div class="tstep pending"><div class="d"></div><span>In progress</span></div>
+      <div class="tstep pending"><div class="d"></div><span>Completed</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Nothing added without your approval</h2><p class="desc">Pricing stays visible at every stage of the job.</p></div>
+    <div class="pflow">
+      <div class="pf"><b>Inspection</b><span>Professional assesses the problem on site.</span></div>
+      <div class="pf"><b>Estimated cost</b><span>A clear range before work begins.</span></div>
+      <div class="pf"><b>Parts &amp; materials</b><span>Itemised, at transparent cost.</span></div>
+      <div class="pf"><b>Additional work</b><span>Only if something else is found.</span><span class="approvebadge">Needs your approval</span></div>
+      <div class="pf"><b>Final invoice</b><span>Digital, itemised, saved to your Passport.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="passport" class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Every property deserves a memory.</h2><p class="desc">The Fixify Property Passport is the running record of everything done to your home — searchable, permanent, yours.</p></div>
+    <div class="passport">
+      <div class="pp-top">
+        <div><span class="pp-chip">Property Passport</span><div class="pp-title">B-204, Palm Greens · Apartment</div></div>
+        <svg class="icon" width="26" height="26" viewBox="0 0 24 24" style="stroke:var(--mint);"><path d="M12 3l7 3v6c0 5-3.4 7.8-7 9-3.6-1.2-7-4-7-9V6z"/></svg>
+      </div>
+      <div class="pp-hist">
+        <div class="pp-row">AC servicing<span>12 Aug 2026</span></div>
+        <div class="pp-row">Kitchen plumbing repair<span>04 Jul 2026</span></div>
+        <div class="pp-row">Electrical repair, bedroom<span>19 May 2026</span></div>
+      </div>
+      <div class="pp-foot">
+        <div class="pp-box"><b>Water pump</b><span>Warranty active · 8 months left</span></div>
+        <div class="pp-box"><b>Next maintenance</b><span>AC servicing due in 45 days</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="business" class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Fixify for business</h2><p class="desc">Built for anyone responsible for more than one property.</p></div>
+    <div class="chiprow">
+      <span class="bizchip">Apartments</span><span class="bizchip">Offices</span><span class="bizchip">Commercial properties</span>
+      <span class="bizchip">Property managers</span><span class="bizchip">Facility teams</span>
+    </div>
+    <div class="featgrid">
+      <div class="featbox"><b>AMC plans</b><span>Annual maintenance, scheduled and tracked.</span></div>
+      <div class="featbox"><b>Scheduled maintenance</b><span>Recurring visits, set once.</span></div>
+      <div class="featbox"><b>Multiple properties</b><span>One account, every address.</span></div>
+      <div class="featbox"><b>Service analytics</b><span>Cost and frequency, by property.</span></div>
+      <div class="featbox"><b>Centralized records</b><span>Every Passport, in one place.</span></div>
+      <div class="featbox"><b>Priority response</b><span>Faster turnaround on business accounts.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="professionals" class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Built for the professional network too</h2><p class="desc">Fixify handles the parts of the job that aren't the job.</p></div>
+    <div class="featgrid">
+      <div class="featbox"><b>Relevant jobs</b><span>Matched to skill and location.</span></div>
+      <div class="featbox"><b>Availability</b><span>Set your own hours.</span></div>
+      <div class="featbox"><b>Earnings</b><span>Tracked and paid out reliably.</span></div>
+      <div class="featbox"><b>Service history</b><span>Every job, logged automatically.</span></div>
+      <div class="featbox"><b>Navigation</b><span>Turn-by-turn to the customer.</span></div>
+      <div class="featbox"><b>Support</b><span>Help when a job gets complicated.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="reveal">
+  <div class="wrap">
+    <div class="head-row"><h2>Trust &amp; safety</h2><p class="desc">The record stays intact, and so does the accountability.</p></div>
+    <div class="featgrid">
+      <div class="featbox"><b>Verified professionals</b><span>Background-checked, rated.</span></div>
+      <div class="featbox"><b>Secure bookings</b><span>Confirmed and traceable.</span></div>
+      <div class="featbox"><b>Digital invoices</b><span>Itemised, saved automatically.</span></div>
+      <div class="featbox"><b>Customer approval</b><span>Required before extra work.</span></div>
+      <div class="featbox"><b>Ratings</b><span>Public, tied to real jobs.</span></div>
+      <div class="featbox"><b>Complaint escalation</b><span>A clear path when something's wrong.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="wrap future">
+    <h2>Every property should have a digital memory.</h2>
+    <p class="sub" style="margin-top:18px;">Fixify starts with the repair in front of you. Over time, it becomes the record of everything your property has needed — and a quiet signal for what it will need next.</p>
+  </div>
+</section>
+
+<section class="finalcta reveal">
+  <div class="wrap">
+    <h2>What needs fixing?</h2>
+    <a class="btn btn-mint" style="margin-top:30px;font-size:16px;padding:15px 32px;" href="#ai">Start with Fixify</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div><div class="logo"><svg class="fx-mark" viewBox="0 0 48 48" width="22" height="22"><path d="M8 30 L24 13 L40 30" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="13" x2="15" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="24" y1="13" x2="33" y2="35" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="13" r="3.6" fill="var(--mint)"/></svg>FIXIFY</div><p style="color:var(--ink-dim);font-size:13.5px;margin-top:12px;max-width:26ch;">Property care, made intelligent.</p></div>
+      <div class="foot-cols">
+        <div class="foot-col"><b>Company</b><a href="#about">About</a><a href="#business">Business</a></div>
+        <div class="foot-col"><b>Product</b><a href="#services">Services</a><a href="#ai">AI</a><a href="#passport">Property Passport</a></div>
+        <div class="foot-col"><b>Network</b><a href="#professionals">For professionals</a><a href="#">Support</a></div>
+        <div class="foot-col"><b>Legal</b><a href="#">Privacy</a><a href="#">Terms</a></div>
+      </div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Fixify</span><span>Made in India</span></div>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scrolled',window.scrollY>10);});
+const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+setTimeout(()=>{const r=document.getElementById('aiResult');if(r)r.classList.add('show');},900);
+
+/* splash */
+const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const splash=document.getElementById('splash');
+if(reduced){splash.style.display='none';}
+else{
+  document.body.style.overflow='hidden';
+  setTimeout(()=>{splash.classList.add('hide');document.body.style.overflow='';},1650);
+  setTimeout(()=>{splash.style.display='none';},2300);
+}
+
+/* ambient connection network */
+(function(){
+  const cv=document.getElementById('netCanvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'); const hero=cv.closest('.hero');
+  let w,h,pts=[];
+  function size(){w=cv.width=hero.offsetWidth;h=cv.height=hero.offsetHeight;}
+  function init(){
+    size();
+    const n=Math.min(46,Math.floor(w/38));
+    pts=Array.from({length:n},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25}));
+  }
+  function step(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of pts){
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>w)p.vx*=-1;
+      if(p.y<0||p.y>h)p.vy*=-1;
+    }
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.hypot(dx,dy);
+        if(d<120){ctx.strokeStyle=`rgba(95,227,176,${.14*(1-d/120)})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}
+      }
+      ctx.fillStyle='rgba(95,227,176,.5)';ctx.beginPath();ctx.arc(pts[i].x,pts[i].y,1.6,0,7);ctx.fill();
+    }
+    if(!reduced) requestAnimationFrame(step);
+  }
+  init(); step();
+  window.addEventListener('resize',()=>{size();});
+})();
+
+/* magnetic primary buttons */
+if(window.matchMedia('(pointer: fine)').matches && !reduced){
+  document.querySelectorAll('.btn-mint').forEach(btn=>{
+    btn.addEventListener('mousemove',e=>{
+      const r=btn.getBoundingClientRect();
+      const mx=(e.clientX-r.left-r.width/2)*.25, my=(e.clientY-r.top-r.height/2)*.35;
+      btn.style.transform=`translate(${mx}px,${my}px)`;
+    });
+    btn.addEventListener('mouseleave',()=>{btn.style.transform='';});
+  });
+}
+</script>
+</body>
+</html>
