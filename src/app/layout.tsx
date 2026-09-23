@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "../styles/variables.css";
 
@@ -13,7 +13,12 @@ export const metadata: Metadata = {
     "handyman",
     "repairs",
   ],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0a0b0d",
 };
 
 export default function RootLayout({
@@ -24,7 +29,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <head>
-        <meta name="theme-color" content="#0a0b0d" />
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="min-h-full flex flex-col bg-dark text-ink font-body antialiased">
