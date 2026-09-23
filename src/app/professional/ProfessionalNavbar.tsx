@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { type User } from '@supabase/supabase-js';
-import { logoutUser } from '../app/actions';
+import { logoutUser } from '../customer/actions';
 
-interface ProNavbarProps {
+interface ProfessionalNavbarProps {
   user: User;
   profile: any;
 }
 
-export function ProNavbar({ user, profile }: ProNavbarProps) {
+export function ProfessionalNavbar({ user, profile }: ProfessionalNavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,26 +24,26 @@ export function ProNavbar({ user, profile }: ProNavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/pro" className="text-mint font-display font-bold text-xl hover:opacity-80 transition-opacity">
-            Fixify Pro
+          <Link href="/professional" className="text-mint font-display font-bold text-xl hover:opacity-80 transition-opacity">
+            Fixify Professional
           </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             <Link
-              href="/pro/jobs"
+              href="/professional/jobs"
               className="text-line hover:text-mint transition-colors text-sm font-medium"
             >
               Jobs
             </Link>
             <Link
-              href="/pro/bids"
+              href="/professional/bids"
               className="text-line hover:text-mint transition-colors text-sm font-medium"
             >
               My Bids
             </Link>
             <Link
-              href="/pro/earnings"
+              href="/professional/earnings"
               className="text-line hover:text-mint transition-colors text-sm font-medium"
             >
               Earnings
@@ -59,13 +59,13 @@ export function ProNavbar({ user, profile }: ProNavbarProps) {
                 </button>
                 <div className="absolute right-0 mt-0 w-48 bg-panel border border-line rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <Link
-                    href="/pro/profile"
+                    href="/professional/profile"
                     className="block px-4 py-2 text-sm text-ink hover:bg-line rounded-t-lg transition-colors"
                   >
                     My Profile
                   </Link>
                   <Link
-                    href="/pro/onboarding"
+                    href="/professional/onboarding"
                     className="block px-4 py-2 text-sm text-ink hover:bg-line transition-colors"
                   >
                     Setup
@@ -102,21 +102,21 @@ export function ProNavbar({ user, profile }: ProNavbarProps) {
               {profile?.full_name || user.email}
             </div>
             <Link
-              href="/pro/jobs"
+              href="/professional/jobs"
               className="block text-ink hover:text-mint transition-colors text-sm"
               onClick={() => setIsOpen(false)}
             >
               Jobs
             </Link>
             <Link
-              href="/pro/bids"
+              href="/professional/bids"
               className="block text-ink hover:text-mint transition-colors text-sm"
               onClick={() => setIsOpen(false)}
             >
               My Bids
             </Link>
             <Link
-              href="/pro/earnings"
+              href="/professional/earnings"
               className="block text-ink hover:text-mint transition-colors text-sm"
               onClick={() => setIsOpen(false)}
             >
@@ -124,14 +124,14 @@ export function ProNavbar({ user, profile }: ProNavbarProps) {
             </Link>
             <div className="border-t border-line pt-3 mt-3 space-y-3">
               <Link
-                href="/pro/profile"
+                href="/professional/profile"
                 className="block text-ink hover:text-mint transition-colors text-sm"
                 onClick={() => setIsOpen(false)}
               >
                 My Profile
               </Link>
               <Link
-                href="/pro/onboarding"
+                href="/professional/onboarding"
                 className="block text-ink hover:text-mint transition-colors text-sm"
                 onClick={() => setIsOpen(false)}
               >

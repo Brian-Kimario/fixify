@@ -1,11 +1,11 @@
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { ProNavbar } from './ProNavbar';
+import { ProfessionalNavbar } from './ProfessionalNavbar';
 
 /**
  * Protected Layout for Professional Dashboard
  * 
- * This layout ensures only authenticated professionals can access /pro routes.
+ * This layout ensures only authenticated professionals can access /professional routes.
  * Checks both authentication and professional role.
  */
 
@@ -14,11 +14,11 @@ export const metadata = {
   description: 'Manage your professional profile, jobs, bids, and earnings',
 };
 
-interface ProLayoutProps {
+interface ProfessionalLayoutProps {
   children: React.ReactNode;
 }
 
-export default async function ProLayout({ children }: ProLayoutProps) {
+export default async function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
   // Check authentication on the server
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
@@ -30,12 +30,12 @@ export default async function ProLayout({ children }: ProLayoutProps) {
 
   // Redirect if not a professional
   if (profile?.role !== 'professional') {
-    redirect('/app');
+    redirect('/customer');
   }
 
   return (
     <div className="min-h-screen bg-dark">
-      <ProNavbar user={user} profile={profile} />
+      <ProfessionalNavbar user={user} profile={profile} />
 
       <main>{children}</main>
     </div>

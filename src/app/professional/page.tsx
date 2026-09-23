@@ -69,7 +69,7 @@ export default async function ProfessionalDashboardPage() {
                 Browse available jobs and submit bids to start earning
               </p>
             </div>
-            <Link href="/pro/jobs">
+            <Link href="/professional/jobs">
               <Button variant="primary" size="lg">
                 Browse Jobs
               </Button>
@@ -135,7 +135,7 @@ export default async function ProfessionalDashboardPage() {
                   : 'Today'}
               </div>
             </div>
-            <Link href="/pro/profile">
+            <Link href="/professional/profile">
               <Button variant="secondary" size="sm">
                 View Profile
               </Button>
