@@ -1,6 +1,17 @@
 /**
- * Application services (API client functions)
- * Handles requests to job, user, payment services
+ * Services Barrel Export
+ * 
+ * Exports all data services for easy importing throughout the application.
  */
 
-export {};
+// Properties Service
+export * from './properties'
+
+// Catalogue Service (public read-only)
+export * from './catalogue'
+
+// Bookings Service
+export * from './bookings'
+
+// Service Requests Service (intake layer)
+export * from './service-requests'
