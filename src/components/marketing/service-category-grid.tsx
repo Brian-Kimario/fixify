@@ -1,58 +1,52 @@
-import Link from 'next/link';
+'use client';
+
+import { Icon } from '@/components/ui/icon';
+import {
+  faBolt,
+  faFaucet,
+  faSnowflake,
+  faPlug,
+  faHammer,
+  faPaintbrush,
+  faBroom,
+  faHardHat,
+} from '@fortawesome/free-solid-svg-icons';
 
 export function ServiceCategoryGrid() {
   const services = [
-    { slug: 'electrical', name: 'Electrical', icon: '⚡' },
-    { slug: 'plumbing', name: 'Plumbing', icon: '🚰' },
-    { slug: 'ac-cooling', name: 'AC & Cooling', icon: '❄️' },
-    { slug: 'appliances', name: 'Appliances', icon: '🧊' },
-    { slug: 'carpentry', name: 'Carpentry', icon: '🪚' },
-    { slug: 'painting', name: 'Painting', icon: '🎨' },
-    { slug: 'cleaning', name: 'Cleaning', icon: '🧹' },
-    { slug: 'renovation', name: 'Renovation', icon: '🏗️' },
+    { slug: 'electrical', name: 'Electrical', description: 'Sockets, lighting, wiring faults and breakers.', icon: faBolt },
+    { slug: 'plumbing', name: 'Plumbing', description: 'Leaks, drainage, fittings and water-pressure issues.', icon: faFaucet },
+    { slug: 'ac-cooling', name: 'AC & cooling', description: 'Servicing, cooling problems and installation checks.', icon: faSnowflake },
+    { slug: 'appliances', name: 'Appliances', description: 'Washing machines, refrigerators, ovens and more.', icon: faPlug },
+    { slug: 'carpentry', name: 'Carpentry', description: 'Doors, cabinets, frames and fitted woodwork.', icon: faHammer },
+    { slug: 'painting', name: 'Painting & finishing', description: 'Room painting, touch-ups and finishing work.', icon: faPaintbrush },
+    { slug: 'cleaning', name: 'Cleaning', description: 'Deep cleaning and scheduled property care.', icon: faBroom },
+    { slug: 'renovation', name: 'Renovation', description: 'Small-scope improvement and repair work.', icon: faHardHat },
   ];
 
   return (
-    <section className="py-16 sm:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-12">
-          <div className="text-center space-y-4">
-            <h2 className="font-display font-bold text-4xl sm:text-5xl text-ink">
-              Services we handle
-            </h2>
-            <p className="text-line text-lg max-w-2xl mx-auto">
-              Not sure which service you need? Describe the problem and we'll help identify it. Or browse our complete service list.
-            </p>
-          </div>
+    <section className="section" id="services">
+      <div className="wrap">
+        <div className="section-head reveal">
+          <p className="eyebrow">SERVICES</p>
+          <h2>Know the service already?</h2>
+          <p>You can skip the guided intake and start from a service category at any time.</p>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service) => (
-              <Link key={service.slug} href={`/services/${service.slug}`}>
-                <div className="group relative p-6 rounded-xl border border-line bg-panel hover:bg-dark hover:border-mint transition-all duration-300 cursor-pointer h-full">
-                  {/* Background accent */}
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-mint/0 to-mint/0 group-hover:from-mint/5 group-hover:to-mint/10 transition-all duration-300" />
-
-                  {/* Content */}
-                  <div className="relative space-y-4">
-                    <div className="text-5xl">{service.icon}</div>
-                    <div>
-                      <h3 className="font-display font-bold text-lg text-ink group-hover:text-mint transition-colors">
-                        {service.name}
-                      </h3>
-                      <p className="text-line text-sm mt-2">
-                        Professional service and verified experts
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Hover arrow */}
-                  <div className="absolute bottom-4 right-4 text-line group-hover:text-mint group-hover:translate-x-1 transition-all duration-300">
-                    →
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+        <div className="service-grid reveal">
+          {services.map((service, idx) => (
+            <div
+              key={service.slug}
+              className="service-card"
+              data-delay={idx > 0 ? String(Math.min(idx - 1, 3)) : undefined}
+            >
+              <div className="service-icon">
+                <Icon icon={service.icon} size="lg" currentColor ariaLabel={service.name} />
+              </div>
+              <h3>{service.name}</h3>
+              <p>{service.description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

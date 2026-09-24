@@ -2,103 +2,58 @@ import Link from 'next/link';
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-panel mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-8">
-          {/* Brand */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-mint rounded-lg flex items-center justify-center">
-                <span className="font-display font-bold text-dark text-sm">F</span>
-              </div>
-              <span className="font-display font-bold text-ink">Fixify</span>
-            </div>
-            <p className="text-line text-sm">
-              Property service, properly managed.
+    <footer className="footer" id="footer">
+      <div className="wrap">
+        <div className="foot-grid">
+          {/* Brand Column */}
+          <div>
+            <Link className="brand" href="#top">
+              <svg className="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+                <path
+                  d="M8 30 24 13l16 17M24 13 15 35M24 13l9 22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle className="node" cx="24" cy="13" r="3.6" />
+              </svg>
+              <span>Fixify</span>
+            </Link>
+            <p className="foot-copy">
+              Property maintenance, structured from the first message to the final record.
             </p>
           </div>
 
-          {/* Customer */}
+          {/* Product */}
           <div>
-            <h3 className="font-display font-bold text-ink mb-4">For Customers</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/services" className="text-line hover:text-ink transition-colors text-sm">
-                  Services
-                </Link>
-              </li>
-              <li>
-                <Link href="/how-it-works" className="text-line hover:text-ink transition-colors text-sm">
-                  How it works
-                </Link>
-              </li>
-              <li>
-                <Link href="/help" className="text-line hover:text-ink transition-colors text-sm">
-                  Help
-                </Link>
-              </li>
-              <li>
-                <Link href="/login" className="text-line hover:text-ink transition-colors text-sm">
-                  Sign in
-                </Link>
-              </li>
-            </ul>
+            <p className="foot-title">PRODUCT</p>
+            <Link href="#services">Services</Link>
+            <Link href="#how">How it works</Link>
+            <Link href="/property">Property record</Link>
           </div>
 
-          {/* Professional */}
+          {/* Network */}
           <div>
-            <h3 className="font-display font-bold text-ink mb-4">For Professionals</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/professionals" className="text-line hover:text-ink transition-colors text-sm">
-                  Become a professional
-                </Link>
-              </li>
-              <li>
-                <Link href="/professional/login" className="text-line hover:text-ink transition-colors text-sm">
-                  Professional sign in
-                </Link>
-              </li>
-              <li>
-                <Link href="/professional/onboarding" className="text-line hover:text-ink transition-colors text-sm">
-                  Get started
-                </Link>
-              </li>
-            </ul>
+            <p className="foot-title">NETWORK</p>
+            <Link href="/professionals">For professionals</Link>
+            <Link href="/professionals">For professionals</Link>
+            <Link href="/pro">Professional workspace</Link>
           </div>
 
-          {/* Company */}
+          {/* Help */}
           <div>
-            <h3 className="font-display font-bold text-ink mb-4">Company</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/" className="text-line hover:text-ink transition-colors text-sm">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="text-line hover:text-ink transition-colors text-sm">
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="text-line hover:text-ink transition-colors text-sm">
-                  Terms
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="text-line hover:text-ink transition-colors text-sm">
-                  Privacy
-                </Link>
-              </li>
-            </ul>
+            <p className="foot-title">HELP</p>
+            <Link href="/help">Help centre</Link>
+            <Link href="/help#trust">Trust & safety</Link>
+            <Link href="/help#contact">Contact Fixify</Link>
           </div>
         </div>
 
-        <div className="border-t border-line pt-8">
-          <p className="text-line text-sm text-center">
-            © 2026 Fixify. All rights reserved.
-          </p>
+        <div className="foot-bottom">
+          <span>FIXIFY / PUBLIC ENTRY</span>
+          <span>REFERENCE UI / REV 3</span>
         </div>
       </div>
     </footer>
