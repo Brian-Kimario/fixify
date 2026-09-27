@@ -16,30 +16,45 @@ export default async function EditProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="font-display font-bold text-3xl text-ink mb-2">
-              Edit Profile
-            </h1>
-            <p className="text-line">Update your personal information</p>
-          </div>
-          <Link href="/app/profile" className="text-mint hover:underline text-sm font-medium">
-            ← Back
-          </Link>
-        </div>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-200">
+      {/* Back Navigation */}
+      <Link
+        href="/customer/profile"
+        className="text-xs font-semibold text-teal hover:underline inline-flex items-center gap-1"
+      >
+        ← Back to Profile
+      </Link>
 
-        {/* Form Card */}
-        <Card>
-          <EditProfileForm initialProfile={profile} />
-        </Card>
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink mb-2">
+          Edit Profile
+        </h1>
+        <p className="text-ink-3">
+          Update your personal information and preferences
+        </p>
+      </div>
 
-        {/* Info Note */}
-        <div className="p-4 rounded-lg bg-line/10 border border-line/30">
-          <p className="text-sm text-line">
-            💡 Your email address cannot be changed here. To change your email, please contact support.
+      {/* Form Card */}
+      <Card>
+        <EditProfileForm initialProfile={profile} />
+      </Card>
+
+      {/* Help Section */}
+      <div className="space-y-3">
+        <h3 className="font-display text-sm font-bold text-ink-4 uppercase tracking-wider">
+          Need Help?
+        </h3>
+        <div className="space-y-2 text-sm text-ink-3">
+          <p>
+            💡 Your profile information helps professionals provide better service estimates and communication.
+          </p>
+          <p>
+            For additional account options, visit your{' '}
+            <Link href="/customer/settings" className="text-teal hover:underline font-medium">
+              Account Settings
+            </Link>
+            .
           </p>
         </div>
       </div>

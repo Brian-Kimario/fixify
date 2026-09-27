@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0a0b0d",
+  themeColor: "#176B5B",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className="min-h-full flex flex-col bg-dark text-ink font-body antialiased">
+      <body className="min-h-full flex flex-col bg-porcelain text-ink font-body antialiased">
         {children}
       </body>
     </html>

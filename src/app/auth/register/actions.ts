@@ -1,20 +1,20 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { type SignUpData, type AuthResponse } from '@/types/auth';
+import { type AuthResponse } from '@/types/auth';
 
 /**
  * Server Action: Register a new user with email and password
  *
  * This action:
  * 1. Creates an auth.users entry via Supabase Auth
- * 2. Trigger automatically creates profiles entry with role
+ * 2. Trigger automatically creates a customer profile
  * 3. Returns success/error
  *
- * @param data - Sign up data (email, password, full_name, role)
+ * @param data - Customer sign-up data (email, password, full_name)
  * @returns Success/error response
  */
-export async function registerWithEmail(data: SignUpData): Promise<AuthResponse> {
+export async function registerWithEmail(data: { email: string; password: string; full_name: string }): Promise<AuthResponse> {
   try {
     const supabase = await createClient();
 
@@ -25,7 +25,7 @@ export async function registerWithEmail(data: SignUpData): Promise<AuthResponse>
       options: {
         data: {
           full_name: data.full_name,
-          role: data.role,
+          role: 'customer',
         },
       },
     });

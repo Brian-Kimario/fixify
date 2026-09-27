@@ -4,9 +4,14 @@ import { createServerClient } from '@supabase/ssr';
 /**
  * Middleware helper for session refresh
  * Called from middleware.ts
+ * 
+ * This ensures that:
+ * 1. The session is refreshed on every request
+ * 2. Expired access tokens are renewed
+ * 3. Updated cookies are propagated to the response
  */
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -14,7 +19,7 @@ export async function updateSession(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -30,7 +35,8 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Refresh session - this updates access token if expired
+  // Force session refresh at start of middleware
+  // This ensures access token is valid and refreshed if expired
   await supabase.auth.getSession();
 
   return response;

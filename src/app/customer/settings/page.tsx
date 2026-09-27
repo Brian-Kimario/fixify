@@ -1,5 +1,7 @@
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
-import { Card, Button } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { SettingsSection } from '@/components/customer/SettingsSection';
+import { SettingToggle } from '@/components/customer/SettingToggle';
 import Link from 'next/link';
 
 export const metadata = {
@@ -18,166 +20,194 @@ export default async function SettingsPage() {
           <h1 className="font-display font-bold text-3xl text-ink mb-2">
             Account Settings
           </h1>
-          <p className="text-line">Manage your account preferences and security</p>
+          <p className="text-ink-3">Manage your account preferences and security</p>
         </div>
 
-        {/* Email Section */}
-        <Card>
+        {/* Email & Authentication Section */}
+        <SettingsSection title="Email & Authentication">
           <div className="space-y-4">
-            <h2 className="font-display font-bold text-xl text-ink">
-              Email & Authentication
-            </h2>
-
-            <div className="space-y-2 text-line">
-              <div>
-                <span className="font-medium">Email Address:</span>
-              </div>
-              <div className="text-sm bg-panel p-3 rounded-lg border border-line">
+            <div>
+              <label className="block text-xs font-medium text-ink-3 mb-1.5">
+                Email Address
+              </label>
+              <div className="text-sm bg-porcelain p-3 rounded-lg border border-line font-mono">
                 {user?.email}
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 pt-2">
               <Button variant="outline" size="md" className="w-full">
                 Change Email Address
               </Button>
               <Button variant="outline" size="md" className="w-full">
                 Change Password
               </Button>
-              <p className="text-xs text-line">
-                Need help? <a href="/help" className="text-mint hover:underline">Contact support</a>
+              <p className="text-xs text-ink-3">
+                Need help?{' '}
+                <Link href="/help" className="text-teal hover:underline">
+                  Contact support
+                </Link>
               </p>
             </div>
           </div>
-        </Card>
+        </SettingsSection>
 
-        {/* Profile Section */}
-        <Card>
-          <div className="space-y-4">
-            <h2 className="font-display font-bold text-xl text-ink">
-              Profile Information
-            </h2>
-
-            <div className="space-y-2 text-line">
-              <div>
-                <span className="font-medium">Full Name:</span> {profile?.full_name || 'Not set'}
-              </div>
-              <div>
-                <span className="font-medium">Phone:</span> {profile?.phone || 'Not set'}
-              </div>
-              <div>
-                <span className="font-medium">Role:</span> {profile?.role}
-              </div>
+        {/* Profile Information Section */}
+        <SettingsSection title="Profile Information">
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-ink-3 mb-1">
+                Full Name
+              </label>
+              <p className="text-sm text-ink">{profile?.full_name || 'Not set'}</p>
             </div>
 
-            <Link href="/app/profile/edit">
+            <div>
+              <label className="block text-xs font-medium text-ink-3 mb-1">
+                Phone
+              </label>
+              <p className="text-sm text-ink">{profile?.phone || 'Not set'}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-ink-3 mb-1">
+                Account Type
+              </label>
+              <p className="text-sm text-ink capitalize">{profile?.role}</p>
+            </div>
+
+            <Link href="/customer/profile/edit" className="block pt-2">
               <Button variant="primary" size="md" className="w-full">
-                Edit Profile Information
+                Edit Profile
               </Button>
             </Link>
           </div>
-        </Card>
+        </SettingsSection>
 
-        {/* Privacy Section */}
-        <Card>
-          <div className="space-y-4">
-            <h2 className="font-display font-bold text-xl text-ink">
-              Privacy & Preferences
-            </h2>
-
-            <div className="space-y-3">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  className="w-4 h-4 accent-mint"
-                  disabled
-                />
-                <span className="text-sm">
-                  <div className="font-medium text-ink">Email notifications</div>
-                  <div className="text-xs text-line">Receive updates about your account</div>
-                </span>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  className="w-4 h-4 accent-mint"
-                  disabled
-                />
-                <span className="text-sm">
-                  <div className="font-medium text-ink">Marketing emails</div>
-                  <div className="text-xs text-line">Receive tips and updates about Fixify</div>
-                </span>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-mint"
-                  disabled
-                />
-                <span className="text-sm">
-                  <div className="font-medium text-ink">Data collection</div>
-                  <div className="text-xs text-line">Allow us to analyze usage patterns</div>
-                </span>
-              </label>
-            </div>
-
-            <p className="text-xs text-line pt-2">
-              ⚠️ Preferences coming soon. For now, you'll receive essential account notifications.
-            </p>
+        {/* Communication Preferences Section */}
+        <SettingsSection title="Communication Preferences">
+          <div className="space-y-1">
+            <SettingToggle
+              id="email-notifications"
+              label="Email notifications"
+              description="Receive updates about your account"
+              defaultChecked={true}
+              disabled={true}
+            />
+            <SettingToggle
+              id="marketing-emails"
+              label="Marketing emails"
+              description="Receive tips and updates about Fixify"
+              defaultChecked={true}
+              disabled={true}
+            />
+            <SettingToggle
+              id="sms-notifications"
+              label="SMS notifications"
+              description="Receive service updates via text"
+              defaultChecked={false}
+              disabled={true}
+            />
+            <SettingToggle
+              id="push-notifications"
+              label="Push notifications"
+              description="Receive notifications on your device"
+              defaultChecked={false}
+              disabled={true}
+            />
           </div>
-        </Card>
+          <p className="text-xs text-ink-3 pt-2 border-t border-line">
+            Preferences are not connected in this preview. Essential account notifications remain enabled by default.
+          </p>
+        </SettingsSection>
 
-        {/* Sessions Section */}
-        <Card>
-          <div className="space-y-4">
-            <h2 className="font-display font-bold text-xl text-ink">
-              Sessions
-            </h2>
+        {/* Privacy & Data Section */}
+        <SettingsSection title="Privacy & Data">
+          <div className="space-y-1">
+            <SettingToggle
+              id="data-collection"
+              label="Usage analytics"
+              description="Allow us to analyze usage patterns to improve Fixify"
+              defaultChecked={false}
+              disabled={true}
+            />
+            <SettingToggle
+              id="data-sharing"
+              label="Service optimization"
+              description="Share data with service providers to improve matching"
+              defaultChecked={false}
+              disabled={true}
+            />
+            <SettingToggle
+              id="profile-visibility"
+              label="Public profile"
+              description="Allow professionals to see your profile and rating"
+              defaultChecked={true}
+              disabled={true}
+            />
+          </div>
+          <p className="text-xs text-ink-3 pt-2 border-t border-line">
+            You can always request your data or ask for deletion at any time.
+          </p>
+        </SettingsSection>
 
-            <div className="space-y-2">
-              <p className="text-sm text-line">
-                You're currently logged in to this device. Sessions will be managed here in the future.
+        {/* Sessions & Security Section */}
+        <SettingsSection title="Sessions & Security">
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-ink-3 mb-2">
+                You're currently logged in on this device.
               </p>
               <Button variant="outline" size="md" className="w-full" disabled>
-                View All Sessions
+                View All Active Sessions
               </Button>
             </div>
+            <div className="text-xs text-ink-3 pt-2 border-t border-line">
+              Sessions feature coming soon. You can manually sign out using the menu.
+            </div>
           </div>
-        </Card>
+        </SettingsSection>
 
-        {/* Danger Zone */}
-        <Card className="border-red-500/30 bg-red-500/5">
-          <div className="space-y-4">
-            <h2 className="font-display font-bold text-xl text-red-500">
-              Danger Zone
-            </h2>
-
-            <p className="text-sm text-line">
-              These actions cannot be undone. Please be careful.
-            </p>
-
-            <Button variant="outline" size="md" className="w-full text-red-500 border-red-500/30 hover:bg-red-500/10" disabled>
+        {/* Danger Zone Section */}
+        <SettingsSection
+          title="Danger Zone"
+          description="These actions cannot be undone. Please be careful."
+          isDanger={true}
+        >
+          <div className="space-y-3">
+            <Button
+              variant="outline"
+              size="md"
+              className="w-full border-danger/30 text-danger hover:bg-danger/5 disabled:opacity-50"
+              disabled
+            >
               Delete Account
             </Button>
-
-            <p className="text-xs text-line">
+            <p className="text-xs text-ink-3">
               Account deletion will be available soon. For assistance, contact support.
             </p>
+            <Button
+              variant="outline"
+              size="md"
+              className="w-full border-line text-ink hover:bg-porcelain disabled:opacity-50"
+              disabled
+            >
+              Export My Data
+            </Button>
+            <p className="text-xs text-ink-3">
+              Download all your data in a portable format (CSV, JSON).
+            </p>
           </div>
-        </Card>
+        </SettingsSection>
 
-        {/* Help */}
-        <div className="text-center pt-4">
-          <p className="text-sm text-line mb-3">
-            Have questions? We're here to help.
+        {/* Help Footer */}
+        <div className="text-center pt-4 border-t border-line">
+          <p className="text-sm text-ink-3 mb-3">
+            Have questions about your account?
           </p>
-          <a href="/help" className="text-mint font-medium hover:underline">
+          <Link href="/help" className="inline-flex items-center gap-1 text-teal font-medium hover:underline">
             Contact Support →
-          </a>
+          </Link>
         </div>
       </div>
     </div>

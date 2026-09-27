@@ -1,141 +1,243 @@
 # Fixify
 
-A modern property-maintenance marketplace connecting property managers and professionals with skilled technicians. Built with Next.js, Supabase, and Tailwind CSS.
+A modern property-maintenance marketplace connecting property owners with verified professional technicians. Built with **Next.js**, **Supabase**, and **Tailwind CSS**.
 
-## Quick Start
+**Status:** MVP Phase 1 Implementation  
+**Stack:** Next.js 15 • React 19 • TypeScript • Tailwind CSS • Supabase (Postgres, Auth, Realtime)
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ / pnpm 8+
-- Supabase account (local development setup available)
+- Node.js 18+
+- pnpm 8+ ([install](https://pnpm.io/installation))
+- Supabase account (free tier or local setup)
 
-### Installation
+### Installation & Setup
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 pnpm install
 
-# Setup environment variables
+# 2. Setup environment variables
 cp .env.example .env.local
+# Edit .env.local with your Supabase credentials
 
-# Run development server
+# 3. Start development server
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
-## Project Structure
+### Key Pages
+- **Home:** [http://localhost:3000](http://localhost:3000)
+- **Customer App:** [http://localhost:3000/customer](http://localhost:3000/customer) (protected)
+- **Professional App:** [http://localhost:3000/pro](http://localhost:3000/pro) (protected)
+- **Admin Panel:** [http://localhost:3000/admin](http://localhost:3000/admin) (admin only)
+- **Help & FAQ:** [http://localhost:3000/help](http://localhost:3000/help)
+- **Contact Support:** [http://localhost:3000/demo-contact](http://localhost:3000/demo-contact)
+
+---
+
+## 📁 Project Structure
 
 ```
 fixify/
 ├── src/
-│   ├── app/              # Next.js app router pages and layouts
-│   ├── components/       # React components organized by domain
-│   ├── lib/              # Utilities, services, and client/server configurations
-│   ├── types/            # TypeScript type definitions
-│   ├── styles/           # Global styles and CSS variables
-│   └── validators/       # Data validation schemas
-├── supabase/             # Database migrations and edge functions
-├── public/               # Static assets and brand files
-├── docs/                 # Project documentation (see below)
-└── [config files]        # Next.js, Tailwind, ESLint, TypeScript config
+│   ├── app/                    # Next.js app router (pages, layouts)
+│   │   ├── (marketing)/        # Public pages (home, help, support)
+│   │   ├── (auth)/             # Auth flow (login, register, reset)
+│   │   ├── customer/           # Customer dashboard (protected)
+│   │   ├── pro/                # Professional dashboard (protected)
+│   │   └── admin/              # Admin panel (admin only)
+│   ├── components/
+│   │   ├── ui/                 # Reusable UI components (buttons, cards, etc.)
+│   │   ├── shared/             # Shared across all domains (header, footer)
+│   │   ├── customer/           # Customer-specific components
+│   │   ├── professional/       # Professional-specific components
+│   │   └── admin/              # Admin-specific components
+│   ├── lib/
+│   │   ├── supabase/           # Supabase client setup (client & server)
+│   │   ├── auth/               # Authentication helpers
+│   │   ├── services/           # Business logic (jobs, bookings, etc.)
+│   │   ├── validators/         # Input validation schemas
+│   │   └── utils/              # Utility functions
+│   ├── types/                  # TypeScript type definitions
+│   └── styles/                 # Global styles, CSS variables
+├── supabase/
+│   ├── migrations/             # Database schema (SQL)
+│   ├── functions/              # SQL functions & triggers
+│   └── storage/                # Storage configuration
+├── public/                     # Static assets (images, fonts)
+├── docs/                       # Project documentation (see below)
+└── [config files]              # Next.js, Tailwind, ESLint, TypeScript
 ```
 
-## Documentation
+---
 
-All documentation is organized in the `docs/` folder:
+## 📚 Documentation Structure
 
-- **[01-specifications/](docs/01-specifications/)** — Technical specifications
-  - Data models, API specifications, RBAC, state machines
-  
-- **[02-product/](docs/02-product/)** — Product & design documentation
-  - Brand assets, design decisions, payment & notification specs
-  
-- **[03-architecture/](docs/03-architecture/)** — Architecture & implementation
-  - Master blueprint, AI specs, test plans, identity foundation
-  
-- **[04-guides/](docs/04-guides/)** — Development guides & walkthroughs
-  - Setup instructions, implementation guides, phase kickoff docs
-  
-- **[05-decisions/](docs/05-decisions/)** — Product decisions & open issues
-  - Decision logs, open questions, product roadmap
-  
-- **[06-ui-specs/](docs/06-ui-specs/)** — UI component specifications
-  - Component library, design tokens, style guide
+All project documentation is organized in `docs/`:
 
-## Development
+| Folder | Purpose | Key Files |
+|--------|---------|-----------|
+| **[01-specifications/](docs/01-specifications/)** | Technical specs | Data model, API, RBAC, State machines |
+| **[02-product/](docs/02-product/)** | Product & design | Brand assets, product decisions, payment spec |
+| **[03-architecture/](docs/03-architecture/)** | System design | Master blueprint, AI specs, test plan |
+| **[04-guides/](docs/04-guides/)** | How-to guides | Setup, deployment, implementation walkthroughs |
+| **[05-decisions/](docs/05-decisions/)** | Decision logs | Approved decisions, open questions |
+| **[06-ui-specs/](docs/06-ui-specs/)** | Design system | Design tokens, component specs, patterns |
+| **[07-qa-artifacts/](docs/07-qa-artifacts/)** | QA reports | Latest accessibility & responsive test results |
+| **[08-implementation-archive/](docs/08-implementation-archive/)** | Historical docs | Phase summaries, audit reports, old guides |
 
-### Build & Deploy
+**📖 Start here:** Read [docs/04-guides/BEFORE_IMPLEMENTATION.md](docs/04-guides/BEFORE_IMPLEMENTATION.md) before contributing.
+
+---
+
+## 🛠 Development
+
+### Common Commands
 
 ```bash
-# Build for production
-pnpm build
+# Development
+pnpm dev              # Start dev server (http://localhost:3000)
+pnpm build            # Build for production
+pnpm start            # Run production build locally
+pnpm lint             # Lint and check code
+pnpm type-check       # Run TypeScript checks
 
-# Run production build locally
-pnpm start
+# Database (Supabase)
+supabase start        # Start local Supabase (if using local dev)
+supabase migration new <name>  # Create a new migration
+supabase db push      # Apply migrations
 
-# Lint and format
-pnpm lint
+# Testing
+pnpm test             # Run tests (Vitest)
+pnpm test:watch       # Run tests in watch mode
 ```
 
-### Database
+### First Time Setup
 
-Local Supabase setup:
+1. **Clone & Install**
+   ```bash
+   git clone <repo>
+   cd fixify
+   pnpm install
+   ```
 
-```bash
-# Start Supabase locally
-supabase start
+2. **Setup Supabase**
+   - Create project at [supabase.com](https://supabase.com)
+   - Copy API URL & Public Key to `.env.local`
 
-# Create a migration
-supabase migration new <migration_name>
+3. **Run locally**
+   ```bash
+   pnpm dev
+   ```
 
-# Apply migrations
-supabase db push
-```
+4. **Verify build**
+   ```bash
+   pnpm build
+   ```
 
-## Brand & Design System
+See **[docs/04-guides/GUIDE.md](docs/04-guides/GUIDE.md)** for detailed setup instructions.
 
-The brand system is fully documented in [docs/02-product/BRAND_ASSETS.md](docs/02-product/BRAND_ASSETS.md).
+---
 
-**Key Design Tokens:**
-- **Colors:** Mint (#5FE3B0), Dark (#0A0B0D), Off-White (#F4F5F3)
-- **Fonts:** Space Grotesk (display), Inter (body)
-- **Logo:** Rooftop + connection node symbol (SVG)
+## 🎨 Brand & Design
 
-See [docs/02-product/BRAND_ASSETS.md](docs/02-product/BRAND_ASSETS.md) for complete design system.
+**Design System:** [docs/02-product/BRAND_ASSETS.md](docs/02-product/BRAND_ASSETS.md)
 
-## Key Features
+**Key Tokens:**
+- **Colors:** Mint (#5FE3B0) • Dark (#0A0B0D) • Off-White (#F4F5F3)
+- **Typography:** Space Grotesk (display) • Inter (body)
+- **Components:** Fully spec'd in [docs/06-ui-specs/](docs/06-ui-specs/)
 
-- **Authentication:** Supabase Auth with email/password and OAuth
-- **Marketplace:** Property managers post jobs, professionals bid and complete work
+---
+
+## ✨ Key Features
+
+- **Authentication:** Supabase Auth (email/password + Google OAuth)
+- **Marketplace:** Customers request services, professionals accept & complete
 - **Payments:** Stripe integration for secure transactions
-- **Notifications:** Real-time updates for jobs, bids, and messages
-- **Professional Dashboard:** Manage bids, reviews, earnings
-- **Admin Interface:** Dispute resolution, user management, analytics
+- **Real-time:** Job updates, notifications, live tracking
+- **Professional Dashboard:** Manage jobs, reviews, earnings
+- **Admin Panel:** User management, dispute resolution, analytics
+- **Help & Support:** FAQ search, contact form, support dashboard
 
-## Tech Stack
+---
 
-- **Frontend:** Next.js 15, React 19, TypeScript
-- **Styling:** Tailwind CSS with CSS variables for theming
-- **Backend:** Supabase (Postgres, Auth, Realtime, Storage)
-- **Payments:** Stripe
-- **Database:** PostgreSQL (Supabase)
-- **Testing:** Vitest, React Testing Library
+## 🏗 Tech Stack
 
-## Contributing
+| Layer | Tech |
+|-------|------|
+| **Frontend** | Next.js 15 • React 19 • TypeScript |
+| **Styling** | Tailwind CSS • CSS Variables • Shadcn/UI |
+| **Backend** | Supabase (Postgres, Auth, Realtime, Storage) |
+| **Payments** | Stripe |
+| **Testing** | Vitest • React Testing Library |
 
-1. Create a feature branch from `develop`
-2. Make changes and test thoroughly
-3. Create a pull request with a clear description
-4. After review and approval, merge to `develop`, then to `main`
+---
 
-## License
+## 🤝 Contributing
 
-Copyright 2025 Fixify. All rights reserved.
+1. **Before starting:** Read [docs/04-guides/BEFORE_IMPLEMENTATION.md](docs/04-guides/BEFORE_IMPLEMENTATION.md)
+2. **Create a feature branch** from `main`
+3. **Make changes** and test thoroughly
+4. **Run checks:**
+   ```bash
+   pnpm lint
+   pnpm type-check
+   pnpm test --run
+   pnpm build
+   ```
+5. **Create a PR** with clear description
+6. **After approval:** Merge to `main`
 
-## Support & Questions
+**Code Review Checklist:** See [docs/03-architecture/FIXIFY_MASTER_BLUEPRINT.md](docs/03-architecture/FIXIFY_MASTER_BLUEPRINT.md)
 
-For questions about the project structure, see [docs/04-guides/](docs/04-guides/).
+---
 
-For architecture decisions, see [docs/03-architecture/](docs/03-architecture/).
+## ❓ Common Questions
 
-For product decisions, see [docs/05-decisions/](docs/05-decisions/).
+**Q: Where do I find X documentation?**
+- Architecture decisions → [docs/03-architecture/](docs/03-architecture/)
+- Product decisions → [docs/05-decisions/](docs/05-decisions/)
+- API endpoints → [docs/01-specifications/API.md](docs/01-specifications/API.md)
+- Database schema → [docs/01-specifications/DATA_MODEL.md](docs/01-specifications/DATA_MODEL.md)
+- Design system → [docs/06-ui-specs/](docs/06-ui-specs/)
+
+**Q: How do I set up local Supabase?**
+- See [docs/04-guides/DOCKER_QUICKSTART.md](docs/04-guides/DOCKER_QUICKSTART.md)
+
+**Q: What's the code structure?**
+- See Project Structure section above
+
+**Q: How do I deploy?**
+- See [docs/04-guides/GUIDE.md](docs/04-guides/GUIDE.md)
+
+---
+
+## 📋 Project Status
+
+**Phase:** MVP Phase 1  
+**Features:** Core marketplace, authentication, payments, admin panel  
+**Next:** Phase 2 (Premium features, mobile app)
+
+See full roadmap in [docs/05-decisions/](docs/05-decisions/)
+
+---
+
+## 📄 License
+
+Copyright © 2025 Fixify. All rights reserved.
+
+---
+
+## 🆘 Need Help?
+
+- **Setup issues?** → [docs/04-guides/GUIDE.md](docs/04-guides/GUIDE.md)
+- **Architecture questions?** → [docs/03-architecture/](docs/03-architecture/)
+- **Design system?** → [docs/06-ui-specs/](docs/06-ui-specs/)
+- **API docs?** → [docs/01-specifications/API.md](docs/01-specifications/API.md)
+- **Decisions log?** → [docs/05-decisions/](docs/05-decisions/)

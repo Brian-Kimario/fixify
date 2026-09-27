@@ -1,12 +1,13 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { clearSessionCookies } from '@/lib/session';
 import { redirect } from 'next/navigation';
 
 /**
  * Server Action: Logout user
  *
- * Signs out the user and redirects to login page.
+ * Signs out the user, wipes session cookies, and redirects to login page.
  */
 export async function logoutUser() {
   try {
@@ -16,6 +17,12 @@ export async function logoutUser() {
     console.error('Logout error:', err);
   }
 
-  // Always redirect to login page
-  redirect('/auth/login');
+  try {
+    await clearSessionCookies();
+  } catch (err) {
+    console.error('Clear cookies error:', err);
+  }
+
+  // Redirect to login page with logged_out flag to prevent middleware bounce-back
+  redirect('/auth/login?logged_out=1');
 }

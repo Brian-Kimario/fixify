@@ -1,6 +1,7 @@
 /**
  * Fixify Logo Symbol
- * Rooftop + connection node mark
+ * Approved stroke-based mark: property roof + connection structure + intelligent node
+ * Per BRAND_ASSETS.md specification
  */
 
 interface SymbolProps {
@@ -26,55 +27,47 @@ export function Symbol({ size = "md", className = "" }: SymbolProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      aria-hidden="true"
     >
-      {/* Rooftop shape */}
+      {/* Roof line: property outline */}
       <path
-        d="M24 8L8 18V32H40V18L24 8Z"
-        fill="currentColor"
-        opacity="0.9"
+        d="M8 30 L24 13 L40 30"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
 
-      {/* Connection lines from rooftop corners */}
+      {/* Left support line: from left roof corner */}
       <line
-        x1="8"
-        y1="18"
-        x2="16"
-        y2="32"
+        x1="24"
+        y1="13"
+        x2="15"
+        y2="35"
         stroke="currentColor"
-        strokeWidth="1.5"
-        opacity="0.6"
-      />
-      <line
-        x1="40"
-        y1="18"
-        x2="32"
-        y2="32"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        opacity="0.6"
+        strokeWidth="2.2"
+        strokeLinecap="round"
       />
 
-      {/* Center connection node */}
-      <circle cx="24" cy="38" r="3" fill="currentColor" opacity="0.8" />
-
-      {/* Connection lines to center node */}
+      {/* Right support line: from right roof corner */}
       <line
-        x1="16"
-        y1="32"
-        x2="22"
-        y2="36"
+        x1="24"
+        y1="13"
+        x2="33"
+        y2="35"
         stroke="currentColor"
-        strokeWidth="1.5"
-        opacity="0.5"
+        strokeWidth="2.2"
+        strokeLinecap="round"
       />
-      <line
-        x1="32"
-        y1="32"
-        x2="26"
-        y2="36"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        opacity="0.5"
+
+      {/* Intelligent node: center connection point */}
+      <circle
+        cx="24"
+        cy="13"
+        r="3.6"
+        fill="var(--fx-teal, #176B5B)"
+        opacity="1"
       />
     </svg>
   );

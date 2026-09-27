@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { getRedirectPathByRole } from '@/app/auth/utils'
 
 /**
  * OAuth Callback Route Handler
@@ -13,7 +15,7 @@ import { createClient } from '@/lib/supabase/server'
  * 4. Supabase redirects to this endpoint with authorization code
  * 5. This route exchanges code for session
  * 6. Cookie-based session established
- * 7. Redirect to application
+ * 7. Redirect to application based on user role
  * 
  * Reference: https://supabase.com/docs/guides/auth/server-side-rendering
  */
@@ -28,34 +30,87 @@ export async function GET(request: NextRequest) {
     console.error('OAuth error:', error)
     const errorDescription = searchParams.get('error_description')
     return NextResponse.redirect(
-      new URL(`/auth/error?error=${error}&description=${errorDescription}`, request.url)
+      new URL(`/auth/login?error=${error}`, request.url)
     )
   }
 
   // Verify authorization code exists
   if (!code) {
     console.error('No authorization code received')
-    return NextResponse.redirect(new URL('/auth/error?error=no_code', request.url))
+    return NextResponse.redirect(new URL('/auth/login?error=no_code', request.url))
   }
 
   try {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              )
+            } catch {
+              // Handle cookie setting errors
+            }
+          },
+        },
+      }
+    )
 
     // Exchange authorization code for session
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (exchangeError) {
+    if (exchangeError || !data.session) {
       console.error('Code exchange error:', exchangeError)
-      return NextResponse.redirect(
-        new URL(`/auth/error?error=exchange_failed&message=${exchangeError.message}`, request.url)
-      )
+      return NextResponse.redirect(new URL('/auth/login?error=exchange_failed', request.url))
     }
 
-    // Session successfully established via cookies
-    // Redirect to application home
-    return NextResponse.redirect(new URL('/app', request.url))
+    // Force session synchronization after code exchange
+    // This ensures cookies are properly set and session is established
+    await supabase.auth.getSession();
+
+    // Get user's role and redirect accordingly
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    if (!profile?.role) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(new URL('/auth/login?error=missing_profile', request.url))
+    }
+
+    const role = profile.role
+    let redirectPath = getRedirectPathByRole(role)
+    if (!redirectPath) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(new URL('/auth/login?error=invalid_role', request.url))
+    }
+
+    const next = searchParams.get('next')
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
+      if (role === 'customer' && next.startsWith('/customer')) {
+        redirectPath = next
+      } else if (role === 'professional' && next.startsWith('/pro')) {
+        redirectPath = next
+      } else if (role === 'admin' && next.startsWith('/admin')) {
+        redirectPath = next
+      } else if (role === 'support' && next.startsWith('/support')) {
+        redirectPath = next
+      }
+    }
+
+    // Redirect to user's dashboard or requested target
+    return NextResponse.redirect(new URL(redirectPath, request.url))
   } catch (error) {
     console.error('Callback handler error:', error)
-    return NextResponse.redirect(new URL('/auth/error?error=callback_error', request.url))
+    return NextResponse.redirect(new URL('/auth/login?error=callback_error', request.url))
   }
 }

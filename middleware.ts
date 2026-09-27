@@ -1,19 +1,19 @@
-import { type NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { checkSessionNeedsRefresh } from "@/lib/session";
+import { SECURITY_HEADERS, ADMIN_CSP } from "@/lib/csrf";
 
 /**
- * Middleware for Supabase SSR Cookie Refresh
+ * Enterprise Security Middleware
  * 
- * Purpose:
- * - Refreshes authentication session on every request
- * - Updates session cookies automatically
- * - Prevents session expiration during active use
- * 
- * Pattern: Supabase SSR with Next.js
- * Reference: https://supabase.com/docs/guides/auth/server-side-rendering
- * 
- * This runs on every request to the application.
- * Keep it lightweight; avoid expensive operations here.
+ * Enforces:
+ * - Authentication on protected routes (/customer, /pro, /admin)
+ * - Strict role-based routing (customer → /customer, pro → /pro, admin → /admin)
+ * - Professional onboarding state (unverified professionals → /pro/onboarding)
+ * - Redirects logged-in users away from /auth/login to their dashboard
+ * - Security headers & Content Security Policy
+ * - Cache-Control: no-store on sensitive/protected dashboard & API routes
+ * - Token cookie synchronization for SSR
  */
 
 export async function middleware(request: NextRequest) {
@@ -21,47 +21,217 @@ export async function middleware(request: NextRequest) {
     request: {
       headers: request.headers,
     },
-  })
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value)
-            response.cookies.set(name, value, options)
-          })
+            request.cookies.set(name, value);
+            response.cookies.set(name, value, options);
+          });
         },
       },
     }
-  )
+  );
 
-  // Refresh session - this updates access token if expired
-  await supabase.auth.getSession()
+  // Get current user from session
+  const { data: { user } } = await supabase.auth.getUser();
 
-  return response
+  const pathname = request.nextUrl.pathname;
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+
+  // Define protected routes and their required roles
+  const protectedRoutes: Record<string, string> = {
+    "/customer": "customer",
+    "/pro": "professional",
+    "/pro/onboarding": "professional",
+    "/admin": "admin",
+    "/support": "support",
+  };
+
+  // Routes that don't require verification (professionals can access while pending)
+  const onboardingAllowedRoutes = ["/pro/onboarding"];
+
+  const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
+    pathname.startsWith(route)
+  );
+
+  const isOnboardingRoute = onboardingAllowedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  const isAuthRoute = pathname.startsWith("/auth/login") || pathname.startsWith("/auth/register");
+
+  function redirectWithSession(path: string) {
+    const redirectResponse = NextResponse.redirect(new URL(path, request.url));
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    redirectResponse.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+    redirectResponse.headers.set("Pragma", "no-cache");
+    redirectResponse.headers.set("Expires", "0");
+    return redirectResponse;
+  }
+
+  // Helper to fetch user's role securely
+  async function fetchUserRole(userId: string): Promise<string> {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+
+      return profile?.role || "unknown";
+    } catch {
+      return "unknown";
+    }
+  }
+
+  // Helper to fetch professional verification status
+  async function fetchProfessionalVerificationStatus(userId: string): Promise<string | null> {
+    try {
+      const { data: profile } = await supabase
+        .from("professional_profiles")
+        .select("verification_status")
+        .eq("user_id", userId)
+        .single();
+
+      return profile?.verification_status || null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Bypass all redirect logic for logout route
+  if (pathname.startsWith("/auth/logout")) {
+    return response;
+  }
+
+  const isLoggedOutParam = request.nextUrl.searchParams.get("logged_out") === "1" ||
+                           request.nextUrl.searchParams.get("logged_out") === "true";
+
+  // If user just logged out, purge any remaining auth cookies on the response
+  if (isLoggedOutParam) {
+    const allCookies = request.cookies.getAll();
+    allCookies.forEach(({ name }) => {
+      if (
+        name.startsWith("sb-") ||
+        name.includes("auth-token") ||
+        name.includes("session") ||
+        name.startsWith("supabase")
+      ) {
+        response.cookies.set(name, "", {
+          path: "/",
+          maxAge: 0,
+          expires: new Date(0),
+        });
+      }
+    });
+  }
+
+  // 1. If user is already authenticated and visits login/register → redirect to role dashboard
+  // (unless they are landing here immediately after an explicit logout)
+  if (user && isAuthRoute && !isLoggedOutParam) {
+    const userRole = await fetchUserRole(user.id);
+    const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/pro" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
+    return redirectWithSession(target);
+  }
+
+  // 2. If unauthenticated user tries to access protected route → redirect to login with next param
+  if (isProtectedRoute && !user) {
+    console.warn(`[Security] Unauthenticated attempt to access ${pathname} from IP ${ip}`);
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("role", protectedRoutes[pathname.split('/').slice(0, 2).join('/')] || "customer");
+    loginUrl.searchParams.set("next", pathname);
+    return redirectWithSession(`${loginUrl.pathname}${loginUrl.search}`);
+  }
+
+  // 3. If authenticated user is accessing protected route → enforce strict RBAC
+  if (user && isProtectedRoute) {
+    const userRole = await fetchUserRole(user.id);
+    response.headers.set("x-user-role", userRole);
+
+    if (pathname.startsWith("/customer") && userRole !== "customer") {
+      const target = userRole === "professional" ? "/pro" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
+      return redirectWithSession(target);
+    }
+
+    // Professional route: Check verification status
+    if (pathname.startsWith("/pro")) {
+      if (userRole !== "professional") {
+        const target = userRole === "customer" ? "/customer" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
+        return redirectWithSession(target);
+      }
+
+      // If professional accessing main dashboard (not onboarding), check verification
+      if (!isOnboardingRoute) {
+        const verificationStatus = await fetchProfessionalVerificationStatus(user.id);
+        if (verificationStatus && verificationStatus !== "verified") {
+          // Redirect unverified professionals to onboarding
+          return redirectWithSession("/pro/onboarding");
+        }
+      }
+    }
+
+    if (pathname.startsWith("/admin") && userRole !== "admin") {
+      const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/pro" : userRole === "support" ? "/support" : "/";
+      return redirectWithSession(target);
+    }
+
+    if (pathname.startsWith("/support") && userRole !== "support") {
+      const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/pro" : userRole === "admin" ? "/admin" : "/";
+      return redirectWithSession(target);
+    }
+  }
+
+  // 4. Session freshness check
+  try {
+    const sessionStatus = await checkSessionNeedsRefresh();
+    if (sessionStatus.needsRefresh) {
+      response.headers.set("X-Session-Needs-Refresh", "true");
+    }
+  } catch {
+    // Non-critical check
+  }
+
+  // 5. Security Headers (applied directly to response.headers)
+  Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+
+  const isAdminRoute = pathname.startsWith("/admin");
+  if (isAdminRoute) {
+    response.headers.set("Content-Security-Policy", ADMIN_CSP);
+  }
+
+  // 6. Caching Security: Never cache protected dashboards, sensitive user state, or API endpoints
+  if (isProtectedRoute || isAuthRoute || pathname.startsWith("/api")) {
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+    response.headers.set("Surrogate-Control", "no-store");
+  }
+
+  return response;
 }
 
-/**
- * Configure which routes should trigger middleware.
- * 
- * We run middleware on protected routes to maintain sessions.
- * Public routes like /auth/login don't need it.
- */
 export const config = {
   matcher: [
-    // Protected customer routes
-    '/app/:path*',
-    // Protected professional routes
-    '/pro/:path*',
-    // Protected admin routes
-    '/admin/:path*',
-    // API routes that handle auth
-    '/api/:path*',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - Static asset extensions (.svg, .png, .jpg, .woff, etc.)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2)$).*)",
   ],
-}
+};

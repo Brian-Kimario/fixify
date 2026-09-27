@@ -21,7 +21,9 @@ export function LoginForm() {
       const result = await loginWithEmail(email, password);
 
       if (result.success) {
-        router.push('/app');
+        // Use the redirectPath from the server action, fallback to /customer
+        const path = result.redirectPath || '/customer';
+        router.push(path);
       } else {
         setError(result.error || 'Failed to sign in. Please try again.');
       }
