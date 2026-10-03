@@ -1,134 +1,258 @@
 'use client';
 
-import React from 'react';
-import { ShiftCard } from '@/components/cult/ShiftCard';
-import { Icon } from '@/components/ui/icon';
+import Link from 'next/link';
 import {
-  faBolt,
-  faFaucet,
-  faSnowflake,
-  faPlug,
-  faHammer,
-  faPaintbrush,
-  faBroom,
-  faHardHat,
-} from '@fortawesome/free-solid-svg-icons';
+  ArrowUpRight,
+  Fan,
+  Lightbulb,
+  Refrigerator,
+  Wrench,
+} from 'lucide-react';
+
+const services = [
+  {
+    slug: 'electrical',
+    index: '01',
+    name: 'Electrical',
+    desc: 'Sockets, lights, wiring faults, breakers and household electrical work.',
+    icon: Lightbulb,
+    tint: 'gold',
+  },
+  {
+    slug: 'plumbing',
+    index: '02',
+    name: 'Plumbing',
+    desc: 'Leaks, blockages, fittings, drainage and water-pressure problems.',
+    icon: Wrench,
+    tint: 'blue',
+  },
+  {
+    slug: 'ac-cooling',
+    index: '03',
+    name: 'AC & cooling',
+    desc: 'Cooling issues, servicing, installation checks and related repairs.',
+    icon: Fan,
+    tint: 'mint',
+  },
+  {
+    slug: 'appliances',
+    index: '04',
+    name: 'Appliance repair',
+    desc: 'Washing machines, refrigerators, ovens and other household equipment.',
+    icon: Refrigerator,
+    tint: 'rose',
+  },
+] as const;
 
 export function ServiceCategoryGrid() {
-  const categories = [
-    {
-      slug: 'electrical',
-      title: 'Electrical',
-      category: 'POWER & FIXTURES',
-      description: 'Breaker trips, damaged sockets, fixture installs and wiring diagnostics.',
-      icon: <Icon icon={faBolt} size="base" currentColor decorative />,
-      typicalRequests: ['Tripping circuit breaker', 'Socket not providing power', 'Ceiling fixture installation'],
-      href: '/customer?service=electrical',
-      badge: 'POPULAR',
-    },
-    {
-      slug: 'plumbing',
-      title: 'Plumbing',
-      category: 'LEAKS & DRAINAGE',
-      description: 'Under-sink leaks, blocked waste pipes, valve replacements and low pressure.',
-      icon: <Icon icon={faFaucet} size="base" currentColor decorative />,
-      typicalRequests: ['Water dripping under sink', 'Blocked shower drain', 'Stopcock valve replacement'],
-      href: '/customer?service=plumbing',
-      badge: 'URGENT READY',
-    },
-    {
-      slug: 'ac-cooling',
-      title: 'AC & Cooling',
-      category: 'CLIMATE & AIR',
-      description: 'Annual coil cleaning, cooling loss diagnostics, thermostat issues.',
-      icon: <Icon icon={faSnowflake} size="base" currentColor decorative />,
-      typicalRequests: ['Unit blowing room-temperature air', 'Water dripping from indoor split', 'Routine pre-summer service'],
-      href: '/customer?service=ac-cooling',
-    },
-    {
-      slug: 'appliances',
-      title: 'Appliances',
-      category: 'HOUSEHOLD GEAR',
-      description: 'Washing machines, dishwashers, refrigerators and built-in ovens.',
-      icon: <Icon icon={faPlug} size="base" currentColor decorative />,
-      typicalRequests: ['Washing machine drum not spinning', 'Refrigerator not cooling evenly', 'Oven heating element failing'],
-      href: '/customer?service=appliances',
-    },
-    {
-      slug: 'carpentry',
-      title: 'Carpentry',
-      category: 'DOORS & JOINERY',
-      description: 'Sticking doors, cabinet hinge repair, locks and custom woodwork fixes.',
-      icon: <Icon icon={faHammer} size="base" currentColor decorative />,
-      typicalRequests: ['Door rubbing against frame', 'Cabinet soft-close hinge broken', 'Door lock adjustment'],
-      href: '/customer?service=carpentry',
-    },
-    {
-      slug: 'painting',
-      title: 'Painting & Touch-up',
-      category: 'FINISHES & WALLS',
-      description: 'Water-stain touch-ups, patch repairs, accent walls and room repainting.',
-      icon: <Icon icon={faPaintbrush} size="base" currentColor decorative />,
-      typicalRequests: ['Ceiling water stain repair', 'Scuffed hallway repainting', 'Door frame enamel finishing'],
-      href: '/customer?service=painting',
-    },
-    {
-      slug: 'cleaning',
-      title: 'Property Cleaning',
-      category: 'HYGIENE & CARE',
-      description: 'Deep post-repair cleanup, tenant changeover hygiene, tile scrubbing.',
-      icon: <Icon icon={faBroom} size="base" currentColor decorative />,
-      typicalRequests: ['Post-repair residue cleanup', 'Bathroom limescale deep clean', 'Pre-tenancy deep sanitization'],
-      href: '/customer?service=cleaning',
-    },
-    {
-      slug: 'renovation',
-      title: 'Minor Renovation',
-      category: 'SURFACES & TILES',
-      description: 'Loose floor tile replacement, regrouting, sealants and cosmetic repairs.',
-      icon: <Icon icon={faHardHat} size="base" currentColor decorative />,
-      typicalRequests: ['Cracked floor tile replacement', 'Bathroom silicone & grout refresh', 'Wall anchor mounting'],
-      href: '/customer?service=renovation',
-    },
-  ];
-
   return (
-    <section className="py-24 border-t border-line bg-porcelain" id="services">
-      <div className="wrap">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-14">
-          <div className="max-w-xl">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-ink-4">
-              VERIFIED SERVICE CATALOGUE
-            </p>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-ink">
-              Know what you need? Start with a category.
-            </h2>
-            <p className="mt-3 text-sm text-ink-3">
-              Hover over any service to see common problems and jump directly into the booking flow.
-            </p>
+    <section className="service-section" id="services">
+      <div className="service-wrap">
+        <div className="service-heading" data-reveal>
+          <div>
+            <p className="service-kicker">Find the right starting point</p>
+            <h2>Browse by service type</h2>
           </div>
-          <span className="font-mono text-xs font-semibold text-teal self-start sm:self-end">
-            8 SPECIALIST TRADES AVAILABLE
-          </span>
+          <p className="service-intro">
+            Not sure about the category? Start with your problem description instead.
+          </p>
         </div>
 
-        {/* 4-column Desktop, 2-column Tablet, 1-column Mobile ShiftCard Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((cat) => (
-            <ShiftCard
-              key={cat.slug}
-              title={cat.title}
-              category={cat.category}
-              description={cat.description}
-              icon={cat.icon}
-              typicalRequests={cat.typicalRequests}
-              href={cat.href}
-              badge={cat.badge}
-            />
-          ))}
+        <div className="service-grid" data-stagger>
+          {services.map((service) => {
+            const Icon = service.icon;
+            return (
+              <Link
+                key={service.slug}
+                href={`/customer?service=${service.slug}#intake`}
+                className="service-card"
+                style={{ transitionDelay: `${(Number(service.index) - 1) * 100}ms` }}
+              >
+                <div className="service-card-top">
+                  <span className={`service-icon service-icon-${service.tint}`} aria-hidden="true">
+                    <Icon size={23} strokeWidth={1.8} />
+                  </span>
+                  <span className="service-number">{service.index}</span>
+                </div>
+                <div className="service-card-copy">
+                  <h3>{service.name}</h3>
+                  <p>{service.desc}</p>
+                </div>
+                <span className="service-arrow" aria-hidden="true">
+                  <ArrowUpRight size={19} strokeWidth={2} />
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </div>
+      <style jsx>{`
+        .service-section {
+          background: var(--color-paper);
+          border-top: 1px solid var(--color-line);
+          padding: clamp(72px, 8vw, 112px) 0 clamp(80px, 9vw, 128px);
+        }
+        .service-wrap {
+          width: min(var(--max), calc(100% - 48px));
+          margin: 0 auto;
+        }
+        .service-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: end;
+          gap: 48px;
+          margin-bottom: 44px;
+        }
+        .service-kicker {
+          color: var(--color-teal);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          line-height: 1.3;
+          margin: 0 0 14px;
+          text-transform: uppercase;
+        }
+        .service-heading h2 {
+          color: var(--color-ink);
+          font-size: clamp(36px, 4.2vw, 58px);
+          font-weight: 700;
+          letter-spacing: -0.045em;
+          line-height: 1.02;
+          margin: 0;
+        }
+        .service-intro {
+          color: var(--color-ink-3);
+          font-size: 15px;
+          line-height: 1.65;
+          margin: 0 0 4px;
+          max-width: 34ch;
+        }
+        .service-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+        }
+        .service-card {
+          background: var(--color-porcelain);
+          border: 1px solid var(--color-line);
+          border-radius: 18px;
+          color: inherit;
+          display: flex;
+          flex-direction: column;
+          min-height: 286px;
+          overflow: hidden;
+          padding: 22px 20px 19px;
+          position: relative;
+          text-decoration: none;
+          transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+        }
+        .service-card::after {
+          background: var(--color-teal);
+          bottom: 0;
+          content: '';
+          height: 3px;
+          left: 0;
+          position: absolute;
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 220ms ease;
+          width: 100%;
+        }
+        .service-card:hover,
+        .service-card:focus-visible {
+          background: var(--color-paper);
+          border-color: var(--color-line-strong);
+          box-shadow: 0 16px 34px rgba(24, 33, 31, 0.09);
+          outline: none;
+          transform: translateY(-5px);
+        }
+        .service-card:hover::after,
+        .service-card:focus-visible::after {
+          transform: scaleX(1);
+        }
+        .service-card-top {
+          align-items: flex-start;
+          display: flex;
+          justify-content: space-between;
+        }
+        .service-icon {
+          align-items: center;
+          border-radius: 12px;
+          display: inline-flex;
+          height: 48px;
+          justify-content: center;
+          width: 48px;
+        }
+        .service-icon-gold { background: #f5e8c8; color: #8a5f15; }
+        .service-icon-blue { background: #dcebf0; color: #286279; }
+        .service-icon-mint { background: #dceee7; color: #176b5b; }
+        .service-icon-rose { background: #f2dfd9; color: #984a38; }
+        .service-number {
+          color: var(--color-ink-4);
+          font-family: var(--font-mono);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          padding-top: 5px;
+        }
+        .service-card-copy {
+          margin-top: auto;
+          padding-right: 8px;
+        }
+        .service-card h3 {
+          color: var(--color-ink);
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: -0.025em;
+          line-height: 1.2;
+          margin: 0 0 10px;
+        }
+        .service-card p {
+          color: var(--color-ink-3);
+          font-size: 13px;
+          line-height: 1.58;
+          margin: 0;
+        }
+        .service-arrow {
+          align-items: center;
+          border: 1px solid var(--color-line-strong);
+          border-radius: 50%;
+          color: var(--color-teal);
+          display: inline-flex;
+          height: 34px;
+          justify-content: center;
+          margin-top: 22px;
+          transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+          width: 34px;
+        }
+        .service-card:hover .service-arrow,
+        .service-card:focus-visible .service-arrow {
+          background: var(--color-teal);
+          border-color: var(--color-teal);
+          color: white;
+        }
+        @media (max-width: 900px) {
+          .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .service-card { min-height: 250px; }
+        }
+        @media (max-width: 620px) {
+          .service-wrap { width: min(100% - 36px, 520px); }
+          .service-heading { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 30px; }
+          .service-intro { max-width: 42ch; }
+          .service-grid { gap: 10px; grid-template-columns: 1fr; }
+          .service-card { min-height: 0; padding: 18px; }
+          .service-card-copy { margin-top: 28px; }
+        }
+        .service-grid[data-stagger][data-visible="true"] > *:nth-child(1) { transition-delay: 0ms !important; }
+        .service-grid[data-stagger][data-visible="true"] > *:nth-child(2) { transition-delay: 100ms !important; }
+        .service-grid[data-stagger][data-visible="true"] > *:nth-child(3) { transition-delay: 200ms !important; }
+        .service-grid[data-stagger][data-visible="true"] > *:nth-child(4) { transition-delay: 300ms !important; }
+        @media (prefers-reduced-motion: reduce) {
+          .service-card,
+          .service-card::after,
+          .service-arrow { transition: none; }
+        }
+      `}</style>
     </section>
   );
 }

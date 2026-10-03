@@ -1,157 +1,92 @@
-'use client';
+/**
+ * PropertyRecordPreview Component
+ *
+ * Light section showing property maintenance records with:
+ * - Left copy: benefits of property history
+ * - Right card: passport-style property record with service history
+ *
+ * Reference: index.html .property section
+ */
 
-import React from 'react';
-import Link from 'next/link';
-import { DirectionAwareTabs, TabItem } from '@/components/cult/DirectionAwareTabs';
+const propertyRecords = [
+  { date: '12 Sep 2026', service: 'Kitchen plumbing', action: 'Trap replaced' },
+  { date: '21 Aug 2026', service: 'Split AC', action: 'Service completed' },
+  { date: '06 Jul 2026', service: 'Fuse board', action: 'Safety check logged' },
+  { date: '18 Apr 2026', service: 'Boiler', action: 'Routine service' },
+];
 
 export function PropertyRecordPreview() {
-  const tabs: TabItem[] = [
-    {
-      id: 'plumbing',
-      label: 'Plumbing',
-      badge: '3 records',
-      content: (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl border border-line bg-paper p-4 shadow-xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <strong className="text-xs font-bold text-ink">Kitchen Sink P-Trap</strong>
-                <span className="font-mono text-[9px] bg-success-soft text-success px-1.5 py-0.5 rounded font-bold">
-                  WARRANTY ACTIVE
-                </span>
-              </div>
-              <p className="text-xs text-ink-3 mt-1">Replaced corroded PVC trap and rubber seals. Tested under full pressure.</p>
-              <span className="font-mono text-[10px] text-ink-4 mt-2 block">12 Mar 2026 · Dario Venn (Verified Plumber)</span>
-            </div>
-            <span className="font-mono text-xs font-semibold text-teal self-center">Invoice #4790</span>
-          </div>
-
-          <div className="flex items-center justify-between rounded-xl border border-line bg-paper p-4 shadow-xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <strong className="text-xs font-bold text-ink">Main Inflow Stopcock</strong>
-                <span className="font-mono text-[9px] bg-paper-2 text-ink-3 px-1.5 py-0.5 rounded font-bold">
-                  VERIFIED
-                </span>
-              </div>
-              <p className="text-xs text-ink-3 mt-1">Installed modern brass quarter-turn lever valve for emergency shutoff.</p>
-              <span className="font-mono text-[10px] text-ink-4 mt-2 block">08 Dec 2025 · Dario Venn</span>
-            </div>
-            <span className="font-mono text-xs font-semibold text-teal self-center">Invoice #3120</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 'electrical',
-      label: 'Electrical',
-      badge: '2 records',
-      content: (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl border border-line bg-paper p-4 shadow-xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <strong className="text-xs font-bold text-ink">Distribution Board RCD Test</strong>
-                <span className="font-mono text-[9px] bg-success-soft text-success px-1.5 py-0.5 rounded font-bold">
-                  COMPLIANT
-                </span>
-              </div>
-              <p className="text-xs text-ink-3 mt-1">Tripping fault isolated to outdoor lighting spur. Breaker recalibrated.</p>
-              <span className="font-mono text-[10px] text-ink-4 mt-2 block">04 Feb 2026 · Emeric Sandoval (Master Electrician)</span>
-            </div>
-            <span className="font-mono text-xs font-semibold text-teal self-center">Invoice #4102</span>
-          </div>
-
-          <div className="flex items-center justify-between rounded-xl border border-line bg-paper p-4 shadow-xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <strong className="text-xs font-bold text-ink">Hallway 2-Gang USB Sockets</strong>
-                <span className="font-mono text-[9px] bg-paper-2 text-ink-3 px-1.5 py-0.5 rounded font-bold">
-                  INSTALLED
-                </span>
-              </div>
-              <p className="text-xs text-ink-3 mt-1">Replaced loose legacy sockets with surge-protected USB-C outlets.</p>
-              <span className="font-mono text-[10px] text-ink-4 mt-2 block">19 Nov 2025 · Emeric Sandoval</span>
-            </div>
-            <span className="font-mono text-xs font-semibold text-teal self-center">Invoice #2980</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 'cooling',
-      label: 'AC & Cooling',
-      badge: '1 record',
-      content: (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl border border-line bg-paper p-4 shadow-xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <strong className="text-xs font-bold text-ink">Master Bedroom Split AC</strong>
-                <span className="font-mono text-[9px] bg-success-soft text-success px-1.5 py-0.5 rounded font-bold">
-                  ANNUAL PASS
-                </span>
-              </div>
-              <p className="text-xs text-ink-3 mt-1">Deep coil foam wash, drain pan clear, and air volume sensor check.</p>
-              <span className="font-mono text-[10px] text-ink-4 mt-2 block">18 Jan 2026 · Lea Fontaine (HVAC Specialist)</span>
-            </div>
-            <span className="font-mono text-xs font-semibold text-teal self-center">Invoice #3890</span>
-          </div>
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <section className="py-24 border-t border-line bg-porcelain" id="property">
-      <div className="wrap">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left Column: Context */}
-          <div className="lg:col-span-5 space-y-6">
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-ink-4">
-              PERMANENT PROPERTY HISTORY
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink">
-              Your home should remember the work.
-            </h2>
-            <p className="text-base text-ink-3 leading-relaxed">
-              When tradespeople change or properties are sold or leased, maintenance context is usually lost in old text threads.
-              Fixify attaches every invoice, replaced part, and active warranty directly to your property passport.
-            </p>
-
-            <div className="pt-2">
-              <Link
-                href="/customer/properties"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-teal hover:text-teal-deep transition-colors"
-              >
-                <span>Explore property records in dashboard</span>
-                <span aria-hidden="true">→</span>
-              </Link>
+    <section id="property" className="py-20 sm:py-28 bg-[#F7F4EC] border-t border-[#D9DED8]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[.92fr_1.08fr] gap-16 lg:gap-20 items-center">
+          {/* Left: Copy */}
+          <div className="space-y-8" data-reveal="left">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#5A6661]">
+                Property record
+              </p>
+              <h2 className="text-5xl lg:text-6xl font-bold text-[#18211F] leading-tight tracking-tight max-w-[10ch]">
+                Your home remembers the work.
+              </h2>
+              <p className="text-base text-[#34413D] max-w-[43ch] leading-relaxed">
+                Fixify keeps completed maintenance, useful notes and service history with the property so future repairs begin with context.
+              </p>
             </div>
+
+            <button className="inline-flex items-center gap-2 px-6 py-3 border border-[#C6CEC7] bg-white text-[#18211F] rounded-[11px] font-semibold text-sm hover:bg-[#FFFEFA] transition-colors">
+              Explore the property record
+              <span>→</span>
+            </button>
           </div>
 
-          {/* Right Column: Interactive DirectionAwareTabs Passport */}
-          <div className="lg:col-span-7">
-            <div className="rounded-2xl border border-line bg-paper p-6 sm:p-8 shadow-[0_16px_40px_rgba(24,33,31,0.06)]">
-              {/* Passport Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-4 mb-6">
-                <div>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-ink-4">
-                    PROPERTY PASSPORT
-                  </span>
-                  <h3 className="text-lg font-bold text-ink mt-0.5">
-                    Meridian Court, Flat 3B
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold bg-success-soft text-success px-2.5 py-1 rounded-full">
-                    ● 14 TOTAL JOBS PRESERVED
-                  </span>
+          {/* Right: Passport Card */}
+          <div className="relative" data-reveal="right">
+            <div className="relative bg-[#FFFEFA] border border-[#C6CEC7] rounded-[28px] p-7 shadow-md overflow-hidden min-h-[470px]">
+              {/* Property Photo (top-right) */}
+              <div className="absolute right-6 top-6 w-[180px] h-[140px] rounded-[18px] overflow-hidden transform rotate-[2deg]">
+                <img
+                  src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=84"
+                  alt="Modern apartment exterior"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Head Section */}
+              <div className="relative z-10 max-w-[60%] pb-6">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#5A6661] mb-1">
+                  Property / Meridian Court
+                </p>
+                <h3 className="text-2xl font-bold text-[#18211F]">Flat 3B</h3>
+
+                {/* Record Status */}
+                <div className="flex items-center gap-2 mt-3 text-[#176B5B] text-xs font-bold">
+                  <span className="w-2 h-2 rounded-full bg-[#176B5B]" />
+                  Record up to date
                 </div>
               </div>
 
-              {/* DirectionAwareTabs Switcher */}
-              <DirectionAwareTabs tabs={tabs} defaultTab="plumbing" />
+              {/* Records Section (bottom) */}
+              <div className="absolute left-7 right-7 bottom-7 border-t border-[#D9DED8] pt-4 max-h-[200px] overflow-y-auto">
+                <div className="space-y-0">
+                  {propertyRecords.map((record, idx) => (
+                    <div
+                      key={idx}
+                      className={`grid grid-cols-[92px_1fr_auto] gap-3 py-3 items-center text-sm ${
+                        idx < propertyRecords.length - 1
+                          ? 'border-b border-[#D9DED8] pb-3'
+                          : ''
+                      }`}
+                    >
+                      <time className="text-xs font-semibold uppercase tracking-wider text-[#5A6661]">
+                        {record.date}
+                      </time>
+                      <strong className="text-[#18211F] font-semibold">{record.service}</strong>
+                      <span className="text-xs text-[#5A6661]">{record.action}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -7,13 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@fortawesome/react-fontawesome": "^3.5.0",
+    "@gsap/react": "^2.1.2",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
     "animejs": "^4.5.0",
@@ -21,6 +21,7 @@
     "lucide-react": "^1.48.0",
     "motion": "^13.4.2",
     "next": "16.3.5",
+    "razorpay": "2.9.2",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -29,12 +30,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
-    "fast-check": "^3.20.0",
+    "happy-dom": "^20.14.5",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^1.6.0"
+    "vitest": "^5.0.2"
   },
   "packageManager": "pnpm@12.5.1"
 }

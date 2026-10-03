@@ -1,8 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# ============================================================================
-# DEPENDENCIES & PACKAGE MANAGERS
-# ============================================================================
+# Dependencies & package managers
 /node_modules
 /.pnp
 .pnp.*
@@ -12,45 +8,57 @@
 !.yarn/releases
 !.yarn/versions
 
-# ============================================================================
-# BUILD ARTIFACTS & CACHES (generated, not source)
-# ============================================================================
-/.next/               # Next.js build output
-/out/                 # Next.js export output
-/build/               # Production build directory
-dist/                 # Distribution files
-*.tsbuildinfo         # TypeScript build info
+# Build artifacts & caches
+/.next/
+/out/
+/build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
 
-# ============================================================================
-# LOCAL DEVELOPMENT & EDITOR
-# ============================================================================
-.vscode/              # VS Code workspace settings
-.idea/                # IntelliJ/WebStorm
-*.swp                 # Vim swap files
-*.swo                 # Vim backup
-*~                    # Backup files
-.DS_Store             # macOS folder metadata
-Thumbs.db             # Windows thumbnail cache
-.env.local            # Local environment variables (secrets, API keys)
-.env.local.*          # Local env variations
-.env.*.local          # Specific local environments
+# Local development & secrets
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.crt
 
-# ============================================================================
-# KIRO IDE & AGENTS (LOCAL DEVELOPMENT ONLY)
-# ============================================================================
-.kiro/                # Kiro IDE local configuration & session data
-.agents/              # Kiro agents (local setup & skills)
-.claude/              # Claude IDE configuration (local)
+# IDE & local agent tooling
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.kiro/
+.agents/
+.claude/
+.impeccable/
+.manus/
+.playwright/
+.playwright-mcp/
+artifacts/
+screenshots/
+audit-screenshots/
 
-# ============================================================================
-# GITHUB & WORKFLOWS (LOCAL CONFIGURATION)
-# ============================================================================
-.github/              # GitHub workflows, actions, templates (local CI/CD config)
-.github/workflows/    # GitHub Actions workflows (local variations)
+# OS metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.dmg
+*.pkg
+*.iso
+*.zip
+*.tar.gz
 
-# ============================================================================
-# LOGGING & DEBUG OUTPUT (generated)
-# ============================================================================
+# Logging & debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -59,66 +67,16 @@ lerna-debug.log*
 *.log
 logs/
 
-# ============================================================================
-# TEST COVERAGE & ARTIFACTS
-# ============================================================================
-/coverage/            # Test coverage reports
-.nyc_output/          # NYC (Istanbul) coverage output
-*.lcov                # Coverage data
+# Test coverage
+/coverage/
+.nyc_output/
+*.lcov
 
-# ============================================================================
-# RUNTIME & TEMPORARY FILES
-# ============================================================================
-*.pem                 # SSL/TLS certificate files (secrets)
-.env.production.local # Production-specific local env
-next-env.d.ts         # Next.js auto-generated types
+# Supabase local
+.supabase/
+supabase/.db/
+supabase/.temp/
+supabase/seed.sql.local
 
-# ============================================================================
-# DATABASE & SUPABASE (LOCAL)
-# ============================================================================
-.supabase/            # Supabase local development data
-supabase/.db/         # Local database files
-supabase/seed.sql.local  # Local seed variations
-
-# ============================================================================
-# IDE & EDITOR PLUGINS
-# ============================================================================
-.eslintcache          # ESLint cache
-.stylelintcache       # Stylelint cache
-.prettier/            # Prettier cache directory
-.next/cache/          # Next.js cache (part of .next, but explicit)
-
-# ============================================================================
-# OS-SPECIFIC FILES
-# ============================================================================
-.DS_Store             # macOS
-.DS_Store?            # macOS
-._*                   # macOS
-.Spotlight-V100       # macOS
-.Trashes              # macOS
-Thumbs.db             # Windows
-ehthumbs.db           # Windows
-Desktop.ini           # Windows
-
-# ============================================================================
-# ENVIRONMENT & DEPLOYMENT
-# ============================================================================
-.vercel/              # Vercel CLI local cache
-.env.*.local          # Environment-specific local files
-*.key                 # SSH/Private keys
-*.crt                 # Certificates
-*.pem                 # Certificate files
-
-# ============================================================================
-# OPTIONAL: IDE PROJECT FILES (uncomment if needed)
-# ============================================================================
-# .idea/                # Full IntelliJ project settings
-# .vscode/settings.json # VS Code settings (if not shared)
-# .vs/                  # Visual Studio
-
-# ============================================================================
-# OPTIONAL: OS CACHES (uncomment if needed)
-# ============================================================================
-# .cache/              # General cache directory
-# *.tmp                # Temporary files
-
+# Vercel CLI
+.vercel/

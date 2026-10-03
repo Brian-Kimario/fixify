@@ -1,12 +1,13 @@
+import Image from "next/image";
+
 /**
  * Fixify Logo Symbol
- * Approved stroke-based mark: property roof + connection structure + intelligent node
- * Per BRAND_ASSETS.md specification
+ * Enlarged, transparent puzzle piece mark that adapts seamlessly to any background.
  */
-
 interface SymbolProps {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  priority?: boolean;
 }
 
 const sizes = {
@@ -16,59 +17,18 @@ const sizes = {
   xl: 64,
 };
 
-export function Symbol({ size = "md", className = "" }: SymbolProps) {
+export function Symbol({ size = "md", className = "", priority = true }: SymbolProps) {
   const dimension = sizes[size];
 
   return (
-    <svg
+    <Image
+      src="/brand/fixify-logo.svg"
+      alt="Fixify"
+      aria-hidden="true"
       width={dimension}
       height={dimension}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
-    >
-      {/* Roof line: property outline */}
-      <path
-        d="M8 30 L24 13 L40 30"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* Left support line: from left roof corner */}
-      <line
-        x1="24"
-        y1="13"
-        x2="15"
-        y2="35"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-
-      {/* Right support line: from right roof corner */}
-      <line
-        x1="24"
-        y1="13"
-        x2="33"
-        y2="35"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-
-      {/* Intelligent node: center connection point */}
-      <circle
-        cx="24"
-        cy="13"
-        r="3.6"
-        fill="var(--fx-teal, #176B5B)"
-        opacity="1"
-      />
-    </svg>
+      priority={priority}
+      className={`object-contain flex-shrink-0 ${className}`}
+    />
   );
 }

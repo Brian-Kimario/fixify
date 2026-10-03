@@ -1,26 +1,31 @@
 /* Fixify Brand System - CSS Variables */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* FIXIFY LIGHT-FIRST SEMANTIC PALETTE */
+  /* Color Palette - Light First */
+  --color-bg: #F7F4EC;
+  --color-ink: #18211F;
+  --color-mint: #176B5B;
+  --color-panel: #FFFEFA;
+  --color-line: #D9DED8;
 
-  --color-focus: #176B5B;
-
-  /* Semantic Colors - Light First */
-  --color-primary: var(--color-teal);
-  --color-primary-strong: var(--color-teal-deep);
-  --color-primary-soft: var(--color-teal-soft);
-  --color-background: var(--color-porcelain);
+  /* Semantic Colors */
+  --color-primary: var(--color-mint);
+  --color-background: var(--color-bg);
   --color-text: var(--color-ink);
-  --color-text-muted: var(--color-ink-3);
-  --color-text-faint: var(--color-ink-4);
   --color-border: var(--color-line);
-  --color-border-strong: var(--color-line-strong);
-  --color-surface: var(--color-paper);
-  --color-surface-raised: #FFFFFF;
+  --color-surface: var(--color-panel);
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 
   /* Typography */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
   /* Font Sizes - Modular Scale (1.25) */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -78,10 +83,6 @@
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 
-  /* Fixify Shadows */
-  --shadow-brand: 0 2px 6px rgba(24, 33, 31, 0.05), 0 18px 42px rgba(24, 33, 31, 0.07);
-  --shadow-brand-soft: 0 8px 26px rgba(24, 33, 31, 0.07);
-
   /* Z-index Scale */
   --z-hide: -1;
   --z-base: 0;
@@ -99,8 +100,7 @@
   --transition-slow: 300ms ease-in-out;
 }
 
-/* SEMANTIC UTILITY CLASSES */
-
+/* Semantic class utilities */
 .text-primary {
   color: var(--color-primary);
 }
@@ -113,22 +113,10 @@
   border-color: var(--color-primary);
 }
 
-.text-ink {
-  color: var(--color-ink);
-}
-
-.bg-ink {
-  background-color: var(--color-ink);
-}
-
 .text-secondary {
-  color: var(--color-text-muted);
+  color: var(--color-text);
 }
 
 .bg-secondary {
   background-color: var(--color-surface);
-}
-
-.text-faint {
-  color: var(--color-text-faint);
 }

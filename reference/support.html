@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fixify — Support</title>
+<meta name="description" content="Fixify customer support workspace reference.">
+<style>
+:root{--porcelain:#F7F4EC;--paper:#FFFEFA;--paper2:#F1EEE5;--ink:#18211F;--ink2:#34413D;--ink3:#5A6661;--ink4:#7C8681;--teal:#176B5B;--tealDeep:#0D5144;--tealSoft:#E2EEE9;--blue:#416B84;--blueSoft:#E6EEF2;--ochre:#9B6A1E;--ochreSoft:#F5EBD7;--clay:#A9523D;--claySoft:#F3E1DA;--success:#2F7D5B;--successSoft:#E3F0E8;--danger:#B94A43;--dangerSoft:#F6E3E1;--line:#D9DED8;--lineStrong:#C7CEC8;--shadow:0 20px 55px rgba(24,33,31,.08);--ease:cubic-bezier(.22,1,.36,1);--sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--porcelain);color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}button,textarea,select{font:inherit}button{cursor:pointer}:focus-visible{outline:2px solid var(--teal);outline-offset:3px}::selection{background:var(--teal);color:#fff}
+.shell{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--paper);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;display:flex;flex-direction:column}.sideTop{padding:22px 20px 17px}.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:760;letter-spacing:-.035em}.brand svg{width:29px;height:29px}.sideNav{padding:7px 12px;flex:1}.navLabel{font:600 10px/1 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--ink4);padding:0 10px 9px}.navLink{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:10px;margin:2px 0;color:var(--ink3);transition:.2s}.navLink svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.65}.navLink:hover{background:var(--paper2);color:var(--ink)}.navLink.active{background:var(--tealSoft);color:var(--tealDeep);font-weight:650}.sideFoot{padding:14px 19px;border-top:1px solid var(--line);font-size:11px;color:var(--ink4)}
+.main{min-width:0}.top{position:sticky;top:0;z-index:30;background:rgba(247,244,236,.9);backdrop-filter:blur(15px);border-bottom:1px solid transparent}.top.scrolled{border-color:var(--line)}.topRow{min-height:74px;display:flex;align-items:center;padding:12px 31px;gap:16px}.title{flex:1}.eyebrow{font:600 10px/1 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--ink4)}h1,h2,h3{margin:0;line-height:1.08;letter-spacing:-.03em}.title h1{font-size:22px;margin-top:6px}.topActions{display:flex;gap:8px}.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fff;font:650 10px/1 var(--mono)}.mobileTabs{display:none;padding:0 16px 10px;gap:6px;overflow:auto}.mobileTabs a{white-space:nowrap;padding:7px 10px;border:1px solid var(--line);background:var(--paper);border-radius:9px;color:var(--ink3);font-size:11px}.mobileTabs a.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.body{width:min(1120px,calc(100% - 64px));margin:auto;padding:28px 0 72px}.intro{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:21px}.intro p{color:var(--ink3);max-width:58ch;margin:7px 0 0}.back{font:600 10px/1 var(--mono);color:var(--teal)}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(310px,.8fr);gap:18px}.stack{display:grid;gap:18px}.panel{background:var(--paper);border:1px solid var(--line);border-radius:16px}.pad{padding:21px}.panelHead{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.panelHead h2{font-size:16px}.linkish{font:600 10px/1 var(--mono);color:var(--teal);letter-spacing:.05em}
+
+.ticketHero{background:var(--ink);color:#fff;border-radius:21px;padding:22px;position:relative;overflow:hidden;box-shadow:var(--shadow)}.ticketHero:after{content:"";position:absolute;right:-130px;bottom:-160px;width:330px;height:330px;border:1px solid rgba(255,255,255,.08);border-radius:50%}.ticketHead{display:flex;justify-content:space-between;gap:16px}.ticketHead .eyebrow{color:rgba(255,255,255,.4)}.ticketTitle{font-size:24px;color:#fff;margin-top:7px}.ticketSub{font-size:12px;color:rgba(255,255,255,.55);margin-top:5px}.ticketState{font:650 10px/1 var(--mono);padding:6px 8px;border-radius:999px;border:1px solid rgba(114,208,183,.24);background:rgba(114,208,183,.08);color:#72D0B7;height:max-content}.contextRow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:19px;position:relative;z-index:1}.contextBox{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.035);border-radius:12px;padding:12px}.contextBox small{display:block;color:rgba(255,255,255,.38);font:550 9px/1 var(--mono)}.contextBox strong{display:block;margin-top:5px;font-size:12px}.ticketActions{display:flex;gap:8px;margin-top:18px;position:relative;z-index:1}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:10px;padding:10px 13px;font-size:12px;font-weight:680;transition:.22s var(--ease)}.btn:hover{transform:translateY(-1px)}.primary{background:var(--teal);color:#fff}.primary:hover{background:var(--tealDeep)}.ghost{border-color:rgba(255,255,255,.16);background:transparent;color:#fff}.light{background:var(--paper);color:var(--ink);border-color:var(--line)}
+
+.optionGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:13px}.option{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);text-align:left;transition:.22s}.option:hover{transform:translateY(-2px);border-color:#BFD4CD;box-shadow:0 10px 22px rgba(23,107,91,.06)}.option strong{font-size:12px}.option span{display:block;color:var(--ink3);font-size:10.5px;margin-top:3px}.option.selected{background:var(--tealSoft);border-color:#BFD4CD}.option.selected strong{color:var(--tealDeep)}
+
+.thread{display:grid;gap:12px;margin-top:14px}.msg{display:flex;gap:10px;align-items:flex-start}.bubble{max-width:76%;padding:12px 13px;border-radius:13px;border:1px solid var(--line);background:var(--porcelain)}.msg.you{justify-content:flex-end}.msg.you .bubble{background:var(--teal);border-color:var(--teal);color:#fff}.msg small{display:block;margin-top:5px;color:var(--ink4);font:500 9px/1 var(--mono)}.msg.you small{color:rgba(255,255,255,.58);text-align:right}.composer{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:14px}.composer textarea{min-height:52px;resize:none;border:1px solid var(--line);border-radius:11px;background:var(--paper);padding:11px 12px;outline:0;color:var(--ink)}.composer textarea:focus{border-color:#BFD4CD;box-shadow:0 0 0 3px rgba(23,107,91,.08)}
+
+.detailList{margin-top:8px}.detailRow{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--line)}.detailRow:first-child{border-top:0}.detailRow span{color:var(--ink3);font-size:11px}.detailRow strong{font-size:11px;text-align:right}
+.warning{padding:15px;border-radius:14px;background:var(--ochreSoft);border:1px solid #E2D5BA}.warning strong{font-size:12px}.warning p{margin:4px 0 0;color:var(--ink3);font-size:11px}
+.quick{display:grid;gap:8px;margin-top:10px}.quick a{padding:10px 11px;border:1px solid var(--line);background:var(--paper);border-radius:10px;font-size:11px;color:var(--ink3);transition:.2s}.quick a:hover{color:var(--ink);background:var(--paper2)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 14px;border-radius:11px;box-shadow:var(--shadow);font-size:11px;pointer-events:none;transition:.22s var(--ease);z-index:100}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:930px){.shell{grid-template-columns:1fr}.sidebar{display:none}.mobileTabs{display:flex}.body{width:min(1120px,calc(100% - 40px))}.grid{grid-template-columns:1fr}}
+@media(max-width:600px){.topRow{padding:11px 16px}.body{width:min(1120px,calc(100% - 32px));padding-top:18px}.intro{align-items:flex-start;flex-direction:column}.ticketHero{padding:18px;border-radius:18px}.ticketHead{flex-direction:column}.contextRow{grid-template-columns:1fr}.ticketActions .btn{flex:1}.optionGrid{grid-template-columns:1fr}.bubble{max-width:86%}.composer{grid-template-columns:1fr}.composer .btn{width:100%}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+<div class="sideTop"><a class="brand" href="customer.html"><img src="../public/brand/fixify-logo.svg" alt="" aria-hidden="true" style="width:32px;height:32px;object-fit:contain" /><span>Fixify</span></a></div>
+<nav class="sideNav" aria-label="Support navigation">
+<div><div class="navLabel">Customer space</div><a class="navLink" href="customer.html"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg>Overview</a><a class="navLink active" href="support.html"><svg viewBox="0 0 24 24"><path d="M5 6h14v10H9l-4 4z"/></svg>Help & support</a><a class="navLink" href="help.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.9.65-1.5 1.1-1.5 2.4M12 17h.01"/></svg>Help centre</a></div>
+</nav>
+<div class="sideFoot">Support V1 · job context preserved</div>
+</aside>
+
+<div class="main">
+<header class="top" id="top"><div class="topRow"><div class="title"><div class="eyebrow">HELP & SUPPORT</div><h1>How can we help with your Fixify experience?</h1></div><div class="topActions"><a class="avatar" href="login.html">AB</a></div></div><nav class="mobileTabs"><a href="customer.html">Overview</a><a class="active" href="support.html">Support</a><a href="help.html">Help centre</a></nav></header>
+
+<main class="body">
+<div class="intro"><div><div class="eyebrow">CURRENT CONTEXT</div><h2 style="font-size:28px;margin-top:6px">Kitchen sink leak · FX-4790</h2><p>Start here because your support request stays connected to the active job and property. That keeps the conversation focused.</p></div><a class="back" href="customer.html">← BACK TO CUSTOMER SPACE</a></div>
+
+<div class="grid">
+<div class="stack">
+<section class="ticketHero">
+<div class="ticketHead"><div><div class="eyebrow">ACTIVE SUPPORT CONTEXT</div><h2 class="ticketTitle">Kitchen sink leak</h2><div class="ticketSub">Inspection · Meridian Court, Flat 3B · Dario Venn</div></div><span class="ticketState">OPEN JOB</span></div>
+<div class="contextRow"><div class="contextBox"><small>JOB</small><strong>FX-4790</strong></div><div class="contextBox"><small>SERVICE</small><strong>Plumbing</strong></div><div class="contextBox"><small>STATE</small><strong>Inspection</strong></div></div>
+<div class="ticketActions"><button class="btn primary" id="continueBtn">Continue this support request</button><button class="btn ghost" id="detailsBtn">View job details</button></div>
+</section>
+
+<section class="panel pad">
+<div class="panelHead"><div><div class="eyebrow">WHAT IS WRONG?</div><h2 style="margin-top:6px">Choose the closest match.</h2></div><span class="linkish">JOB / FX-4790</span></div>
+<div class="optionGrid" id="options">
+<button class="option selected"><strong>Problem is still present</strong><span>The issue has not been resolved.</span></button>
+<button class="option"><strong>Professional has not arrived</strong><span>Arrival or no-show issue.</span></button>
+<button class="option"><strong>Quote needs clarification</strong><span>Something about the proposed work or amount is unclear.</span></button>
+<button class="option"><strong>Something went wrong after the job</strong><span>Concern about completed work or materials.</span></button>
+</div>
+</section>
+
+<section class="panel pad">
+<div class="panelHead"><div><div class="eyebrow">SUPPORT THREAD</div><h2 style="margin-top:6px">Keep the conversation together.</h2></div><span class="linkish">SAMPLE THREAD</span></div>
+<div class="thread" id="thread">
+<div class="msg"><div class="bubble">Hi Alex. I can see the plumbing inspection is still open. What would you like us to look at?</div></div>
+<div class="msg you"><div class="bubble">The leak is still happening and I’m not sure whether the inspection notes captured it.</div></div>
+</div>
+<div class="composer"><textarea id="message" placeholder="Write a message…"></textarea><button class="btn primary" id="sendBtn">Send</button></div>
+</section>
+</div>
+
+<div class="stack">
+<section class="panel pad">
+<div class="panelHead"><h2>Job context</h2><span class="linkish">READ ONLY</span></div>
+<div class="detailList"><div class="detailRow"><span>Customer</span><strong>Alex Brown</strong></div><div class="detailRow"><span>Property</span><strong>Meridian Court · Flat 3B</strong></div><div class="detailRow"><span>Professional</span><strong>Dario Venn</strong></div><div class="detailRow"><span>Current state</span><strong>Inspection</strong></div><div class="detailRow"><span>Request started</span><strong>Today · 08:12</strong></div></div>
+</section>
+
+<section class="warning"><strong>Safety first</strong><p>For immediate danger such as exposed live wiring, active gas leaks or serious flooding, follow local emergency procedures first rather than waiting for a support reply.</p></section>
+
+<section class="panel pad">
+<div class="panelHead"><h2>Quick help</h2><a class="linkish" href="help.html">HELP CENTRE →</a></div>
+<div class="quick"><a href="help.html#faq">How do quotes work?</a><a href="help.html#faq">Where can I see job status?</a><a href="help.html#faq">How does the property record work?</a></div>
+</section>
+</div>
+</div>
+</main>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(()=>{const top=document.getElementById('top'),toast=document.getElementById('toast'),thread=document.getElementById('thread'),message=document.getElementById('message');addEventListener('scroll',()=>top.classList.toggle('scrolled',scrollY>10),{passive:true});document.querySelectorAll('.option').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.option').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected')}));document.getElementById('sendBtn').addEventListener('click',()=>{const value=message.value.trim();if(!value)return;const wrap=document.createElement('div');wrap.className='msg you';wrap.innerHTML='<div class="bubble"></div>';wrap.querySelector('.bubble').textContent=value;thread.appendChild(wrap);message.value='';toast.textContent='Message added to the V1 thread';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1800)});document.getElementById('continueBtn').addEventListener('click',()=>message.focus());document.getElementById('detailsBtn').addEventListener('click',()=>location.href='customer.html#active-job-title');})();
+</script>
+</body>
+</html>

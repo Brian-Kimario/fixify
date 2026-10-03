@@ -1,15 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { checkSessionNeedsRefresh } from "@/lib/session";
-import { SECURITY_HEADERS, ADMIN_CSP } from "@/lib/csrf";
+
+// Inlined security headers (avoid importing Node.js crypto-dependent modules in Edge Runtime)
+const SECURITY_HEADERS: Record<string, string> = {
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "X-XSS-Protection": "1; mode=block",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=(), payment=()",
+  "Content-Security-Policy":
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+};
+
+const ADMIN_CSP =
+  "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
 /**
  * Enterprise Security Middleware
  * 
  * Enforces:
- * - Authentication on protected routes (/customer, /pro, /admin)
- * - Strict role-based routing (customer → /customer, pro → /pro, admin → /admin)
- * - Professional onboarding state (unverified professionals → /pro/onboarding)
+ * - Authentication on protected routes (/customer, /professional, /admin)
+ * - Strict role-based routing (customer → /customer, professional → /professional, admin → /admin)
+ * - Professional onboarding state (unverified professionals → /professional/onboarding)
  * - Redirects logged-in users away from /auth/login to their dashboard
  * - Security headers & Content Security Policy
  * - Cache-Control: no-store on sensitive/protected dashboard & API routes
@@ -52,14 +65,14 @@ export async function middleware(request: NextRequest) {
   // Define protected routes and their required roles
   const protectedRoutes: Record<string, string> = {
     "/customer": "customer",
-    "/pro": "professional",
-    "/pro/onboarding": "professional",
+    "/professional": "professional",
+    "/professional/onboarding": "professional",
     "/admin": "admin",
     "/support": "support",
   };
 
   // Routes that don't require verification (professionals can access while pending)
-  const onboardingAllowedRoutes = ["/pro/onboarding"];
+  const onboardingAllowedRoutes = ["/professional/onboarding"];
 
   const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
     pathname.startsWith(route)
@@ -141,7 +154,7 @@ export async function middleware(request: NextRequest) {
   // (unless they are landing here immediately after an explicit logout)
   if (user && isAuthRoute && !isLoggedOutParam) {
     const userRole = await fetchUserRole(user.id);
-    const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/pro" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
+    const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/professional" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
     return redirectWithSession(target);
   }
 
@@ -160,12 +173,12 @@ export async function middleware(request: NextRequest) {
     response.headers.set("x-user-role", userRole);
 
     if (pathname.startsWith("/customer") && userRole !== "customer") {
-      const target = userRole === "professional" ? "/pro" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
+      const target = userRole === "professional" ? "/professional" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
       return redirectWithSession(target);
     }
 
     // Professional route: Check verification status
-    if (pathname.startsWith("/pro")) {
+    if (pathname.startsWith("/professional")) {
       if (userRole !== "professional") {
         const target = userRole === "customer" ? "/customer" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";
         return redirectWithSession(target);
@@ -176,33 +189,23 @@ export async function middleware(request: NextRequest) {
         const verificationStatus = await fetchProfessionalVerificationStatus(user.id);
         if (verificationStatus && verificationStatus !== "verified") {
           // Redirect unverified professionals to onboarding
-          return redirectWithSession("/pro/onboarding");
+          return redirectWithSession("/professional/onboarding");
         }
       }
     }
 
     if (pathname.startsWith("/admin") && userRole !== "admin") {
-      const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/pro" : userRole === "support" ? "/support" : "/";
+      const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/professional" : userRole === "support" ? "/support" : "/";
       return redirectWithSession(target);
     }
 
     if (pathname.startsWith("/support") && userRole !== "support") {
-      const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/pro" : userRole === "admin" ? "/admin" : "/";
+      const target = userRole === "customer" ? "/customer" : userRole === "professional" ? "/professional" : userRole === "admin" ? "/admin" : "/";
       return redirectWithSession(target);
     }
   }
 
-  // 4. Session freshness check
-  try {
-    const sessionStatus = await checkSessionNeedsRefresh();
-    if (sessionStatus.needsRefresh) {
-      response.headers.set("X-Session-Needs-Refresh", "true");
-    }
-  } catch {
-    // Non-critical check
-  }
-
-  // 5. Security Headers (applied directly to response.headers)
+  // 4. Security Headers
   Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
@@ -212,7 +215,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set("Content-Security-Policy", ADMIN_CSP);
   }
 
-  // 6. Caching Security: Never cache protected dashboards, sensitive user state, or API endpoints
+  // 5. Caching Security: Never cache protected dashboards, sensitive user state, or API endpoints
   if (isProtectedRoute || isAuthRoute || pathname.startsWith("/api")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
     response.headers.set("Pragma", "no-cache");

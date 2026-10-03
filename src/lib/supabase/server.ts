@@ -34,35 +34,11 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              try {
-                // Properly set cookie with all options including secure, httpOnly, sameSite
-                cookieStore.set(name, value, {
-                  ...options,
-                  httpOnly: true,
-                  secure: process.env.NODE_ENV === 'production',
-                  sameSite: 'lax',
-                })
-              } catch (error) {
-                // Silently suppress cookie modification errors that occur in Server Components
-                // Next.js only allows cookie modification in Server Actions and Route Handlers
-                // In Server Components, we catch and suppress the error to prevent console pollution
-                // Session validation will continue through middleware on the next request
-                if (
-                  error instanceof Error &&
-                  error.message.includes('Cookies can only be modified in a Server Action or Route Handler')
-                ) {
-                  // Expected error in Server Component context - suppress silently
-                  // The session will be refreshed on the next middleware invocation
-                  return
-                }
-                // For unexpected errors, log for debugging
-                console.error('[createClient] Unexpected cookie error:', error)
-              }
-            })
-          } catch (error) {
-            // Handle any unexpected errors in the forEach loop
-            console.error('[createClient] Error in setAll callback:', error)
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Handle errors in cookie setting (e.g., in middleware)
           }
         },
       },

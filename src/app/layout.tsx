@@ -1,24 +1,27 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "../styles/variables.css";
+import { AnimationProvider } from "@/components/ui/AnimationProvider";
 
 export const metadata: Metadata = {
-  title: "Fixify - Property Maintenance Marketplace",
+  title: "Fixify — Property maintenance, properly managed",
   description:
-    "Connect property managers and professionals with skilled technicians for property maintenance.",
+    "Connect with verified professionals for property maintenance. Describe your problem and let Fixify handle the rest.",
   keywords: [
-    "property management",
-    "maintenance",
+    "property maintenance",
+    "home repairs",
     "marketplace",
+    "verified professionals",
+    "plumbing",
+    "electrical",
     "handyman",
-    "repairs",
   ],
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#176B5B",
+  themeColor: "#F7F4EC",
 };
 
 export default function RootLayout({
@@ -31,8 +34,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className="min-h-full flex flex-col bg-porcelain text-ink font-body antialiased">
-        {children}
+      <body className="min-h-full flex flex-col bg-porcelain text-ink antialiased">
+        <AnimationProvider>
+          {children}
+        </AnimationProvider>
       </body>
     </html>
   );

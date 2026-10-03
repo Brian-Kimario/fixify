@@ -10,12 +10,12 @@ interface ButtonProps
 
 const variants = {
   primary:
-    "bg-teal text-paper hover:bg-teal-deep active:bg-teal-deep font-semibold disabled:bg-teal/60",
+    "bg-mint text-dark hover:bg-opacity-90 active:bg-opacity-80 font-semibold",
   secondary:
-    "bg-paper text-ink border border-line hover:bg-porcelain active:border-teal disabled:bg-paper-2",
+    "bg-panel text-ink border border-line hover:bg-line active:border-mint",
   outline:
-    "border-2 border-teal text-teal hover:bg-teal hover:text-paper active:bg-teal-deep disabled:border-line disabled:text-ink-4",
-  ghost: "text-ink hover:bg-porcelain active:bg-line disabled:text-ink-4",
+    "border-2 border-mint text-mint hover:bg-mint hover:text-dark active:bg-opacity-80",
+  ghost: "text-ink hover:bg-panel active:bg-line",
 };
 
 const sizes = {
@@ -37,10 +37,10 @@ export function Button({
     <button
       className={`
         inline-flex items-center justify-center
-        min-h-11 rounded-lg font-medium
+        rounded-lg font-medium
         transition-all duration-200
-        disabled:cursor-not-allowed disabled:opacity-60
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-porcelain
+        disabled:opacity-50 disabled:cursor-not-allowed
+        focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2 focus:ring-offset-dark
         ${variants[variant]}
         ${sizes[size]}
         ${className}

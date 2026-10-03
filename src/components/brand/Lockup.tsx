@@ -36,7 +36,7 @@ export function Lockup({
 
   const content = (
     <div className={layoutClass}>
-      <div className="flex-shrink-0 text-teal">
+      <div className="flex-shrink-0 text-mint">
         <Symbol size={symbolSizes[size]} />
       </div>
       <Wordmark size={wordmarkSizes[size]} />

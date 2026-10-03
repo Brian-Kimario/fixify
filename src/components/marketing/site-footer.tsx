@@ -1,115 +1,168 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { Symbol } from '@/components/brand/Symbol';
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-paper py-16 text-ink-3" id="footer">
+    <footer id="footer" className="footer">
       <div className="wrap">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-          {/* Brand Column (5 cols) */}
-          <div className="md:col-span-5 space-y-4">
-            <Link
-              className="inline-flex items-center gap-2.5 font-bold tracking-tight text-ink hover:opacity-90 transition-opacity"
-              href="/"
-              aria-label="Fixify home"
-            >
-              <div className="text-teal">
-                <Symbol size="md" />
-              </div>
-              <span className="text-xl tracking-tight text-ink font-display">Fixify</span>
+        <div className="foot-grid">
+          <div>
+            <Link className="brand" href="#top">
+              <Symbol size="md" className="brand-mark" />
+              <span>Fixify</span>
             </Link>
-            <p className="text-sm text-ink-3 max-w-sm leading-relaxed">
-              Property maintenance, structured from your first observation to the permanent home maintenance record.
-            </p>
-            <div className="pt-2 text-xs font-mono text-ink-4">
-              © {new Date().getFullYear()} Fixify Technologies Inc. All rights reserved.
-            </div>
+            <p className="foot-copy">Property maintenance, structured from the first message to the final record.</p>
           </div>
 
-          {/* Links Column 1: Product (2 cols) */}
-          <div className="md:col-span-2 space-y-3">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-4">
-              PRODUCT
-            </p>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <a href="#services" className="hover:text-ink transition-colors">
-                  Services
-                </a>
-              </li>
-              <li>
-                <a href="#how" className="hover:text-ink transition-colors">
-                  How it works
-                </a>
-              </li>
-              <li>
-                <a href="#transparency" className="hover:text-ink transition-colors">
-                  Pricing transparency
-                </a>
-              </li>
-              <li>
-                <a href="#property" className="hover:text-ink transition-colors">
-                  Property record
-                </a>
-              </li>
-            </ul>
+          <div>
+            <p className="foot-title">PRODUCT</p>
+            <Link href="#services">Services</Link>
+            <Link href="#how">How it works</Link>
+            <Link href="#property">Property record</Link>
           </div>
 
-          {/* Links Column 2: Professionals (2 cols) */}
-          <div className="md:col-span-2 space-y-3">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-4">
-              NETWORK
-            </p>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <Link href="/pro" className="hover:text-ink transition-colors">
-                  Professional portal
-                </Link>
-              </li>
-              <li>
-                <Link href="/auth/register" className="hover:text-ink transition-colors">
-                  Join as technician
-                </Link>
-              </li>
-              <li>
-                <a href="#professionals" className="hover:text-ink transition-colors">
-                  Payouts & terms
-                </a>
-              </li>
-            </ul>
+          <div>
+            <p className="foot-title">NETWORK</p>
+            <Link href="#professionals">For professionals</Link>
+            <Link href="/professional">Professional space</Link>
+            <Link href="/auth/login?next=/professional">Professional sign in</Link>
           </div>
 
-          {/* Links Column 3: Trust & Support (3 cols) */}
-          <div className="md:col-span-3 space-y-3">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-4">
-              STANDARDS
-            </p>
-            <ul className="space-y-2 text-xs">
-              <li className="text-ink-3">
-                <span className="font-semibold text-ink">30-day warranty</span> on eligible labor
-              </li>
-              <li className="text-ink-3">
-                <span className="font-semibold text-ink">Zero surprise bills</span> customer sign-off required
-              </li>
-              <li className="text-ink-3">
-                <span className="font-semibold text-ink">Strict verification</span> ID, license & skills
-              </li>
-            </ul>
+          <div>
+            <p className="foot-title">SUPPORT</p>
+            <Link href="#footer">Help centre</Link>
+            <Link href="#footer">Trust & safety</Link>
+            <Link href="mailto:hello@fixify.example">Contact Fixify</Link>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-14 border-t border-line/70 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-ink-4">
-          <span>FIXIFY / PROPERTY SERVICES PLATFORM</span>
-          <div className="flex gap-6">
-            <span>LIGHT-FIRST ARCHITECTURE</span>
-            <span>RESTFUL SERVICE WORKFLOW</span>
-          </div>
+        <div className="foot-bottom">
+          <span>FIXIFY / REFERENCE UI V4</span>
+          <span>LIGHT-FIRST · DOMAIN-SPECIFIC · PURPOSEFUL MOTION</span>
         </div>
       </div>
+
+      <style jsx>{`
+        .footer {
+          background: var(--color-ink);
+          color: var(--color-paper);
+          padding: clamp(80px, 10vw, 96px) 0 clamp(28px, 4vw, 40px);
+          border-top: 1px solid var(--color-ink-2);
+        }
+
+        .wrap {
+          width: min(var(--max), calc(100% - 48px));
+          margin: 0 auto;
+        }
+
+        .foot-grid {
+          display: grid;
+          grid-template-columns: 1.6fr repeat(3, 1fr);
+          gap: 36px;
+          margin-bottom: clamp(40px, 6vw, 64px);
+        }
+
+        .foot-grid > div:first-child {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-decoration: none;
+          color: var(--color-paper);
+          font-weight: 700;
+          font-size: 18px;
+          letter-spacing: -0.015em;
+          transition: opacity 150ms;
+          width: fit-content;
+        }
+
+        .brand:hover {
+          opacity: 0.8;
+        }
+
+        .brand-mark {
+          width: 28px;
+          height: 28px;
+          color: var(--color-teal);
+          stroke: currentColor;
+          stroke-width: 3.2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        .brand-mark .node {
+          fill: currentColor;
+          stroke: none;
+        }
+
+        .foot-copy {
+          font-size: 13px;
+          color: var(--color-ink-3);
+          line-height: 1.6;
+          margin: 0;
+        }
+
+        .foot-title {
+          font: 700 10px var(--font-mono);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--color-paper);
+          margin: 0 0 10px 0;
+        }
+
+        .foot-grid > div:not(:first-child) {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .foot-grid a {
+          font-size: 13px;
+          color: var(--color-ink-3);
+          text-decoration: none;
+          transition: color 150ms;
+        }
+
+        .foot-grid a:hover {
+          color: var(--color-paper);
+        }
+
+        .foot-bottom {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: clamp(20px, 4vw, 24px);
+          border-top: 1px solid var(--color-ink-2);
+          font-size: 10px;
+          color: var(--color-ink-3);
+          font: 600 10px var(--font-mono);
+          letter-spacing: 0.08em;
+        }
+
+        @media (max-width: 768px) {
+          .foot-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+          }
+
+          .foot-grid > div:first-child {
+            grid-column: 1 / -1;
+          }
+
+          .foot-bottom {
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+          }
+        }
+      `}</style>
     </footer>
   );
 }

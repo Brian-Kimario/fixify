@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getRedirectPathByRole } from '@/app/auth/utils'
+import { validateNextParam } from '@/lib/auth/validateNextParam'
 
 /**
  * OAuth Callback Route Handler
@@ -71,10 +72,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/login?error=exchange_failed', request.url))
     }
 
-    // Force session synchronization after code exchange
-    // This ensures cookies are properly set and session is established
-    await supabase.auth.getSession();
-
     // Get user's role and redirect accordingly
     const { data: profile } = await supabase
       .from('profiles')
@@ -94,18 +91,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/login?error=invalid_role', request.url))
     }
 
+    // Validate and resolve the next parameter
     const next = searchParams.get('next')
-    if (next && next.startsWith('/') && !next.startsWith('//')) {
-      if (role === 'customer' && next.startsWith('/customer')) {
-        redirectPath = next
-      } else if (role === 'professional' && next.startsWith('/pro')) {
-        redirectPath = next
-      } else if (role === 'admin' && next.startsWith('/admin')) {
-        redirectPath = next
-      } else if (role === 'support' && next.startsWith('/support')) {
-        redirectPath = next
-      }
-    }
+    redirectPath = validateNextParam(next, role, redirectPath)
 
     // Redirect to user's dashboard or requested target
     return NextResponse.redirect(new URL(redirectPath, request.url))

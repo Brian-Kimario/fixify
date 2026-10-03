@@ -4,21 +4,30 @@ import Link from 'next/link';
 import { Suspense, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signInWithEmail, signInWithGoogle } from '@/app/auth/actions';
-import { Lockup } from '@/components/brand/Lockup';
+import { Symbol } from '@/components/brand/Symbol';
+
+export const dynamic = 'force-dynamic';
 
 function GoogleIcon() {
-  return <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>;
+  return <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: '18px', height: '18px', display: 'block' }}><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>;
 }
 
 function EyeIcon({ hidden }: { hidden: boolean }) {
-  return hidden ? <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 4.3A10.8 10.8 0 0112 4c5.2 0 9.2 4 10.5 8a11.8 11.8 0 01-3.1 5.1M6.2 6.2A12 12 0 0012 20c1 0 2-.2 2.9-.4" /></svg> : <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M1.5 12S5.2 4 12 4s10.5 8 10.5 8S18.8 20 12 20 1.5 12 1.5 12z" /><circle cx="12" cy="12" r="2.7" /></svg>;
+  return hidden ? (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 4.3A10.8 10.8 0 0112 4c5.2 0 9.2 4 10.5 8a11.8 11.8 0 01-3.1 5.1M6.2 6.2A12 12 0 0112 20c1 0 2-.2 2.9-.4" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M1.5 12S5.2 4 12 4s10.5 8 10.5 8S18.8 20 12 20 1.5 12 1.5 12z" />
+      <circle cx="12" cy="12" r="2.7" />
+    </svg>
+  );
 }
 
 function LoginFormContent() {
   const searchParams = useSearchParams();
   const next = searchParams.get('next');
-  const requestedRole = searchParams.get('role');
-  const isProfessional = requestedRole === 'professional';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,8 +36,6 @@ function LoginFormContent() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const isLoggedOut = searchParams.get('logged_out') === '1' || searchParams.get('logged_out') === 'true';
-  const callbackError = searchParams.get('error');
-  const callbackMessage = callbackError ? 'Google sign-in could not be completed. Try again or continue with email.' : null;
 
   const handleEmailSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,20 +47,19 @@ function LoginFormContent() {
     if (!email.trim() || !password) return;
     setIsLoading(true);
     try {
-      const result = await signInWithEmail(email, password, next);
-      if (result?.success && result?.redirectPath) {
-        window.location.href = result.redirectPath;
-        return;
-      }
-      setError('Sign-in succeeded but the next step could not be opened. Please refresh and try again.');
+      // signInWithEmail calls redirect() server-side — it throws NEXT_REDIRECT
+      // which Next.js handles as a navigation. We never reach the line below on success.
+      await signInWithEmail(email, password, next);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+      // NEXT_REDIRECT is the expected success path — swallow it
+      if (message.includes('NEXT_REDIRECT')) return;
       if (message.includes('Invalid login credentials')) setError('Email or password is incorrect. Please try again.');
       else if (message.includes('Email not confirmed')) setError('Confirm your email before signing in.');
-      else if (!message.includes('NEXT_REDIRECT')) setError('We could not sign you in right now. Please try again.');
-    } finally {
+      else setError('We could not sign you in right now. Please try again.');
       setIsLoading(false);
     }
+    // Do NOT call setIsLoading(false) on success — keep the spinner while Next.js navigates
   };
 
   const handleGoogleSignIn = async () => {
@@ -68,32 +74,591 @@ function LoginFormContent() {
       setError('Google sign-in could not be started. Please try email instead.');
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      if (!message.includes('NEXT_REDIRECT') && !message.includes('redirect')) setError('Google sign-in could not be started. Please try again.');
+      if (!message.includes('NEXT_REDIRECT') && !message.includes('redirect')) 
+        setError('Google sign-in could not be started. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--color-porcelain)] px-5 py-8 text-[var(--color-ink)] sm:px-8 sm:py-12">
-      <div className="w-full max-w-[480px] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
-        <header className="mb-8 text-center"><Lockup size="md" href="/" className="mx-auto w-fit" /><p className="mt-4 text-sm font-medium text-[var(--color-ink-3)]">Property maintenance, made clearer.</p></header>
-        <section className="rounded-[28px] border border-[var(--color-line)] bg-[var(--color-paper)] p-6 shadow-[0_24px_70px_rgba(24,33,31,0.09)] sm:p-9" aria-label="Sign in to Fixify">
-          <div className="mb-8"><p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-teal)]">{isProfessional ? 'Professional access' : 'Customer access'}</p><h1 className="mt-3 font-[var(--font-display)] text-4xl font-bold leading-none tracking-[-0.06em]">Welcome back.</h1><p className="mt-4 text-sm leading-6 text-[var(--color-ink-3)]">{isProfessional ? 'Sign in to continue your Fixify professional onboarding or field workspace.' : 'Continue managing your Fixify services.'}</p></div>
-          {isLoggedOut && !error && <div className="mb-6 rounded-2xl border border-[var(--color-teal)]/25 bg-[var(--color-teal-soft)] p-4 text-sm text-[var(--color-ink-2)]" role="status"><strong className="block text-[var(--color-teal)]">You are signed out.</strong><span className="mt-1 block">Your session was closed securely. Sign in again when you are ready.</span></div>}
-          {(error || callbackMessage) && <div className="mb-6 rounded-2xl border border-[var(--color-danger)]/30 bg-[var(--color-danger-soft)] p-4 text-sm text-[var(--color-ink-2)]" role="alert" aria-live="polite"><strong className="block text-[var(--color-danger)]">Sign-in needs another try.</strong><span className="mt-1 block">{error || callbackMessage}</span></div>}
-          <button type="button" onClick={handleGoogleSignIn} disabled={isLoading} className="flex min-h-[54px] w-full items-center justify-center gap-3 rounded-2xl border border-[var(--color-line-strong)] bg-[var(--color-paper)] px-4 text-sm font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-porcelain)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] disabled:cursor-not-allowed disabled:opacity-55">{isLoading ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-line-strong)] border-t-[var(--color-teal)]" aria-hidden="true" /> : <GoogleIcon />}{isLoading ? 'Connecting…' : 'Continue with Google'}</button>
-          <div className="my-7 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-ink-4)]"><span className="h-px flex-1 bg-[var(--color-line)]" />or continue with email<span className="h-px flex-1 bg-[var(--color-line)]" /></div>
-          <form onSubmit={handleEmailSignIn} className="space-y-5" noValidate>
-            <div><label htmlFor="email" className="mb-2 block text-sm font-semibold">Email address</label><input id="email" name="email" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" value={email} onChange={(event) => { setEmail(event.target.value); setEmailError(null); }} disabled={isLoading} required aria-invalid={Boolean(emailError)} aria-describedby="email-help" className={`min-h-[54px] w-full rounded-2xl border bg-[var(--color-paper)] px-4 text-base outline-none transition focus:border-[var(--color-teal)] focus:ring-4 focus:ring-[var(--color-teal)]/10 disabled:cursor-not-allowed disabled:bg-[var(--color-porcelain)] ${emailError ? 'border-[var(--color-danger)]' : 'border-[var(--color-line-strong)]'}`} /><p id="email-help" className="mt-2 min-h-5 text-xs text-[var(--color-danger)]" aria-live="polite">{emailError || ' '}</p></div>
-            <div><div className="mb-2 flex items-center justify-between gap-4"><label htmlFor="password" className="block text-sm font-semibold">Password</label><Link href="/auth/forgot-password" className="text-xs font-semibold text-[var(--color-teal)] hover:underline">Forgot password?</Link></div><div className="relative"><input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => { setPassword(event.target.value); setPasswordError(null); }} disabled={isLoading} required aria-invalid={Boolean(passwordError)} aria-describedby="password-help" className={`min-h-[54px] w-full rounded-2xl border bg-[var(--color-paper)] px-4 pr-14 text-base outline-none transition focus:border-[var(--color-teal)] focus:ring-4 focus:ring-[var(--color-teal)]/10 disabled:cursor-not-allowed disabled:bg-[var(--color-porcelain)] ${passwordError ? 'border-[var(--color-danger)]' : 'border-[var(--color-line-strong)]'}`} /><button type="button" onClick={() => setShowPassword((value) => !value)} disabled={isLoading} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-xl text-[var(--color-ink-3)] transition hover:bg-[var(--color-porcelain)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)]"><EyeIcon hidden={showPassword} /></button></div><p id="password-help" className="mt-2 min-h-5 text-xs text-[var(--color-danger)]" aria-live="polite">{passwordError || ' '}</p></div>
-            <button type="submit" disabled={isLoading} className="flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-teal)] px-5 text-base font-bold text-white transition hover:bg-[var(--color-teal-deep)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">{isLoading && <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}{isLoading ? 'Signing you in…' : 'Sign in'}</button>
+    <div className="page">
+      {/* Left Visual */}
+      <section className="visual" aria-label="Fixify introduction">
+        <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1800&q=88" alt="Warm contemporary home interior" loading="eager" />
+        <div className="visual-grid" aria-hidden="true"></div>
+        <div className="visual-top">
+          <Link className="back" href="/">Back to home</Link>
+        </div>
+        <div className="visual-bottom">
+          <p className="visual-eyebrow">WELCOME HOME</p>
+          <h1>Come back to a home that feels <strong>looked after.</strong></h1>
+        </div>
+      </section>
+
+      {/* Right Form */}
+      <section className="form-side">
+        <div className="form-wrap">
+          <Link className="brand auth-brand" href="/">
+            <Symbol size="lg" className="brand-mark" />
+            <span>FIXIFY</span>
+          </Link>
+
+          <p className="form-eyebrow">WELCOME BACK</p>
+          <h2>Sign in to Fixify.</h2>
+          <p className="sub">Manage your requests, active work and property records.</p>
+
+          <form className="form" onSubmit={handleEmailSignIn} noValidate>
+            <button 
+              type="button" 
+              onClick={handleGoogleSignIn} 
+              disabled={isLoading}
+              className="google"
+            >
+              <GoogleIcon />
+              {isLoading ? 'Connecting…' : 'Continue with Google'}
+            </button>
+
+            <div className="divider"><span>or</span></div>
+
+            {isLoggedOut && !error && (
+              <div className="status-msg" style={{ color: '#176B5B', marginBottom: '12px' }}>
+                ✓ You are signed out. Sign in to continue.
+              </div>
+            )}
+            {error && (
+              <div className="status-msg" style={{ color: '#DC2626', marginBottom: '12px' }}>
+                ⚠ {error}
+              </div>
+            )}
+
+            <div className="field">
+              <label htmlFor="email">Email address</label>
+              <input 
+                className="input"
+                id="email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setEmailError(null); }}
+                disabled={isLoading}
+                required
+                style={{ borderColor: emailError ? '#DC2626' : undefined }}
+              />
+              {emailError && <div className="status-msg">{emailError}</div>}
+            </div>
+
+            <div className="field">
+              <label htmlFor="password">Password</label>
+              <div className="input-wrap">
+                <input 
+                  className="input password"
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setPasswordError(null); }}
+                  disabled={isLoading}
+                  required
+                  style={{ borderColor: passwordError ? '#DC2626' : undefined }}
+                />
+                <button 
+                  type="button" 
+                  className="show-pass"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                >
+                  <EyeIcon hidden={showPassword} />
+                </button>
+              </div>
+              {passwordError && <div className="status-msg">{passwordError}</div>}
+            </div>
+
+            <div className="form-meta">
+              <label className="remember">
+                <input type="checkbox" />
+                Remember me
+              </label>
+              <Link className="forgot" href="/auth/forgot-password">Forgot password?</Link>
+            </div>
+
+            <button type="submit" className="submit" disabled={isLoading}>
+              {isLoading ? 'Signing you in…' : 'Sign in ↗'}
+            </button>
           </form>
-          <div className="mt-7 border-t border-[var(--color-line)] pt-6 text-center text-sm text-[var(--color-ink-3)]">New to Fixify? <Link href="/auth/register" className="font-bold text-[var(--color-teal)] hover:underline">Create an account</Link></div>
-        </section>
-        <p className="mt-6 text-center text-xs text-[var(--color-ink-4)]"><Link href="/" className="hover:text-[var(--color-teal)]">Back to homepage</Link></p>
-      </div>
-    </main>
+
+          <p className="signup">New to Fixify? <Link href="/auth/register">Create an account</Link></p>
+          <p className="fineprint">
+            By continuing, you agree to Fixify's <Link href="#">terms</Link> and <Link href="#">privacy notice</Link>. 
+            Professional access remains subject to separate onboarding and verification.
+          </p>
+        </div>
+      </section>
+
+      <style jsx>{`
+        .page {
+          min-height: 100dvh;
+          width: 100%;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(520px, 1fr);
+        }
+
+        .visual {
+          position: relative;
+          min-height: 100vh;
+          padding: 28px;
+          overflow: hidden;
+          background: var(--color-ink);
+        }
+
+        .visual img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: saturate(0.88) contrast(1.06) brightness(0.78);
+        }
+
+        .visual::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(8, 23, 20, 0.22), rgba(8, 23, 20, 0.82)), linear-gradient(90deg, rgba(8, 23, 20, 0.30), rgba(8, 23, 20, 0.08) 70%);
+          z-index: 1;
+        }
+
+        .visual-grid {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          background-image: linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+          background-size: 34px 34px;
+          opacity: 0.45;
+          mask-image: linear-gradient(to bottom, black, transparent 90%);
+        }
+
+        .visual-top {
+          position: relative;
+          z-index: 3;
+          display: flex;
+          justify-content: flex-end;
+          align-items: flex-start;
+          gap: 20px;
+          color: white;
+        }
+
+        .brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: -0.035em;
+          text-decoration: none;
+          color: white;
+        }
+
+        .brand-mark {
+          width: 31px;
+          height: 31px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 3.15;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        .brand-mark .node {
+          fill: #77BFAE;
+          stroke: none;
+        }
+
+        .back {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.72);
+          padding-top: 5px;
+          text-decoration: none;
+        }
+
+        .visual-bottom {
+          color: #FFFFFF;
+          position: absolute;
+          left: 28px;
+          right: 28px;
+          bottom: 30px;
+          display: block;
+          z-index: 3;
+          padding: 24px;
+          background: linear-gradient(180deg, rgba(8, 23, 20, 0.76), rgba(8, 23, 20, 0.96)); border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 12px;
+          backdrop-filter: blur(8px);
+        }
+
+        .visual-eyebrow { margin: 0 0 14px; color: #9be0cf; font: 700 10px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+        .visual-bottom h1 {
+          color: #FFFFFF;
+          margin-top: 0;
+          font-size: clamp(38px, 4.3vw, 58px);
+          line-height: 1.02;
+          letter-spacing: -0.055em;
+          max-width: 12ch;
+        }
+
+        .visual-bottom h1 strong {
+          font-weight: 700;
+          color: #5fe3b0;
+        }
+
+        .visual-bottom p {
+          color: rgba(255, 255, 255, 0.92);
+          margin-top: 13px;
+          margin-bottom: 0;
+          max-width: 43ch;
+          color: rgba(255, 255, 255, 0.92);
+          font-size: 14px;
+        }
+
+        .visual-note {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-top: 20px;
+          align-items: center;
+        }
+
+        .visual-note span {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.72);
+          font-weight: 500;
+        }
+
+        .visual-note span:not(:last-child)::after {
+          content: '•';
+          margin-left: 12px;
+          color: rgba(255, 255, 255, 0.40);
+        }
+
+        .form-side {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 54px 7vw;
+          background: var(--color-paper);
+        }
+
+        .form-wrap {
+          width: min(100%, 460px);
+        }
+
+        .auth-brand { align-items: center; color: var(--color-ink); display: flex; gap: 16px; justify-content: center; margin: 0 auto 52px; width: 100%; font-family: "Space Grotesk", var(--font-sans), sans-serif; font-size: 38px; font-weight: 800; letter-spacing: .16em; line-height: 1; text-align: center; text-transform: uppercase; }
+        .auth-brand .brand-mark { flex: 0 0 auto; width: 64px; height: 64px; color: var(--color-teal); }
+        .auth-brand:hover { color: var(--color-teal); }
+
+        .form-eyebrow {
+          font: 600 10px var(--font-mono);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--color-ink-4);
+        }
+
+        .form-wrap h2 {
+          font-size: clamp(36px, 4.2vw, 48px);
+          line-height: 1.02;
+          letter-spacing: -0.05em;
+          margin-top: 12px;
+        }
+
+        .sub {
+          color: var(--color-ink-3);
+          margin-top: 11px;
+          font-size: 15px;
+        }
+
+        .form {
+          margin-top: 30px;
+        }
+
+        .field {
+          display: grid;
+          gap: 7px;
+          margin-top: 17px;
+        }
+
+        .field label {
+          font-size: 13px;
+          font-weight: 650;
+        }
+
+        .input-wrap {
+          position: relative;
+        }
+
+        .input {
+          width: 100%;
+          height: 54px;
+          border: 1px solid var(--color-line-strong);
+          border-radius: 11px;
+          background: var(--color-paper);
+          padding: 0 14px;
+          color: var(--color-ink);
+          outline: 0;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          font-family: inherit;
+          font-size: 15px;
+        }
+
+        .input:focus {
+          border-color: var(--color-teal);
+          box-shadow: 0 0 0 4px rgba(23, 107, 91, 0.10);
+        }
+
+        .input.password {
+          padding-right: 54px;
+        }
+
+        .show-pass {
+          position: absolute;
+          right: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: auto;
+          height: auto;
+          border: 0;
+          background: transparent;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--color-ink-4);
+          cursor: pointer;
+          padding: 0;
+          transition: color 0.2s ease;
+        }
+
+        .show-pass:hover {
+          background: transparent;
+          color: var(--color-ink);
+        }
+
+        .show-pass svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        .form-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          margin-top: 12px;
+        }
+
+        .remember {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: var(--color-ink-3);
+          font-size: 13px;
+          cursor: pointer;
+        }
+
+        .remember input {
+          width: 16px;
+          height: 16px;
+          accent-color: var(--color-teal);
+          cursor: pointer;
+        }
+
+        .forgot {
+          font-size: 13px;
+          color: var(--color-teal);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+
+        .submit {
+          width: 100%;
+          height: 54px;
+          margin-top: 22px;
+          border: 0;
+          border-radius: 11px;
+          background: var(--color-teal);
+          color: #fff;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 11px 24px rgba(23, 107, 91, 0.16);
+          transition: 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+          font-family: inherit;
+          font-size: 15px;
+        }
+
+        .submit:hover:not(:disabled) {
+          background: var(--color-teal-deep);
+          transform: translateY(-2px);
+          box-shadow: 0 15px 30px rgba(23, 107, 91, 0.22);
+        }
+
+        .submit:active:not(:disabled) {
+          transform: translateY(0) scale(0.985);
+        }
+
+        .submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .divider {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: var(--color-ink-4);
+          font-size: 12px;
+          margin: 23px 0;
+        }
+
+        .divider::before, .divider::after {
+          content: '';
+          height: 1px;
+          background: var(--color-line);
+          flex: 1;
+        }
+
+        .google {
+          width: 100%;
+          height: 54px;
+          border: 1px solid var(--color-line-strong);
+          background: var(--color-paper);
+          border-radius: 11px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-weight: 650;
+          cursor: pointer;
+          transition: 0.2s;
+          font-family: inherit;
+          font-size: 15px;
+          color: var(--color-ink);
+          padding: 0;
+        }
+
+        .google:hover:not(:disabled) {
+          background: #fff;
+          border-color: #B8C3BC;
+        }
+
+        .google:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .google svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        .signup {
+          margin-top: 20px;
+          text-align: center;
+          color: var(--color-ink-3);
+          font-size: 13px;
+        }
+
+        .signup a {
+          color: var(--color-teal);
+          font-weight: 700;
+          text-decoration: none;
+        }
+
+        .fineprint {
+          margin-top: 28px;
+          color: var(--color-ink-4);
+          font-size: 11px;
+          line-height: 1.55;
+        }
+
+        .fineprint a {
+          text-decoration: underline;
+          text-underline-offset: 2px;
+          color: var(--color-teal);
+        }
+
+        .status-msg {
+          min-height: 18px;
+          margin-top: 11px;
+          font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+          .page {
+            grid-template-columns: 1fr;
+          }
+
+          .visual {
+            display: none;
+          }
+
+          .form-side {
+            min-height: 100vh;
+            padding: 36px 24px;
+          }
+
+          .auth-brand {
+            display: flex;
+            font-size: 27px;
+            gap: 11px;
+            margin: 0 0 42px;
+          }
+          .auth-brand .brand-mark { width: 44px; height: 44px; }
+
+          .form-wrap h2 {
+            font-size: 38px;
+          }
+
+          .form {
+            margin-top: 24px;
+          }
+
+          .form-meta {
+            align-items: flex-start;
+          }
+
+          .fineprint {
+            margin-top: 22px;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .form-side {
+            padding: 28px 18px;
+          }
+
+          .auth-brand {
+            margin-bottom: 30px;
+          }
+
+          .form-wrap h2 {
+            font-size: 38px;
+          }
+
+          .fineprint {
+            margin-top: 22px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .submit, .input, .google {
+            transition: none;
+          }
+        }
+      `}</style>
+    </div>
   );
 }
 

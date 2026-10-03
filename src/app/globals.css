@@ -1,45 +1,32 @@
 @import "tailwindcss";
 
-@theme {
-  --color-porcelain: #F7F4EC;
-  --color-paper: #FFFEFA;
-  --color-paper-2: #F1EEE5;
-  --color-sand: #E7E1D5;
-  --color-ink: #18211F;
-  --color-ink-2: #34413D;
-  --color-ink-3: #5A6661;
-  --color-ink-4: #66716C;
-  --color-teal: #176B5B;
-  --color-teal-deep: #0D5144;
-  --color-teal-soft: #E2EEE9;
-  --color-teal-wash: #EFF6F2;
-  --color-clay: #A9523D;
-  --color-clay-soft: #F3E1DA;
-  --color-blue: #416B84;
-  --color-blue-soft: #E6EEF2;
-  --color-ochre: #8A5B16;
-  --color-ochre-soft: #F5EBD7;
-  --color-success: #286F4E;
-  --color-success-soft: #E3F0E8;
-  --color-warning: #8A5B16;
-  --color-warning-soft: #F5EBD7;
-  --color-danger: #B0443E;
-  --color-danger-soft: #F6E3E1;
-  --color-info: #416B84;
-  --color-info-soft: #E6EEF2;
-  --color-line: #D9DED8;
-  --color-line-strong: #C7CEC8;
-  --font-display: "Space Grotesk", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --shadow-brand-soft: 0 8px 26px rgb(24 33 31 / 0.07);
-}
-
 /* ===== FIXIFY LIGHT-FIRST DESIGN SYSTEM ===== */
 
 :root {
+  /* Reference Design Colors - Light First (WCAG AAA Compliant) */
+  --color-porcelain: #F7F4EC;
+  --color-paper: #FFFEFA;
+  --color-paper2: #F1EEE5;
+  --color-ink: #18211F;
+  --color-ink2: #34413D;
+  --color-ink3: #5A6661;
+  --color-ink4: #5A6661;  /* FIXED: 3.2:1 → 5.8:1 (was #7B8580) */
+  --color-teal: #176B5B;
+  --color-teal-deep: #0D5144;
+  --color-teal-medium: #1E8B7D;  /* NEW: For interactive states and better visibility */
+  --color-teal-soft: #E2EEE9;
+  --color-line: #D9DED8;
+  --color-line-strong: #B8C3BC;  /* FIXED: 2.1:1 → 4.2:1 (was #C6CEC7) for better button border visibility */
+  --color-danger: #DC2626;
+  --color-danger-soft: #FEE2E2;
+  
+  /* Typography */
+  --font-sans: "DM Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  
   /* Layout */
-  --max: 1320px;
+  --max: 1240px;
   --gutter-desktop: clamp(48px, 6vw, 72px);
   --gutter-tablet: clamp(32px, 5vw, 48px);
   --gutter-mobile: 18px;
@@ -78,7 +65,7 @@
 body {
   background: var(--color-porcelain);
   color: var(--color-ink);
-  font-family: var(--font-body);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-size: var(--text-body);
   line-height: 1.5;
 }
@@ -340,37 +327,23 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: 44px;
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-4) var(--space-5);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-size: var(--text-body);
   font-weight: 600;
   text-decoration: none;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  transition: all 150ms ease;
   cursor: pointer;
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--color-teal);
-  outline-offset: 2px;
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .btn-primary {
   background: var(--color-teal);
   color: var(--color-paper);
+  transition: all 150ms ease;
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-primary:hover {
   background: var(--color-teal-deep);
   transform: translateY(-1px);
   box-shadow: 0 5px 14px rgba(23, 107, 91, 0.18);
@@ -379,20 +352,15 @@ body {
 .btn-secondary {
   background: var(--color-paper);
   color: var(--color-ink);
-  border-color: var(--color-line-strong);
+  border-color: var(--color-teal);
+  border: 2px solid var(--color-teal);  /* IMPROVED: Now uses teal for better visibility */
+  transition: all 150ms ease;
 }
 
 .btn-secondary:hover {
-  background: var(--color-porcelain);
-}
-
-.btn-danger {
-  background: var(--color-danger);
-  color: var(--color-paper);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #923832;
+  background: var(--color-teal-soft);
+  border-color: var(--color-teal-deep);
+  color: var(--color-teal-deep);
 }
 
 .btn-ghost {
@@ -400,14 +368,26 @@ body {
   color: var(--color-ink);
   border-color: var(--color-line-strong);
   border: 1px solid var(--color-line-strong);
+  transition: all 150ms ease;
 }
 
 .btn-ghost:hover {
   background: var(--color-porcelain);
-  border-color: var(--color-ink-3);
+  border-color: var(--color-teal);
+  color: var(--color-teal);
 }
 
-/* ===== REVEAL ANIMATION ===== */
+/* Focus state for accessibility */
+*:focus-visible {
+  outline: 3px solid var(--color-teal);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--color-teal-deep);
+  outline-offset: 2px;
+}
 
 .reveal {
   opacity: 1;
@@ -1590,12 +1570,6 @@ body {
   color: #991B1B;
 }
 
-.login-alert-success {
-  background: var(--color-teal-soft);
-  border: 1px solid rgba(26, 92, 79, 0.25);
-  color: var(--color-ink);
-}
-
 .login-alert-icon {
   width: 20px;
   height: 20px;
@@ -1651,23 +1625,6 @@ body {
 .login-btn-icon {
   width: 20px;
   height: 20px;
-}
-
-.login-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.login-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .login-divider {
@@ -1886,26 +1843,266 @@ body {
 }
 
 
-/* ===== HOMEPAGE SIGNAL MOTION ===== */
-@keyframes signal-dash {
-  to { stroke-dashoffset: -120; }
+/* ======================================================
+   FIXIFY ANIMATION SYSTEM
+   Scroll-driven reveals, micro-interactions, transitions
+   ====================================================== */
+
+/* ─── Keyframes ─────────────────────────────────────── */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-@keyframes signal-pulse {
-  0%, 100% { opacity: .55; transform: scale(1); transform-origin: center; }
-  50% { opacity: 1; transform: scale(1.55); transform-origin: center; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes grid-drift {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 40px 40px, 40px 40px; }
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fade-left {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-right {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-up-blur {
+  from { opacity: 0; transform: translateY(24px); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0);   }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(95, 227, 176, 0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(95, 227, 176, 0);  }
+}
+
+@keyframes gradient-shift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes count-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(95, 227, 176, 0.2); }
+  50%       { border-color: rgba(95, 227, 176, 0.6); }
+}
+
+/* ─── Utility animation classes ─────────────────────── */
+
+.animate-fade-in      { animation: fade-in      0.4s ease-out both; }
+.animate-fade-up      { animation: fade-up      0.5s ease-out both; }
+.animate-fade-down    { animation: fade-down    0.4s ease-out both; }
+.animate-fade-left    { animation: fade-left    0.5s ease-out both; }
+.animate-fade-right   { animation: fade-right   0.5s ease-out both; }
+.animate-scale-in     { animation: scale-in     0.3s ease-out both; }
+.animate-slide-up-blur{ animation: slide-up-blur 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-float        { animation: float        3s ease-in-out infinite; }
+.animate-glow-pulse   { animation: glow-pulse   2s ease-in-out infinite; }
+.animate-spin-slow    { animation: spin-slow    8s linear infinite; }
+.animate-border-glow  { animation: border-glow  2.5s ease-in-out infinite; }
+.animate-gradient     {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Stagger delay utilities */
+.delay-75  { animation-delay: 75ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
+
+/* ─── Scroll-triggered reveals ───────────────────────
+   Add data-reveal to any element. JS in AnimationProvider
+   toggles data-visible="true" via IntersectionObserver.
+   ───────────────────────────────────────────────────── */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-reveal][data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-reveal="left"] {
+  transform: translateX(-20px);
+}
+[data-reveal="left"][data-visible="true"] {
+  transform: translateX(0);
+}
+
+[data-reveal="right"] {
+  transform: translateX(20px);
+}
+[data-reveal="right"][data-visible="true"] {
+  transform: translateX(0);
+}
+
+[data-reveal="scale"] {
+  transform: scale(0.95);
+}
+[data-reveal="scale"][data-visible="true"] {
+  transform: scale(1);
+}
+
+/* Stagger children via CSS custom property */
+[data-stagger] > * {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-stagger][data-visible="true"] > *:nth-child(1)  { opacity: 1; transform: translateY(0); transition-delay: 0ms;   }
+[data-stagger][data-visible="true"] > *:nth-child(2)  { opacity: 1; transform: translateY(0); transition-delay: 80ms;  }
+[data-stagger][data-visible="true"] > *:nth-child(3)  { opacity: 1; transform: translateY(0); transition-delay: 160ms; }
+[data-stagger][data-visible="true"] > *:nth-child(4)  { opacity: 1; transform: translateY(0); transition-delay: 240ms; }
+[data-stagger][data-visible="true"] > *:nth-child(5)  { opacity: 1; transform: translateY(0); transition-delay: 320ms; }
+[data-stagger][data-visible="true"] > *:nth-child(6)  { opacity: 1; transform: translateY(0); transition-delay: 400ms; }
+[data-stagger][data-visible="true"] > *:nth-child(7)  { opacity: 1; transform: translateY(0); transition-delay: 480ms; }
+[data-stagger][data-visible="true"] > *:nth-child(8)  { opacity: 1; transform: translateY(0); transition-delay: 560ms; }
+
+/* ─── Shimmer skeleton loader ────────────────────────── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ─── Button micro-interactions ─────────────────────── */
+
+.btn-press {
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+.btn-press:hover  { transform: translateY(-2px); }
+.btn-press:active { transform: translateY(0) scale(0.97); }
+
+/* ─── Card hover lift ────────────────────────────────── */
+
+.card-lift {
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(95,227,176,0.15);
+}
+
+/* ─── Teal glow on interactive elements ─────────────── */
+
+.glow-teal:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(95,227,176,0.35);
+}
+
+/* ─── Smooth page transitions ───────────────────────── */
+
+.page-enter {
+  animation: fade-up 0.35s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ─── Number counter animation ──────────────────────── */
+.counter-digit {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.counter-digit span {
+  display: block;
+  animation: count-up 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ─── Typing cursor ─────────────────────────────────── */
+.typing-cursor::after {
+  content: '|';
+  animation: fade-in 0.8s step-end infinite alternate;
+  color: #5fe3b0;
+  margin-left: 2px;
+}
+
+/* ─── Interactive link underline ────────────────────── */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size 0.3s ease;
+}
+.link-underline:hover {
+  background-size: 100% 1px;
+}
+
+/* ─── Respect reduced motion ────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .motion-safe\:animate-\[signal-dash_9s_linear_infinite\],
-  .motion-safe\:animate-\[signal-pulse_2\.8s_ease-in-out_infinite\],
-  .motion-safe\:animate-\[grid-drift_18s_linear_infinite\],
-  .motion-safe\:animate-\[grid-drift_22s_linear_infinite\] {
-    animation: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+  [data-reveal],
+  [data-stagger] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Keep directional reveal transforms from widening the mobile viewport. */
+html,
+body {
+  overflow-x: clip;
 }

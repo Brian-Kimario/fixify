@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Fixify — describe a property problem, get the right help, keep the record.">
+<title>Fixify — Your problem. Fixed properly.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --porcelain:#F7F4EC;--paper:#FFFEFA;--paper2:#EEEAE0;--ink:#18211F;--ink2:#34413D;--ink3:#5A6661;--ink4:#77827D;
+  --teal:#176B5B;--tealDeep:#0D5144;--tealSoft:#E2EEE9;--blue:#416B84;--blueSoft:#E6EEF2;--ochre:#9B6A1E;--ochreSoft:#F5EBD7;--clay:#A9523D;
+  --line:#D9DED8;--lineStrong:#C6CEC7;--shadow:0 28px 80px rgba(24,33,31,.12);--shadowSoft:0 14px 36px rgba(24,33,31,.08);
+  --sans:"DM Sans",ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif;--serif:"Instrument Serif",Georgia,serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --max:1240px;--ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:88px}body{margin:0;background:var(--porcelain);color:var(--ink);font:15px/1.58 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit}img{display:block;width:100%}button,a{touch-action:manipulation}:focus-visible{outline:2px solid var(--teal);outline-offset:4px}::selection{background:var(--teal);color:white}
+.wrap{width:min(var(--max),calc(100% - 48px));margin:auto}.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink4)}h1,h2,h3{margin:0;letter-spacing:-.045em;line-height:1.02}p{margin:0}
+
+/* header */
+.site-header{position:fixed;left:0;right:0;top:0;z-index:100;padding:16px 0;transition:background .35s,box-shadow .35s,border-color .35s}.site-header.scrolled{background:rgba(247,244,236,.78);backdrop-filter:blur(18px);border-bottom:1px solid rgba(217,222,216,.82);box-shadow:0 8px 30px rgba(24,33,31,.05)}
+.nav-row{display:flex;align-items:center;gap:22px}.brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.035em;font-size:18px}.brand-mark{width:31px;height:31px}.brand-mark .node{fill:var(--teal)}.nav-links{display:flex;gap:26px;margin-left:auto}.nav-links a{font-size:13px;color:var(--ink3);position:relative;padding:8px 0}.nav-links a::after{content:"";position:absolute;left:0;bottom:1px;width:100%;height:1px;background:var(--teal);transform:scaleX(0);transform-origin:left;transition:.25s}.nav-links a:hover{color:var(--ink)}.nav-links a:hover::after{transform:scaleX(1)}
+.nav-actions{display:flex;gap:8px;margin-left:8px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 16px;border:1px solid transparent;border-radius:11px;font-size:13px;font-weight:650;transition:transform .24s var(--ease),background .24s,border-color .24s,box-shadow .24s,color .24s}.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(0) scale(.985)}.btn-primary{background:var(--teal);color:white;box-shadow:0 10px 24px rgba(23,107,91,.16)}.btn-primary:hover{background:var(--tealDeep);box-shadow:0 15px 30px rgba(23,107,91,.22)}.btn-ghost{border-color:var(--lineStrong);background:rgba(255,254,250,.58)}.btn-ghost:hover{background:var(--paper);border-color:#B8C3BC}.menu{display:none;width:44px;height:44px;border:1px solid var(--lineStrong);background:var(--paper);border-radius:11px;place-items:center}.menu svg{width:20px;height:20px}
+
+/* motion */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .75s var(--ease),transform .75s var(--ease)}.reveal.in{opacity:1;transform:none}.reveal.delay1{transition-delay:.08s}.reveal.delay2{transition-delay:.16s}.reveal.delay3{transition-delay:.24s}
+.word{display:inline-block;overflow:hidden;vertical-align:bottom}.word i{font-style:normal;display:inline-block;transform:translateY(112%);animation:wordIn .9s var(--ease) forwards}.word:nth-child(2) i{animation-delay:.12s}@keyframes wordIn{to{transform:none}}
+
+/* hero */
+.hero{position:relative;padding:148px 0 92px;overflow:hidden}.hero::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 84% 22%,rgba(65,107,132,.11),transparent 22%),radial-gradient(circle at 11% 10%,rgba(23,107,91,.11),transparent 20%);pointer-events:none}.blueprint{position:absolute;inset:0;opacity:.45;background-image:linear-gradient(rgba(24,33,31,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(24,33,31,.035) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black 0%,black 65%,transparent 100%);animation:gridDrift 20s linear infinite}@keyframes gridDrift{to{background-position:42px 0,0 42px}}
+.hero-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(520px,1.1fr);gap:70px;align-items:center;position:relative;z-index:2}.hero-copy{padding-top:12px}.hero h1{font-size:clamp(58px,6.2vw,84px);max-width:10.5ch;margin-top:18px}.hero h1 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--teal);letter-spacing:-.04em}.hero-lead{font-size:18px;line-height:1.58;color:var(--ink3);max-width:53ch;margin-top:24px}.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}.hero-note{display:flex;gap:16px;flex-wrap:wrap;margin-top:26px;color:var(--ink4);font-size:12px}.hero-note span{display:inline-flex;align-items:center;gap:7px}.hero-note span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal)}
+
+/* hero visual */
+.hero-visual{position:relative;min-height:560px}.hero-photo{position:absolute;right:0;top:0;width:78%;height:480px;border-radius:34px;overflow:hidden;box-shadow:var(--shadow);background:#d9ded8}.hero-photo img{height:100%;object-fit:cover;object-position:center}.hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(24,33,31,.03),rgba(24,33,31,.28))}.photo-caption{position:absolute;left:24px;bottom:22px;color:white;z-index:2;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);opacity:.9}.photo-caption strong{display:block;font-family:var(--sans);font-size:18px;letter-spacing:-.02em;text-transform:none;margin-bottom:4px}.hero-detail{position:absolute;left:0;bottom:26px;width:58%;border:1px solid rgba(255,255,255,.62);background:rgba(255,254,250,.91);backdrop-filter:blur(14px);border-radius:20px;padding:16px;box-shadow:var(--shadowSoft)}.detail-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.detail-title{font-size:13px;font-weight:700}.status{font:650 10px/1 var(--mono);padding:6px 8px;border-radius:99px;background:var(--tealSoft);color:var(--tealDeep)}.detail-quote{font:400 20px/1.15 var(--serif);margin-top:12px;max-width:18ch}.detail-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.meta-box{background:rgba(24,33,31,.035);border-radius:10px;padding:9px}.meta-box span{display:block;color:var(--ink4);font:600 9px var(--mono);text-transform:uppercase;letter-spacing:.08em}.meta-box strong{display:block;margin-top:3px;font-size:11px}.orbit-line{position:absolute;right:4%;top:-6%;width:70%;height:70%;border:1px solid rgba(23,107,91,.15);border-radius:50%;transform:rotate(-11deg);pointer-events:none}.orbit-line::before{content:"";position:absolute;left:18%;top:-4px;width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 8px rgba(23,107,91,.08);animation:signalTravel 7s linear infinite}@keyframes signalTravel{0%{left:18%;top:-4px}35%{left:94%;top:22%}65%{left:68%;top:96%}100%{left:18%;top:-4px}}
+.photo-chip{position:absolute;right:5%;bottom:-1px;width:126px;height:154px;border:4px solid var(--porcelain);border-radius:18px;overflow:hidden;box-shadow:0 18px 40px rgba(24,33,31,.18);transform:rotate(3.5deg);transition:transform .5s var(--ease)}.photo-chip img{height:100%;object-fit:cover}.hero-visual:hover .photo-chip{transform:rotate(-1deg) translateY(-6px)}
+
+/* sections */
+.section{padding:104px 0;border-top:1px solid var(--line)}.section-head{display:flex;justify-content:space-between;gap:40px;align-items:flex-end;margin-bottom:44px}.section-head h2{font-size:clamp(40px,4.8vw,62px);max-width:12ch}.section-head p{max-width:46ch;color:var(--ink3);font-size:16px}
+
+/* services */
+.service-list{border-top:1px solid var(--ink);}.service-row{display:grid;grid-template-columns:70px 1fr auto;gap:22px;align-items:center;padding:23px 0;border-bottom:1px solid var(--line);position:relative;overflow:hidden;transition:padding .4s var(--ease)}.service-row::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--tealSoft),transparent 65%);transform:translateX(-100%);transition:transform .55s var(--ease);z-index:-1}.service-row:hover{padding-left:18px;padding-right:18px}.service-row:hover::before{transform:none}.service-index{font:700 11px var(--mono);color:var(--ink4)}.service-icon{width:46px;height:46px;display:grid;place-items:center;border:1px solid var(--lineStrong);border-radius:13px;background:var(--paper);color:var(--teal);font-size:19px;transition:transform .4s var(--ease),background .25s}.service-row:hover .service-icon{transform:rotate(-6deg) scale(1.05);background:white}.service-copy h3{font-size:20px}.service-copy p{font-size:13px;color:var(--ink3);margin-top:5px;max-width:64ch}.service-arrow{font:700 11px var(--mono);color:var(--ink4);display:inline-flex;align-items:center;gap:8px;transition:color .25s,transform .35s var(--ease)}.service-arrow b{font-size:16px;font-weight:400}.service-row:hover .service-arrow{color:var(--teal);transform:translateX(4px)}
+
+/* dark narrative */
+.dark{background:#17211F;color:#F5F4EE;border-top:0;position:relative;overflow:hidden}.dark::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 78% 20%,rgba(75,152,132,.17),transparent 28%),linear-gradient(120deg,rgba(255,255,255,.025),transparent 45%);pointer-events:none}.dark .eyebrow{color:rgba(245,244,238,.46)}.dark .section-head p{color:rgba(245,244,238,.62)}.journey{display:grid;grid-template-columns:.82fr 1.18fr;gap:82px;position:relative;z-index:1}.journey-visual{min-height:500px;border:1px solid rgba(255,255,255,.10);border-radius:28px;position:relative;overflow:hidden;background:linear-gradient(145deg,#1D2B28,#1A2321)}.journey-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:32px 32px}.journey-image{position:absolute;right:4%;top:4%;width:54%;height:56%;border-radius:22px;overflow:hidden;transform:rotate(2.5deg);box-shadow:0 24px 60px rgba(0,0,0,.24)}.journey-image img{height:100%;object-fit:cover;filter:saturate(.82) contrast(.98)}.journey-card{position:absolute;left:7%;bottom:7%;width:66%;background:rgba(255,254,250,.95);color:var(--ink);border-radius:18px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.24)}.journey-card .route{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:14px}.route-step{height:48px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;text-align:center;font-size:10px;font-weight:700}.route-step.active{border-color:#B9D8CF;background:var(--tealSoft);color:var(--tealDeep)}.journey-copy h2{font-size:clamp(42px,5vw,65px);max-width:10ch}.journey-copy>p{margin-top:18px;color:rgba(245,244,238,.63);max-width:42ch;font-size:16px}.journey-list{margin-top:38px;border-top:1px solid rgba(255,255,255,.12)}.journey-item{display:grid;grid-template-columns:46px 1fr;gap:16px;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.10)}.journey-num{font:700 11px var(--mono);color:#79B8A7}.journey-item h3{font-size:19px}.journey-item p{margin-top:5px;color:rgba(245,244,238,.54);font-size:13px}
+
+/* property */
+.property{display:grid;grid-template-columns:.92fr 1.08fr;gap:70px;align-items:center}.property-copy h2{font-size:clamp(42px,5vw,66px);max-width:10ch}.property-copy>p{color:var(--ink3);font-size:16px;max-width:43ch;margin-top:18px}.property-link{margin-top:24px}.passport{position:relative;height:470px;background:var(--paper);border:1px solid var(--lineStrong);border-radius:28px;padding:28px;box-shadow:var(--shadowSoft);overflow:hidden}.passport-photo{position:absolute;right:24px;top:24px;width:180px;height:140px;border-radius:18px;overflow:hidden;transform:rotate(2deg)}.passport-photo img{height:100%;object-fit:cover}.passport-head{position:relative;z-index:2;max-width:60%}.passport-head small{font:600 10px var(--mono);text-transform:uppercase;color:var(--ink4);letter-spacing:.08em}.passport-head h3{font-size:25px;margin-top:7px}.record-status{display:inline-flex;align-items:center;gap:7px;margin-top:12px;color:var(--tealDeep);font-size:12px;font-weight:700}.record-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal)}.records{position:absolute;left:28px;right:28px;bottom:30px;border-top:1px solid var(--line)}.record{display:grid;grid-template-columns:92px 1fr auto;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);align-items:center}.record time{font:600 10px var(--mono);color:var(--ink4)}.record strong{font-size:12px}.record span{font-size:11px;color:var(--ink4)}
+
+/* pro / final */
+.pro-band{display:grid;grid-template-columns:1fr auto;gap:50px;align-items:center;background:var(--paper2)}.pro-copy h2{font-size:clamp(40px,4.8vw,58px);max-width:11ch}.pro-copy p{color:var(--ink3);max-width:52ch;margin-top:14px}.pro-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}.final{padding:120px 0 132px;text-align:center}.final h2{font-size:clamp(48px,7vw,86px);max-width:11ch;margin:14px auto 0}.final h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--teal)}.final p{max-width:52ch;margin:18px auto 0;color:var(--ink3);font-size:17px}.final .btn{margin-top:28px}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:64px 0 28px}.footer-grid{display:grid;grid-template-columns:1.6fr repeat(3,1fr);gap:36px}.footer-copy{max-width:34ch;color:var(--ink3);font-size:13px;margin-top:12px}.footer-title{font:700 10px var(--mono);letter-spacing:.1em;color:var(--ink4);margin-bottom:10px}.footer-grid a{display:block;color:var(--ink3);font-size:13px;padding:5px 0}.footer-grid a:hover{color:var(--teal)}.footer-bottom{border-top:1px solid var(--line);margin-top:40px;padding-top:20px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--ink4);font:600 10px var(--mono);letter-spacing:.08em}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:24px;z-index:130;transform:translate(-50%,18px);opacity:0;pointer-events:none;background:var(--ink);color:white;padding:11px 14px;border-radius:11px;box-shadow:0 14px 35px rgba(0,0,0,.18);font-size:12px;transition:.28s var(--ease)}.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:1000px){.nav-links{display:none}.menu{display:grid}.hero-grid{grid-template-columns:1fr;gap:42px}.hero-copy{max-width:720px}.hero-visual{min-height:560px}.hero-photo{width:84%}.hero-detail{width:61%}.journey,.property{grid-template-columns:1fr;gap:44px}.journey-visual{min-height:520px}.pro-band{grid-template-columns:1fr}.pro-actions{justify-content:flex-start}.footer-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.wrap{width:min(var(--max),calc(100% - 32px))}.nav-actions .btn-ghost{display:none}.site-header{padding:11px 0}.hero{padding:118px 0 70px}.hero h1{font-size:clamp(46px,14vw,68px)}.hero-lead{font-size:16px}.hero-visual{min-height:430px}.hero-photo{width:94%;height:350px;border-radius:24px}.hero-detail{width:82%;bottom:8px;padding:14px;border-radius:16px}.detail-quote{font-size:18px}.photo-chip{width:96px;height:118px;right:0}.orbit-line{display:none}.section{padding:76px 0}.section-head{display:block;margin-bottom:32px}.section-head h2{font-size:42px}.section-head p{margin-top:14px}.service-row{grid-template-columns:46px 1fr auto;gap:12px;padding:19px 0}.service-icon{width:40px;height:40px}.service-copy h3{font-size:17px}.service-copy p{font-size:12px;line-height:1.45}.service-arrow{font-size:10px}.dark .journey-copy h2{font-size:43px}.journey-visual{min-height:430px}.journey-image{width:58%;height:48%}.journey-card{left:5%;width:78%;bottom:6%}.journey-card .route{grid-template-columns:repeat(2,1fr)}.passport{height:440px;border-radius:22px;padding:22px}.passport-photo{right:22px;top:22px;width:120px;height:100px}.passport-head{max-width:58%}.passport-head h3{font-size:21px}.records{left:22px;right:22px;bottom:22px}.record{grid-template-columns:67px 1fr;gap:8px}.record span{grid-column:2}.footer-grid{grid-template-columns:1fr 1fr}.footer-grid>div:first-child{grid-column:1/-1}.final{padding:90px 0 100px}.final h2{font-size:52px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.blueprint,.orbit-line::before{animation:none}.reveal,.word i{opacity:1;transform:none;animation:none;transition:none}.btn,.service-row,.service-icon,.service-arrow,.photo-chip{transition:none}}
+</style>
+</head>
+<body>
+<header class="site-header" id="siteHeader">
+  <div class="wrap nav-row">
+    <a class="brand" href="#top" aria-label="Fixify home"><img src="../public/brand/fixify-logo.svg" alt="" aria-hidden="true" style="width:32px;height:32px;object-fit:contain" /><span>Fixify</span></a>
+    <nav class="nav-links" aria-label="Primary"><a href="#services">Services</a><a href="#how">How it works</a><a href="#property">Property record</a><a href="#professionals">For professionals</a><a href="#footer">Help</a></nav>
+    <div class="nav-actions"><a class="btn btn-ghost" href="login.html">Sign in</a><a class="btn btn-primary" href="login.html?next=customer.html#intake">Describe a problem <span>↗</span></a><button class="menu" id="menuBtn" aria-controls="mobileNav" aria-expanded="false" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
+  </div>
+</header>
+<nav id="mobileNav" class="mobile-nav" aria-hidden="true"></nav>
+<main id="top">
+  <section class="hero">
+    <div class="blueprint" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow reveal in">PROPERTY CARE / MADE CLEAR</p>
+        <h1><span class="word"><i>Your problem.</i></span><br><span class="word"><i><em>Fixed properly.</em></i></span></h1>
+        <p class="hero-lead reveal in delay1">Tell Fixify what is happening at your property. Start with the problem—not the trade name—and we help turn it into a clear service path.</p>
+        <div class="hero-cta reveal in delay2"><a class="btn btn-primary magnet" href="login.html?next=customer.html#intake">Describe a problem <span>↗</span></a><a class="btn btn-ghost" href="#services">Browse services</a></div>
+        <div class="hero-note reveal in delay3"><span>Verified professionals</span><span>Clear approval before extra work</span><span>Maintenance history</span></div>
+      </div>
+      <div class="hero-visual reveal in delay1">
+        <div class="hero-photo tilt" id="heroPhoto"><img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1700&q=88" alt="Warm modern home interior with natural light" loading="eager"><div class="photo-caption"><strong>A home worth taking care of.</strong>Fixify keeps the work visible.</div></div>
+        <div class="hero-detail">
+          <div class="detail-top"><span class="detail-title">Example request</span><span class="status">UNDERSTOOD</span></div>
+          <div class="detail-quote">“The kitchen tap keeps dripping even when it is fully closed.”</div>
+          <div class="detail-meta"><div class="meta-box"><span>Likely service</span><strong>Plumbing</strong></div><div class="meta-box"><span>Next step</span><strong>Choose a time</strong></div></div>
+        </div>
+        <div class="photo-chip tilt"><img src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=700&q=86" alt="Professional electrical maintenance work" loading="lazy"></div>
+        <div class="orbit-line" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="services">
+    <div class="wrap">
+      <div class="section-head reveal"><div><p class="eyebrow">SERVICES</p><h2>Already know what needs doing?</h2></div><p>Skip the AI intake. Choose a service directly and start the request with the category already selected.</p></div>
+      <div class="service-list">
+        <a class="service-row reveal" href="customer.html?service=electrical#intake"><span class="service-index">01</span><span class="service-icon">⌁</span><span class="service-copy"><h3>Electrical</h3><p>Sockets, lights, wiring faults, breakers and household electrical work.</p></span><span class="service-arrow">START <b>↗</b></span></a>
+        <a class="service-row reveal" href="customer.html?service=plumbing#intake"><span class="service-index">02</span><span class="service-icon">⌇</span><span class="service-copy"><h3>Plumbing</h3><p>Leaks, blockages, fittings, drainage and water-pressure problems.</p></span><span class="service-arrow">START <b>↗</b></span></a>
+        <a class="service-row reveal" href="customer.html?service=ac-cooling#intake"><span class="service-index">03</span><span class="service-icon">◌</span><span class="service-copy"><h3>AC & cooling</h3><p>Cooling issues, servicing, installation checks and related repairs.</p></span><span class="service-arrow">START <b>↗</b></span></a>
+        <a class="service-row reveal" href="customer.html?service=appliances#intake"><span class="service-index">04</span><span class="service-icon">□</span><span class="service-copy"><h3>Appliance repair</h3><p>Washing machines, refrigerators, ovens and other household equipment.</p></span><span class="service-arrow">START <b>↗</b></span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark" id="how">
+    <div class="wrap journey">
+      <div class="journey-visual reveal">
+        <div class="journey-grid" aria-hidden="true"></div>
+        <div class="journey-image"><img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1000&q=84" alt="Bright modern kitchen interior" loading="lazy"></div>
+        <div class="journey-card"><p class="eyebrow">ONE CONTINUOUS JOURNEY</p><div class="route"><div class="route-step active">Describe</div><div class="route-step">Understand</div><div class="route-step">Arrange</div><div class="route-step">Record</div></div></div>
+      </div>
+      <div class="journey-copy">
+        <p class="eyebrow reveal">HOW FIXIFY WORKS</p><h2 class="reveal delay1">Less guessing. More knowing.</h2><p class="reveal delay2">The experience follows the real service journey, so the customer can always see what happened, what happens next, and when a decision is needed.</p>
+        <div class="journey-list"><article class="journey-item reveal"><span class="journey-num">01</span><div><h3>Describe the problem</h3><p>Text, voice, photo or video can start the request.</p></div></article><article class="journey-item reveal"><span class="journey-num">02</span><div><h3>Understand the service path</h3><p>Fixify can suggest a category without pretending to diagnose with certainty.</p></div></article><article class="journey-item reveal"><span class="journey-num">03</span><div><h3>Arrange the work</h3><p>Choose the property, time and available professional option.</p></div></article><article class="journey-item reveal"><span class="journey-num">04</span><div><h3>Keep the record</h3><p>Completed work becomes useful property history instead of disappearing into chat.</p></div></article></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="property">
+    <div class="wrap property">
+      <div class="property-copy reveal"><p class="eyebrow">PROPERTY RECORD</p><h2>Your home remembers the work.</h2><p>Fixify keeps completed maintenance, useful notes and service history with the property so future repairs begin with context.</p><a class="btn btn-ghost property-link" href="customer.html#property">Explore the property record <span>→</span></a></div>
+      <div class="passport reveal delay1"><div class="passport-photo"><img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=84" alt="Modern apartment exterior" loading="lazy"></div><div class="passport-head"><small>PROPERTY / MERIDIAN COURT</small><h3>Flat 3B</h3><span class="record-status">Record up to date</span></div><div class="records"><div class="record"><time>12 Sep 2026</time><strong>Kitchen plumbing</strong><span>Trap replaced</span></div><div class="record"><time>21 Aug 2026</time><strong>Split AC</strong><span>Service completed</span></div><div class="record"><time>06 Jul 2026</time><strong>Fuse board</strong><span>Safety check logged</span></div><div class="record"><time>18 Apr 2026</time><strong>Boiler</strong><span>Routine service</span></div></div></div>
+    </div>
+  </section>
+
+  <section class="section pro-band" id="professionals">
+    <div class="wrap pro-band"><div class="pro-copy reveal"><p class="eyebrow">FOR PROFESSIONALS</p><h2>You fix it. Fixify handles the coordination.</h2><p>Requests, availability, customer context, quote steps, completion evidence and earnings live in a separate professional workspace.</p></div><div class="pro-actions reveal delay1"><a class="btn btn-primary" href="pro.html">See the professional space</a><a class="btn btn-ghost" href="login.html?next=pro.html">Professional sign in</a></div></div>
+  </section>
+
+  <section class="final"><div class="wrap"><p class="eyebrow reveal">START WITH THE PROBLEM</p><h2 class="reveal delay1">Something needs <em>fixing?</em></h2><p class="reveal delay2">You do not need to know the service name. Just explain what is happening.</p><a class="btn btn-primary magnet reveal delay3" href="login.html?next=customer.html#intake">Describe a problem <span>↗</span></a></div></section>
+</main>
+<footer id="footer"><div class="wrap"><div class="footer-grid"><div><a class="brand" href="#top"><img src="../public/brand/fixify-logo.svg" alt="" aria-hidden="true" style="width:32px;height:32px;object-fit:contain" /><span>Fixify</span></a><p class="footer-copy">Property maintenance, structured from the first message to the final record.</p></div><div><p class="footer-title">PRODUCT</p><a href="#services">Services</a><a href="#how">How it works</a><a href="#property">Property record</a></div><div><p class="footer-title">NETWORK</p><a href="#professionals">For professionals</a><a href="pro.html">Professional space</a><a href="login.html?next=pro.html">Professional sign in</a></div><div><p class="footer-title">SUPPORT</p><a href="#footer">Help centre</a><a href="#footer">Trust & safety</a><a href="mailto:hello@fixify.example">Contact Fixify</a></div></div><div class="footer-bottom"><span>FIXIFY / REFERENCE UI V4</span><span>LIGHT-FIRST · DOMAIN-SPECIFIC · PURPOSEFUL MOTION</span></div></div></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const header = document.getElementById('siteHeader');
+  const toast = document.getElementById('toast');
+  addEventListener('scroll', () => header.classList.toggle('scrolled', scrollY > 20), {passive:true});
+  const reveals = [...document.querySelectorAll('.reveal')];
+  if (reduced || !('IntersectionObserver' in window)) reveals.forEach(el => el.classList.add('in'));
+  else { const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}), {threshold:.12,rootMargin:'0px 0px -8%'}); reveals.forEach(el => io.observe(el)); }
+  if (!reduced) {
+    document.querySelectorAll('.tilt').forEach(el => {
+      el.addEventListener('pointermove', e => { const r=el.getBoundingClientRect(); const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5; el.style.transform=`perspective(900px) rotateX(${(-y*1.8).toFixed(2)}deg) rotateY(${(x*2.2).toFixed(2)}deg) scale(1.006)`; });
+      el.addEventListener('pointerleave', ()=>el.style.transform='');
+    });
+    document.querySelectorAll('.magnet').forEach(el => {
+      el.addEventListener('pointermove', e => { const r=el.getBoundingClientRect(); const x=(e.clientX-(r.left+r.width/2))*.12, y=(e.clientY-(r.top+r.height/2))*.12; el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; });
+      el.addEventListener('pointerleave', ()=>el.style.transform='');
+    });
+  }
+  document.querySelectorAll('.service-row').forEach(row => row.addEventListener('click', ()=>{ toast.textContent='Opening the request with this service selected…';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1500); }));
+  const menuBtn=document.getElementById('menuBtn');
+  const mobileNav=document.getElementById('mobileNav');
+  mobileNav.innerHTML='<div class="mobile-inner"><a href="#services">Services</a><a href="#how">How it works</a><a href="#property">Property record</a><a href="#professionals">For professionals</a><a href="#footer">Help</a><div class="mobile-actions"><a class="btn btn-ghost" href="login.html">Sign in</a><a class="btn btn-primary" href="login.html?next=customer.html#intake">Describe a problem</a></div></div>';
+  menuBtn.addEventListener('click',()=>{const open=menuBtn.getAttribute('aria-expanded')!=='true';menuBtn.setAttribute('aria-expanded',String(open));mobileNav.classList.toggle('open',open);mobileNav.setAttribute('aria-hidden',String(!open));document.body.style.overflow=open?'hidden':'';});
+  mobileNav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menuBtn.setAttribute('aria-expanded','false');mobileNav.classList.remove('open');mobileNav.setAttribute('aria-hidden','true');document.body.style.overflow='';}));
+})();
+</script>
+<style>
+.mobile-nav{display:none}
+@media(max-width:1000px){.mobile-nav{display:block;position:fixed;inset:0;z-index:90;background:rgba(247,244,236,.98);padding:92px 24px 24px;opacity:0;visibility:hidden;transform:translateY(-8px);transition:.28s var(--ease)}.mobile-nav.open{opacity:1;visibility:visible;transform:none}.mobile-inner{display:grid;gap:0}.mobile-inner>a:not(.btn){font-size:27px;letter-spacing:-.04em;padding:17px 0;border-bottom:1px solid var(--line)}.mobile-actions{display:grid;gap:9px;margin-top:28px}}
+</style>
+</body>
+</html>
