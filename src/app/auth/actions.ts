@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getRedirectPathByRole } from "./utils";
 import { validateNextParam } from "@/lib/auth/validateNextParam";
 import { createSessionMetadata, setSessionMetadataCookie, clearSessionCookies } from "@/lib/session";
@@ -65,7 +66,13 @@ export async function signInWithEmail(email: string, password: string, next?: st
 export async function signInWithGoogle(next?: string | null) {
   const supabase = await createServerSupabase();
 
-  const callbackUrl = new URL(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback`);
+  // Resolve dynamic origin so OAuth redirect works seamlessly across localhost and any Vercel preview/production URL
+  const headerList = await headers();
+  const host = headerList.get("x-forwarded-host") || headerList.get("host");
+  const proto = headerList.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+  const origin = headerList.get("origin") || (host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"));
+
+  const callbackUrl = new URL(`${origin}/auth/callback`);
   if (next && next.startsWith("/") && !next.startsWith("//")) {
     callbackUrl.searchParams.set("next", next);
   }
