@@ -105,7 +105,7 @@ export function CustomerDashboardClient({
             {/* Notification Bell */}
             <button
               type="button"
-              className="w-10 h-10 rounded-xl border border-[#D9DED8] bg-[#FFFEFA] text-[#5A6661] hover:text-[#18211F] hover:border-[#BCD4CC] flex items-center justify-center relative transition-all"
+              className="w-10 h-10 rounded-xl border border-[#D9DED8] bg-[#FFFEFA] text-[#5A6661] hover:text-[#18211F] hover:border-[#BCD4CC] flex items-center justify-center relative transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B5B] focus-visible:ring-offset-2"
               aria-label="View notifications"
             >
               <Bell className="w-4 h-4" />
@@ -117,8 +117,9 @@ export function CustomerDashboardClient({
             {/* User Initials Avatar */}
             <Link
               href="/customer/profile"
-              className="w-10 h-10 rounded-xl bg-[#18211F] text-white flex items-center justify-center text-xs font-bold shadow-sm hover:opacity-90 transition-opacity"
+              className="w-10 h-10 rounded-xl bg-[#18211F] text-white flex items-center justify-center text-xs font-bold shadow-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B5B] focus-visible:ring-offset-2"
               title="Open profile"
+              aria-label="View your profile"
             >
               {displayName.slice(0, 2).toUpperCase()}
             </Link>
