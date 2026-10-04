@@ -61,7 +61,28 @@ export async function updateJobState(
     return { success: false, error: 'You are not authorized to update this job.' };
   }
 
-  // 4. Server-side transition guard (belt-and-suspenders before hitting DB function)
+  // 4. Verify professional is verified before allowing job acceptance
+  // (HIGH PRIORITY: Server-side enforcement per owner decision)
+  if (newState === 'accepted') {
+    const { data: professional, error: profError } = await supabase
+      .from('professional_profiles')
+      .select('verification_status')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profError || !professional) {
+      return { success: false, error: 'Professional profile not found.' };
+    }
+
+    if (professional.verification_status !== 'verified') {
+      return {
+        success: false,
+        error: 'You must complete professional verification before accepting jobs.',
+      };
+    }
+  }
+
+  // 5. Server-side transition guard (belt-and-suspenders before hitting DB function)
   const allowed = ALLOWED_TRANSITIONS[job.current_state] ?? [];
   if (!allowed.includes(newState)) {
     return {
@@ -70,7 +91,7 @@ export async function updateJobState(
     };
   }
 
-  // 5. Call the DB function — it validates again, updates state, sets timestamps,
+  // 6. Call the DB function — it validates again, updates state, sets timestamps,
   //    and inserts an immutable job_events record (per security.md rule 3.3)
   const { error: rpcError } = await supabase.rpc('transition_job_state', {
     p_job_id:        jobId,
@@ -83,7 +104,7 @@ export async function updateJobState(
     return { success: false, error: rpcError.message ?? 'State transition failed.' };
   }
 
-  // 6. Invalidate Next.js cache so the detail page reflects the new state
+  // 7. Invalidate Next.js cache so the detail page reflects the new state
   revalidatePath(`/professional/jobs/${jobId}`);
   revalidatePath('/professional/jobs');
 

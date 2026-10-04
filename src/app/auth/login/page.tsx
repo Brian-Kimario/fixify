@@ -194,7 +194,7 @@ function LoginFormContent() {
 
           <p className="signup">New to Fixify? <Link href="/auth/register">Create an account</Link></p>
           <p className="fineprint">
-            By continuing, you agree to Fixify's <Link href="#">terms</Link> and <Link href="#">privacy notice</Link>. 
+            By continuing, you agree to Fixify's <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link>. 
             Professional access remains subject to separate onboarding and verification.
           </p>
         </div>

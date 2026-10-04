@@ -240,7 +240,7 @@ export default function RegisterPage() {
 
           <p className="signup">Already have an account? <Link href="/auth/login">Sign in</Link></p>
           <p className="fineprint">
-            By creating an account, you agree to Fixify's <Link href="#">terms</Link> and <Link href="#">privacy notice</Link>. 
+            By creating an account, you agree to Fixify's <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link>. 
             Professional access requires separate verification.
           </p>
         </div>
