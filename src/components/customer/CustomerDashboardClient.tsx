@@ -23,9 +23,7 @@ import {
   RecentActivityList,
   ActivityItem
 } from '@/components/customer';
-import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
-import { ErrorState } from './ErrorState';
 
 interface PropertyItem {
   id: string;
@@ -45,9 +43,7 @@ interface CustomerDashboardClientProps {
   properties: PropertyItem[];
   timelineEvents: TimelineEvent[];
   recentActivities: ActivityItem[];
-  isLoading?: boolean;
   isEmpty?: boolean;
-  error?: string | null;
 }
 
 export function CustomerDashboardClient({
@@ -59,9 +55,7 @@ export function CustomerDashboardClient({
   properties,
   timelineEvents,
   recentActivities,
-  isLoading = false,
   isEmpty = false,
-  error = null,
 }: CustomerDashboardClientProps) {
   const [isQuoteDrawerOpen, setIsQuoteDrawerOpen] = useState(false);
   const [currentJob, setCurrentJob] = useState<ActiveJobData | null>(activeJob);
@@ -130,13 +124,11 @@ export function CustomerDashboardClient({
       {/* ── Main Dashboard Surface ── */}
       <main className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
-        {/* State management: Show loading/error/empty states */}
-        {isLoading && <LoadingState />}
-        {error && <ErrorState message={error} />}
-        {isEmpty && !isLoading && !error && <EmptyState />}
+        {/* State management: Show empty state when appropriate */}
+        {isEmpty && <EmptyState />}
         
         {/* Normal content render (when data is loaded and not empty) */}
-        {!isLoading && !error && !isEmpty && (
+        {!isEmpty && (
           <>
             {/* ── AREA 1: ABOVE THE FOLD DOMAIN ZONE ── */}
             <section aria-label="Active workspace and immediate intake" className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
