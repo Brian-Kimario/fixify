@@ -122,7 +122,7 @@ export function CustomerDashboardClient({
       </header>
 
       {/* ── Main Dashboard Surface ── */}
-      <main className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <main id="main-content" className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
         {/* State management: Show empty state when appropriate */}
         {isEmpty && <EmptyState />}

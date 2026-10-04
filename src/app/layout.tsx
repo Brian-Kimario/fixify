@@ -49,6 +49,13 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-full flex flex-col bg-porcelain text-ink antialiased">
+        {/* Skip to main content link - visible on keyboard focus */}
+        <a
+          href="#main-content"
+          className="absolute left-0 top-0 z-50 -translate-y-full focus:translate-y-0 px-4 py-2 bg-ink text-porcelain font-semibold rounded-b text-sm transition-transform"
+        >
+          Skip to main content
+        </a>
         <AnimationProvider>
           {children}
         </AnimationProvider>
