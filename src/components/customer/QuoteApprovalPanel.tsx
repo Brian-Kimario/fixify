@@ -14,6 +14,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { respondToQuoteAction } from '@/app/customer/actions';
+import { formatCurrency } from '@/lib/currency';
 
 export interface QuoteLineItem {
   id: string;
@@ -255,11 +256,11 @@ export function QuoteApprovalPanel({
                         </span>
                       </div>
                       <span className="text-[11px] text-[#7C8681] block mt-0.5">
-                        Qty {item.quantity} × ${item.unitPrice.toFixed(2)}
+                        Qty {item.quantity} × {formatCurrency(item.unitPrice)}
                       </span>
                     </div>
                     <span className="font-mono font-bold text-[#18211F] flex-shrink-0">
-                      ${item.total.toFixed(2)}
+                      {formatCurrency(item.total)}
                     </span>
                   </div>
                 ))}
@@ -270,15 +271,15 @@ export function QuoteApprovalPanel({
             <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-xs text-[#5A6661]">
                 <span>Service Labor</span>
-                <span className="font-mono font-medium">${sampleQuote.subtotal.toFixed(2)}</span>
+                <span className="font-mono font-medium">{formatCurrency(sampleQuote.subtotal)}</span>
               </div>
               <div className="flex justify-between text-xs text-[#5A6661]">
                 <span>Parts & Materials</span>
-                <span className="font-mono font-medium">${sampleQuote.partsTotal.toFixed(2)}</span>
+                <span className="font-mono font-medium">{formatCurrency(sampleQuote.partsTotal)}</span>
               </div>
               <div className="flex justify-between text-xs text-[#5A6661]">
                 <span>Fixify Platform Guarantee & Coverage</span>
-                <span className="font-mono font-medium">${sampleQuote.platformFee.toFixed(2)}</span>
+                <span className="font-mono font-medium">{formatCurrency(sampleQuote.platformFee)}</span>
               </div>
               <div className="pt-3 border-t border-[#D9DED8] flex justify-between items-baseline">
                 <div>
@@ -286,7 +287,7 @@ export function QuoteApprovalPanel({
                   <span className="text-[11px] text-[#7C8681]">Billed only upon verified completion</span>
                 </div>
                 <strong className="text-2xl font-bold font-mono text-[#18211F]">
-                  ${sampleQuote.totalAmount.toFixed(2)}
+                  {formatCurrency(sampleQuote.totalAmount)}
                 </strong>
               </div>
             </div>
@@ -345,7 +346,7 @@ export function QuoteApprovalPanel({
                 <span>Authorizing...</span>
               ) : (
                 <>
-                  <span>Approve work (${sampleQuote.totalAmount.toFixed(2)})</span>
+                  <span>Approve work ({formatCurrency(sampleQuote.totalAmount)})</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

@@ -2,6 +2,7 @@ import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { Card, Button } from '@/components/ui';
 import { MobileSignOutButton } from '@/components/shared/MobileSignOutButton';
 import Link from 'next/link';
+import { formatCurrency } from '@/lib/currency';
 
 export const metadata = {
   title: 'Professional Profile - Fixify',
@@ -133,7 +134,7 @@ export default async function ProfessionalProfilePage() {
                 </div>
                 <div className="border-t border-line pt-3">
                   <p className="text-line text-sm">Total Earnings</p>
-                  <p className="text-mint font-bold text-xl mt-1">$9,450</p>
+                  <p className="text-mint font-bold text-xl mt-1">{formatCurrency(9450)}</p>
                 </div>
               </div>
             </div>

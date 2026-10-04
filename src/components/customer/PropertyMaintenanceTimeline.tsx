@@ -14,6 +14,7 @@ import {
   Download,
   AlertCircle
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/currency';
 
 export interface TimelineEvent {
   id: string;
@@ -247,7 +248,7 @@ export function PropertyMaintenanceTimeline({ events = DEFAULT_EVENTS, className
 
                       <div className="flex items-center justify-between text-[11px] text-[#7C8681] mt-3 pt-2.5 border-t border-[#D9DED8]/60">
                         <span>Technician: {evt.proName}</span>
-                        {evt.cost && <span className="font-bold text-[#18211F]">${evt.cost.toFixed(2)}</span>}
+                        {evt.cost && <span className="font-bold text-[#18211F]">{formatCurrency(evt.cost)}</span>}
                       </div>
 
                       {/* Mobile Accordion Detail View */}

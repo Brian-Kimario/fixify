@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   ArrowUpRight
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/currency';
 import { VerificationBadge } from './VerificationBadge';
 
 export type JobRailState = 
@@ -271,7 +272,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
                 Extra Work Authorization Requested
               </p>
               <p className="text-xs text-white/80 mt-0.5">
-                Pro identified additional required repairs ({job.pendingQuoteTotal ? `$${job.pendingQuoteTotal.toFixed(2)}` : '$108.00 total'}). Review line items to proceed.
+                Pro identified additional required repairs ({job.pendingQuoteTotal ? formatCurrency(job.pendingQuoteTotal) : formatCurrency(108.00)}). Review line items to proceed.
               </p>
             </div>
           </div>
