@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSessionMetadata, isSessionExpired, DEFAULT_SESSION_CONFIG } from "@/lib/session";
 
 // Security headers with Supabase domains allowed in CSP
 const SECURITY_HEADERS: Record<string, string> = {
@@ -171,6 +172,15 @@ export async function middleware(request: NextRequest) {
   if (user && isProtectedRoute) {
     const userRole = await fetchUserRole(user.id);
     response.headers.set("x-user-role", userRole);
+
+    // Check if session has exceeded max age (30 days)
+    const sessionMetadata = await getSessionMetadata();
+    if (sessionMetadata && isSessionExpired(sessionMetadata, DEFAULT_SESSION_CONFIG)) {
+      console.warn(`[Security] Session expired for user ${user.id} (max age exceeded)`);
+      await supabase.auth.signOut();
+      const loginUrl = new URL("/auth/login?reason=session_expired", request.url);
+      return redirectWithSession(loginUrl.toString());
+    }
 
     if (pathname.startsWith("/customer") && userRole !== "customer") {
       const target = userRole === "professional" ? "/professional" : userRole === "admin" ? "/admin" : userRole === "support" ? "/support" : "/";

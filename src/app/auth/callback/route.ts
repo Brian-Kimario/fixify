@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
+  const type = searchParams.get('type') // OAuth type or 'recovery' for password reset
 
   // Handle OAuth errors from provider
   if (error) {
@@ -72,6 +73,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/login?error=exchange_failed', request.url))
     }
 
+    // Handle password recovery flow (type=recovery)
+    if (type === 'recovery') {
+      // User is now authenticated with recovery session
+      // Redirect to password reset form
+      return NextResponse.redirect(new URL('/auth/reset-password', request.url))
+    }
+
+    // OAuth sign-in flow
     // Auto-create or update profile for new OAuth users
     const profileData = {
       id: data.user.id,
