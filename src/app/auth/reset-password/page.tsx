@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -21,7 +21,7 @@ import { Symbol } from '@/components/brand/Symbol';
  * 6. Redirect to login (session terminated) or success page
  */
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [newPassword, setNewPassword] = useState('');
@@ -436,5 +436,40 @@ export default function ResetPasswordPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="page">
+        <section className="visual" aria-label="Fixify home maintenance introduction">
+          <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
+          <div className="visual-grid" aria-hidden="true" />
+        </section>
+
+        <section className="form-side">
+          <div className="form-wrap">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+              <Loader2 size={32} className="spinner" style={{ animation: 'spin 1s linear infinite' }} />
+            </div>
+          </div>
+        </section>
+
+        <style jsx>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+          .page { min-height: 100dvh; width: 100%; display: grid; grid-template-columns: minmax(0,.92fr) minmax(420px,1.08fr); }
+          .visual { position: relative; min-height: 100vh; padding: 28px; overflow: hidden; background: var(--color-ink); }
+          .visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.88) contrast(1.06) brightness(.78); }
+          .visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,rgba(8,23,20,.22),rgba(8,23,20,.82)),linear-gradient(90deg,rgba(8,23,20,.30),rgba(8,23,20,.08) 70%); z-index: 1; }
+          .visual-grid { position: absolute; inset: 0; z-index: 2; background-image: linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px); background-size: 34px 34px; opacity: .45; mask-image: linear-gradient(to bottom,black,transparent 90%); }
+          .form-side { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 54px 7vw; background: var(--color-paper); }
+          .form-wrap { width: min(100%,460px); }
+          .spinner { color: var(--color-teal); }
+        `}</style>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
