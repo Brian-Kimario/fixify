@@ -1,44 +1,60 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { Briefcase } from 'lucide-react';
 
 interface EmptyStateProps {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   icon?: React.ReactNode;
+  ctaHref?: string;
+  ctaLabel?: string;
 }
 
 /**
- * EmptyState: Renders when section has no data
- * Accessibility: semantic HTML with proper headings
+ * EmptyState — Professional dashboard empty state
+ * Shown when no jobs are available. Provides next action guidance.
+ * Accessibility: semantic structure with ARIA labels.
  */
-export function EmptyState({ title, description, icon }: EmptyStateProps) {
+export function EmptyState({
+  title = 'No jobs available right now',
+  description = 'Check back soon for new job opportunities in your area, or update your availability and service preferences.',
+  icon,
+  ctaHref = '/professional/profile',
+  ctaLabel = 'Update my profile',
+}: EmptyStateProps) {
   return (
-    <div className="p-8 text-center">
-      {icon && (
-        <div className="w-10 h-10 mx-auto rounded-full bg-[#E2EEE9] flex items-center justify-center mb-3">
-          {icon}
+    <div
+      className="flex flex-col items-center justify-center bg-[#FFFEFA] border-2 border-dashed border-[#D9DED8] rounded-[22px] px-8 py-16 text-center"
+      role="region"
+      aria-label="No available jobs"
+    >
+      {/* Illustration */}
+      <div className="flex justify-center mb-6">
+        <div className="w-16 h-16 rounded-full bg-[#E2EEE9] flex items-center justify-center">
+          {icon || (
+            <Briefcase className="w-8 h-8 text-[#176B5B]" aria-hidden="true" />
+          )}
         </div>
-      )}
-      {!icon && (
-        <div className="w-10 h-10 mx-auto rounded-full bg-[#E2EEE9] flex items-center justify-center mb-3">
-          <svg
-            className="w-5 h-5 text-[#176B5B]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-        </div>
-      )}
-      <h3 className="text-sm font-bold text-[#18211F] mb-1">{title}</h3>
-      <p className="text-xs text-[#5A6661] max-w-sm mx-auto">{description}</p>
+      </div>
+
+      {/* Heading */}
+      <h2 className="text-xl font-bold text-[#18211F] mb-2">{title}</h2>
+
+      {/* Explanation */}
+      <p className="text-sm text-[#5A6661] max-w-sm mb-8 leading-relaxed">
+        {description}
+      </p>
+
+      {/* Primary CTA */}
+      <Link
+        href={ctaHref}
+        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#176B5B] hover:bg-[#0D5144] text-white text-sm font-bold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B5B] focus-visible:ring-offset-2"
+      >
+        <Briefcase className="w-4 h-4" aria-hidden="true" />
+        {ctaLabel}
+      </Link>
     </div>
   );
 }

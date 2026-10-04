@@ -72,14 +72,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/login?error=exchange_failed', request.url))
     }
 
-    // Get user's role and redirect accordingly
-    const { data: profile } = await supabase
+    // Auto-create or update profile for new OAuth users
+    const profileData = {
+      id: data.user.id,
+      full_name: data.user.user_metadata?.full_name ?? null,
+      avatar_url: data.user.user_metadata?.avatar_url ?? null,
+      role: 'customer',
+    }
+
+    // Upsert: create if not exists, no-op if exists
+    const { error: upsertError } = await supabase
+      .from('profiles')
+      .upsert([profileData], { onConflict: 'id' })
+
+    if (upsertError) {
+      console.error('Profile upsert error (non-blocking):', upsertError)
+      // Continue anyway—profile may already exist or trigger may have created it
+    }
+
+    // Fetch the profile to confirm role
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', data.user.id)
       .single()
 
-    if (!profile?.role) {
+    if (profileError || !profile?.role) {
+      console.error('Profile fetch error after upsert:', profileError)
       await supabase.auth.signOut()
       return NextResponse.redirect(new URL('/auth/login?error=missing_profile', request.url))
     }

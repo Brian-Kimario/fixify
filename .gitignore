@@ -43,6 +43,10 @@ artifacts/
 screenshots/
 audit-screenshots/
 
+# Playwright test results
+test-results/
+playwright-report/
+
 # OS metadata
 .DS_Store
 .DS_Store?

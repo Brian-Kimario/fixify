@@ -1,44 +1,50 @@
 'use client';
 
+import React from 'react';
+import { AlertCircle } from 'lucide-react';
+
 interface ErrorStateProps {
-  message: string;
+  message?: string;
   onRetry?: () => void;
 }
 
 /**
- * ErrorState: Renders when a section fails to load
- * Provides retry mechanism for failed data fetches
- * Accessibility: error message clearly visible, retry button keyboard accessible
+ * ErrorState — Professional dashboard error display
+ * User-friendly error message with retry capability.
+ * Accessibility: ARIA live region for error announcements.
  */
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
-    <div className="p-6 bg-[#FFFEFA] border border-[#F5E6E6] rounded-lg text-center">
-      <div className="w-10 h-10 mx-auto rounded-full bg-[#F5E6E6] flex items-center justify-center mb-3">
-        <svg
-          className="w-5 h-5 text-[#9B3535]"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
+    <div
+      className="p-6 bg-[#FFFEFA] border-l-4 border-[#A9523D] rounded-lg"
+      role="alert"
+      aria-live="polite"
+    >
+      <div className="flex items-start gap-4">
+        <div className="mt-1 flex-shrink-0">
+          <AlertCircle className="w-6 h-6 text-[#A9523D]" aria-hidden="true" />
+        </div>
+
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-[#18211F] mb-1">
+            Couldn't load your jobs
+          </h3>
+
+          <p className="text-[#18211F]/60 text-sm mb-4">
+            {message ||
+              'There was an issue loading your available jobs. Please try again.'}
+          </p>
+
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center justify-center px-4 py-2 bg-[#176B5B] hover:bg-[#0D5144] text-white text-sm font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B5B] focus-visible:ring-offset-2"
+            >
+              Try again
+            </button>
+          )}
+        </div>
       </div>
-      <h3 className="text-sm font-bold text-[#18211F] mb-1">Failed to load</h3>
-      <p className="text-xs text-[#5A6661] max-w-sm mx-auto mb-4">{message}</p>
-      {onRetry && (
-        <button
-          onClick={onRetry}
-          className="px-4 py-2 text-xs font-bold text-[#176B5B] hover:text-[#0D5144] border border-[#176B5B] rounded-lg transition hover:bg-[#E2EEE9]"
-        >
-          Try Again
-        </button>
-      )}
     </div>
   );
 }

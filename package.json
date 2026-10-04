@@ -8,6 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
+    "test:oauth": "vitest run tests/oauth-e2e.test.ts",
+    "test:oauth:local": "VITE_TEST_ENV=local vitest run tests/oauth-e2e.test.ts",
+    "test:oauth:prod": "VITE_TEST_ENV=prod vitest run tests/oauth-e2e.test.ts",
+    "test:oauth:watch": "vitest watch tests/oauth-e2e.test.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:local": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 playwright test tests/e2e/",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
     "audit:crawl": "node scripts/audit-crawler.mjs"
   },
   "dependencies": {
@@ -27,6 +35,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
