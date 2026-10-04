@@ -79,6 +79,7 @@ export function Navbar({
           className="grid h-11 w-11 place-items-center rounded-lg border border-line md:hidden"
           aria-expanded={isOpen}
           aria-controls="mobile-nav"
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
         >
           {isOpen ? '×' : '≡'}
         </button>
