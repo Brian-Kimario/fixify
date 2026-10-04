@@ -61,8 +61,8 @@ export function EditProfessionalProfileForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Success Message */}
       {success && (
-        <Card className="bg-mint/10 border-mint/30">
-          <div className="flex items-center gap-3 text-mint">
+        <Card className="bg-teal-soft border-teal/30">
+          <div className="flex items-center gap-3 text-teal">
             <span className="text-xl">✓</span>
             <p>Profile updated successfully!</p>
           </div>
@@ -162,7 +162,7 @@ export function EditProfessionalProfileForm({
           <div>
             <Label htmlFor="hourly_rate">Hourly Rate (optional)</Label>
             <div className="flex mt-2 gap-2">
-              <span className="inline-flex items-center px-3 bg-dark border border-line rounded-lg text-ink">
+              <span className="inline-flex items-center px-3 bg-paper border border-line rounded-lg text-ink">
                 $
               </span>
               <Input
@@ -186,7 +186,7 @@ export function EditProfessionalProfileForm({
       </Card>
 
       {/* Actions */}
-      <Card className="bg-panel">
+      <Card className="bg-paper">
         <div className="flex gap-3">
           <Button
             type="submit"

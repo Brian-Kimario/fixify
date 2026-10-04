@@ -41,7 +41,7 @@ export function BidForm({ jobId, jobTitle, budget }: BidFormProps) {
 
   if (submitted) {
     return (
-      <Card className="sticky top-20 bg-mint/10 border-mint/30">
+      <Card className="sticky top-20 bg-teal-soft border-teal/30">
         <div className="text-center space-y-4">
           <div className="text-4xl">✓</div>
           <div>
@@ -96,7 +96,7 @@ export function BidForm({ jobId, jobTitle, budget }: BidFormProps) {
             id="timeline"
             value={timeline}
             onChange={(e) => setTimeline(e.target.value)}
-            className="w-full mt-2 px-3 py-2 bg-dark border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-mint"
+            className="w-full mt-2 px-3 py-2 bg-paper border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-teal"
           >
             <option>1-2 days</option>
             <option>3-5 days</option>

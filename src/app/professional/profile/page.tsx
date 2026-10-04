@@ -53,13 +53,13 @@ export default async function ProfessionalProfilePage() {
               <h2 className="font-display font-bold text-xl text-ink">Skills</h2>
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-block px-3 py-1 bg-mint/20 text-mint rounded-lg text-sm font-medium">
+                  <span className="inline-block px-3 py-1 bg-teal-soft text-teal rounded-lg text-sm font-medium">
                     Plumbing
                   </span>
-                  <span className="inline-block px-3 py-1 bg-mint/20 text-mint rounded-lg text-sm font-medium">
+                  <span className="inline-block px-3 py-1 bg-teal-soft text-teal rounded-lg text-sm font-medium">
                     Repairs
                   </span>
-                  <span className="inline-block px-3 py-1 bg-mint/20 text-mint rounded-lg text-sm font-medium">
+                  <span className="inline-block px-3 py-1 bg-teal-soft text-teal rounded-lg text-sm font-medium">
                     Maintenance
                   </span>
                   <button className="inline-block px-3 py-1 bg-line/10 text-line hover:bg-line/20 rounded-lg text-sm font-medium transition-colors">
@@ -87,7 +87,7 @@ export default async function ProfessionalProfilePage() {
                   </p>
                 </div>
               </div>
-              <button className="text-mint hover:text-mint/80 text-sm font-medium">
+              <button className="text-teal hover:text-teal-deep text-sm font-medium">
                 + Add Experience
               </button>
             </div>
@@ -101,7 +101,7 @@ export default async function ProfessionalProfilePage() {
                 <p className="text-line text-sm">
                   No certifications added yet. Add relevant credentials to boost your credibility.
                 </p>
-                <button className="text-mint hover:text-mint/80 text-sm font-medium">
+                <button className="text-teal hover:text-teal-deep text-sm font-medium">
                   + Add Certification
                 </button>
               </div>
@@ -119,7 +119,7 @@ export default async function ProfessionalProfilePage() {
                 <div>
                   <p className="text-line text-sm">Rating</p>
                   <div className="flex items-center gap-1 mt-1">
-                    <span className="text-mint">★★★★★</span>
+                    <span className="text-teal">★★★★★</span>
                     <span className="text-ink font-medium">4.8</span>
                   </div>
                   <p className="text-line text-xs mt-1">Based on 12 reviews</p>
@@ -134,7 +134,7 @@ export default async function ProfessionalProfilePage() {
                 </div>
                 <div className="border-t border-line pt-3">
                   <p className="text-line text-sm">Total Earnings</p>
-                  <p className="text-mint font-bold text-xl mt-1">{formatCurrency(9450)}</p>
+                  <p className="text-teal font-bold text-xl mt-1">{formatCurrency(9450)}</p>
                 </div>
               </div>
             </div>
@@ -163,13 +163,13 @@ export default async function ProfessionalProfilePage() {
           </Card>
 
           {/* Verify Profile */}
-          <Card className="bg-mint/10 border-mint/30">
+          <Card className="bg-teal-soft border-teal/30">
             <div className="space-y-3">
               <h3 className="font-display font-bold text-lg text-ink">Verify Your Profile</h3>
               <p className="text-line text-sm">
                 Get a verified badge by completing background checks and ID verification.
               </p>
-              <button className="text-mint hover:text-mint/80 text-sm font-medium">
+              <button className="text-teal hover:text-teal-deep text-sm font-medium">
                 Start Verification
               </button>
             </div>

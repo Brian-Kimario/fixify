@@ -1,122 +1,132 @@
-/* Fixify Brand System - CSS Variables */
-
+/* Fixify Brand System — CSS Custom Properties
+ *
+ * These variables mirror the Tailwind palette in tailwind.config.ts.
+ * Names MUST match the Tailwind key names so there is a single source of truth.
+ * Legacy aliases (--color-mint, --color-bg, --color-panel) have been removed.
+ * Use the Tailwind utility classes (bg-teal, bg-porcelain, etc.) in JSX.
+ * Use these CSS vars only in global.css or raw CSS files.
+ */
 
 :root {
-  /* Color Palette - Light First */
-  --color-bg: #F7F4EC;
-  --color-ink: #18211F;
-  --color-mint: #176B5B;
-  --color-panel: #FFFEFA;
-  --color-line: #D9DED8;
+  /* ── Core Palette ──────────────────────────────────────── */
+  --color-porcelain:   #F7F4EC;   /* primary background */
+  --color-paper:       #FFFEFA;   /* card / surface */
+  --color-paper-2:     #F1EEE5;   /* secondary surface */
+  --color-sand:        #E7E1D5;   /* subtle divider / highlight */
 
-  /* Semantic Colors */
-  --color-primary: var(--color-mint);
-  --color-background: var(--color-bg);
-  --color-text: var(--color-ink);
-  --color-border: var(--color-line);
-  --color-surface: var(--color-panel);
+  --color-ink:         #18211F;   /* primary text */
+  --color-ink-2:       #34413D;   /* secondary text */
+  --color-ink-3:       #5A6661;   /* tertiary text / label */
+  --color-ink-4:       #7C8681;   /* placeholder / disabled */
 
-  /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-teal:        #176B5B;   /* primary action */
+  --color-teal-deep:   #0D5144;   /* primary action hover */
+  --color-teal-soft:   #E2EEE9;   /* teal accent surface */
+  --color-teal-wash:   #EFF6F2;   /* teal subtle wash */
 
-  /* Typography */
+  --color-clay:        #A9523D;   /* destructive / warning */
+  --color-clay-soft:   #F3E1DA;   /* clay accent surface */
+
+  --color-ochre:       #9B6A1E;   /* caution / pending */
+  --color-ochre-soft:  #F5EBD7;   /* ochre accent surface */
+
+  --color-blue:        #416B84;   /* informational */
+  --color-blue-soft:   #E6EEF2;   /* blue accent surface */
+
+  --color-success:     #2F7D5B;   /* success green */
+  --color-success-soft: #E3F0E8;  /* success surface */
+
+  --color-danger:      #B94A43;   /* error / alert red */
+  --color-danger-soft: #F6E3E1;   /* error surface */
+
+  --color-warning:     #9B6A1E;   /* same hue as ochre */
+  --color-warning-soft: #F5EBD7;
+
+  --color-line:        #D9DED8;   /* default border */
+  --color-line-strong: #C7CEC8;   /* stronger border */
+
+  /* ── Semantic Aliases ─────────────────────────────────── */
+  --color-primary:     var(--color-teal);
+  --color-background:  var(--color-porcelain);
+  --color-text:        var(--color-ink);
+  --color-border:      var(--color-line);
+  --color-surface:     var(--color-paper);
+
+  /* ── Typography ───────────────────────────────────────── */
   --font-display: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
-  /* Font Sizes - Modular Scale (1.25) */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5625rem;
-  --text-3xl: 1.953rem;
-  --text-4xl: 2.441rem;
-  --text-5xl: 3.052rem;
-  --text-6xl: 3.815rem;
+  /* Font Sizes — modular scale 1.25 */
+  --text-xs:   0.75rem;      /* 12px */
+  --text-sm:   0.875rem;     /* 14px */
+  --text-base: 1rem;         /* 16px */
+  --text-lg:   1.125rem;     /* 18px */
+  --text-xl:   1.25rem;      /* 20px */
+  --text-2xl:  1.5625rem;    /* 25px */
+  --text-3xl:  1.953rem;     /* 31px */
+  --text-4xl:  2.441rem;     /* 39px */
+  --text-5xl:  3.052rem;     /* 49px */
+  --text-6xl:  3.815rem;     /* 61px */
 
   /* Font Weights */
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
   --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+  --font-weight-bold:     700;
 
   /* Line Heights */
-  --line-height-tight: 1.2;
-  --line-height-normal: 1.5;
+  --line-height-tight:   1.2;
+  --line-height-normal:  1.5;
   --line-height-relaxed: 1.75;
 
-  /* Spacing Scale (4px base) */
-  --space-0: 0;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
-  --space-24: 6rem;
-  --space-32: 8rem;
+  /* ── Spacing — 4px base rhythm ───────────────────────── */
+  --space-0:  0;
+  --space-1:  0.25rem;   /*  4px */
+  --space-2:  0.5rem;    /*  8px */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+  --space-32: 8rem;      /* 128px */
 
-  /* Border Radius */
+  /* ── Border Radius ────────────────────────────────────── */
   --radius-none: 0;
-  --radius-xs: 0.125rem;
-  --radius-sm: 0.25rem;
-  --radius-base: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-2xl: 2rem;
+  --radius-xs:   0.125rem;  /*  2px */
+  --radius-sm:   0.25rem;   /*  4px */
+  --radius-base: 0.5rem;    /*  8px  ← standard */
+  --radius-md:   0.75rem;   /* 12px */
+  --radius-lg:   1rem;      /* 16px */
+  --radius-xl:   1.5rem;    /* 24px */
+  --radius-2xl:  2rem;      /* 32px */
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  --shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  /* ── Shadows ──────────────────────────────────────────── */
+  --shadow-xs:   0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm:   0 1px 3px 0 rgb(0 0 0 / 0.10);
+  --shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.10);
+  --shadow-md:   0 10px 15px -3px rgb(0 0 0 / 0.10);
+  --shadow-lg:   0 20px 25px -5px rgb(0 0 0 / 0.10);
+  --shadow-xl:   0 25px 50px -12px rgb(0 0 0 / 0.25);
 
-  /* Z-index Scale */
-  --z-hide: -1;
-  --z-base: 0;
-  --z-dropdown: 1000;
-  --z-sticky: 1020;
-  --z-fixed: 1030;
+  /* ── Z-index Scale ────────────────────────────────────── */
+  --z-hide:           -1;
+  --z-base:            0;
+  --z-dropdown:     1000;
+  --z-sticky:       1020;
+  --z-fixed:        1030;
   --z-modal-backdrop: 1040;
-  --z-modal: 1050;
-  --z-popover: 1060;
-  --z-tooltip: 1070;
+  --z-modal:        1050;
+  --z-popover:      1060;
+  --z-tooltip:      1070;
 
-  /* Transitions */
+  /* ── Transitions ──────────────────────────────────────── */
   --transition-fast: 150ms ease-in-out;
   --transition-base: 200ms ease-in-out;
   --transition-slow: 300ms ease-in-out;
-}
-
-/* Semantic class utilities */
-.text-primary {
-  color: var(--color-primary);
-}
-
-.bg-primary {
-  background-color: var(--color-primary);
-}
-
-.border-primary {
-  border-color: var(--color-primary);
-}
-
-.text-secondary {
-  color: var(--color-text);
-}
-
-.bg-secondary {
-  background-color: var(--color-surface);
 }

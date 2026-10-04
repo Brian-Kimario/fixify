@@ -1,59 +1,91 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
-interface ButtonProps
+export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost";
-  size?: "sm" | "md" | "lg";
+  /** Visual style. Default: 'primary' */
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  /** Size. Default: 'md' */
+  size?: 'sm' | 'md' | 'lg';
   children: ReactNode;
+  /** Show spinner and disable button */
   isLoading?: boolean;
+  /** Render as full-width block */
+  fullWidth?: boolean;
 }
 
-const variants = {
+const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
-    "bg-mint text-dark hover:bg-opacity-90 active:bg-opacity-80 font-semibold",
+    'bg-teal text-paper hover:bg-teal-deep active:bg-teal-deep font-semibold',
   secondary:
-    "bg-panel text-ink border border-line hover:bg-line active:border-mint",
+    'bg-paper text-ink border border-line hover:bg-paper-2 active:bg-sand',
   outline:
-    "border-2 border-mint text-mint hover:bg-mint hover:text-dark active:bg-opacity-80",
-  ghost: "text-ink hover:bg-panel active:bg-line",
+    'border-2 border-teal text-teal bg-transparent hover:bg-teal-wash active:bg-teal-soft',
+  ghost:
+    'text-ink bg-transparent hover:bg-paper active:bg-paper-2',
+  destructive:
+    'bg-clay text-paper hover:bg-clay/90 active:bg-clay/80 font-semibold',
 };
 
-const sizes = {
-  sm: "px-3 py-1.5 text-sm",
-  md: "px-4 py-2.5 text-base",
-  lg: "px-6 py-3 text-lg",
+const focusRings: Record<NonNullable<ButtonProps['variant']>, string> = {
+  primary:     'focus-visible:ring-teal focus-visible:ring-offset-porcelain',
+  secondary:   'focus-visible:ring-ink focus-visible:ring-offset-paper',
+  outline:     'focus-visible:ring-teal focus-visible:ring-offset-porcelain',
+  ghost:       'focus-visible:ring-ink focus-visible:ring-offset-paper',
+  destructive: 'focus-visible:ring-clay focus-visible:ring-offset-porcelain',
 };
 
+const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
+  sm: 'px-3 py-1.5 text-sm gap-1.5',
+  md: 'px-4 py-2.5 text-base gap-2',
+  lg: 'px-6 py-3 text-lg gap-2.5',
+};
+
+/**
+ * Button — Fixify design-system button
+ *
+ * Variants: primary (teal), secondary (paper/border), outline (teal border),
+ * ghost (text only), destructive (clay).
+ *
+ * @example
+ * <Button variant="primary" onClick={handleSave}>Save changes</Button>
+ * <Button variant="destructive" isLoading={deleting}>Delete</Button>
+ */
 export function Button({
-  variant = "primary",
-  size = "md",
+  variant = 'primary',
+  size = 'md',
   children,
   isLoading = false,
   disabled = false,
-  className = "",
+  fullWidth = false,
+  className = '',
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={`
-        inline-flex items-center justify-center
-        rounded-lg font-medium
-        transition-all duration-200
-        disabled:opacity-50 disabled:cursor-not-allowed
-        focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2 focus:ring-offset-dark
-        ${variants[variant]}
-        ${sizes[size]}
-        ${className}
-      `}
+      className={[
+        'inline-flex items-center justify-center rounded-base font-medium',
+        'transition-all duration-200 motion-reduce:transition-none',
+        'disabled:opacity-50 disabled:cursor-not-allowed',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        variants[variant],
+        focusRings[variant],
+        sizes[size],
+        fullWidth ? 'w-full' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
       disabled={disabled || isLoading}
+      aria-busy={isLoading}
       {...props}
     >
       {isLoading && (
         <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4"
+          className="h-4 w-4 animate-spin shrink-0"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <circle
             className="opacity-25"

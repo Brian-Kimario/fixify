@@ -75,13 +75,13 @@ export default async function ProfessionalOnboardingPage() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="font-display font-bold text-lg text-ink">Setup Progress</h2>
-              <span className="font-display font-bold text-lg text-mint">
+              <span className="font-display font-bold text-lg text-teal">
                 {completedCount} / {checklistItems.length}
               </span>
             </div>
             <div className="w-full bg-line/10 rounded-full h-3 overflow-hidden">
               <div
-                className="bg-mint h-3 rounded-full transition-all duration-300"
+                className="bg-teal h-3 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>
@@ -96,14 +96,14 @@ export default async function ProfessionalOnboardingPage() {
         {/* Checklist */}
         <div className="space-y-3">
           {checklistItems.map((item) => (
-            <Card key={item.id} className={item.completed ? 'bg-mint/5 border-mint/20' : ''}>
+            <Card key={item.id} className={item.completed ? 'bg-teal-wash border-teal/20' : ''}>
               <Link href={item.link} className="block">
-                <div className="flex items-start gap-4 p-2 hover:bg-panel/50 rounded-lg transition-colors">
+                <div className="flex items-start gap-4 p-2 hover:bg-paper-2 rounded-lg transition-colors">
                   {/* Checkbox */}
                   <div className="flex-shrink-0 mt-1">
                     {item.completed ? (
-                      <div className="w-6 h-6 rounded-full bg-mint flex items-center justify-center">
-                        <span className="text-dark text-lg">✓</span>
+                      <div className="w-6 h-6 rounded-full bg-teal flex items-center justify-center">
+                        <span className="text-paper text-lg">✓</span>
                       </div>
                     ) : (
                       <div className="w-6 h-6 rounded-full border-2 border-line"></div>
@@ -121,7 +121,7 @@ export default async function ProfessionalOnboardingPage() {
                         {item.title}
                       </h3>
                       {item.completed && (
-                        <span className="text-xs px-2 py-1 bg-mint/20 text-mint rounded">
+                        <span className="text-xs px-2 py-1 bg-teal-soft text-teal rounded">
                           Done
                         </span>
                       )}
@@ -133,7 +133,7 @@ export default async function ProfessionalOnboardingPage() {
 
                   {/* Arrow */}
                   {!item.completed && (
-                    <div className="flex-shrink-0 text-line group-hover:text-mint transition-colors mt-1">
+                    <div className="flex-shrink-0 text-line group-hover:text-teal transition-colors mt-1">
                       →
                     </div>
                   )}
@@ -145,7 +145,7 @@ export default async function ProfessionalOnboardingPage() {
 
         {/* Next Steps */}
         {progressPercent === 100 && (
-          <Card className="bg-mint/10 border-mint/30">
+          <Card className="bg-teal-soft border-teal/30">
             <div className="space-y-4">
               <h2 className="font-display font-bold text-xl text-ink">Ready to Start!</h2>
               <p className="text-line">
@@ -161,7 +161,7 @@ export default async function ProfessionalOnboardingPage() {
         )}
 
         {/* Help Section */}
-        <Card className="bg-panel">
+        <Card className="bg-paper">
           <div className="space-y-3">
             <h3 className="font-display font-bold text-lg text-ink">Need Help?</h3>
             <p className="text-line text-sm">
