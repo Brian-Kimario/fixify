@@ -740,6 +740,13 @@ export async function submitInspectionAction(payload: {
     return { success: false, error: 'Not authenticated' };
   }
 
+  // Verify job ownership before attempting insert (defense in depth)
+  // getJobById already filters by professional_id = user.id, so if it returns null, job is not assigned
+  const job = await getJobById(payload.jobId);
+  if (!job) {
+    return { success: false, error: 'Job not found or not assigned to you' };
+  }
+
   const { data, error } = await supabase
     .from('inspections')
     .insert({
@@ -755,14 +762,14 @@ export async function submitInspectionAction(payload: {
     return { success: false, error: error.message };
   }
 
-  // Record audit event in job_events
+  // Record audit event in job_events with actual current state (not hardcoded)
   await supabase.from('job_events').insert({
     job_id: payload.jobId,
-    from_state: 'arrived',
-    to_state: 'in_progress',
+    from_state: job.current_state,
+    to_state: job.current_state, // State doesn't change until customer approves; inspection is just a record
     actor_user_id: user.id,
-    event_type: 'inspection_recorded',
-    metadata: { findings: payload.findings.slice(0, 100) },
+    event_type: 'inspection_submitted',
+    metadata: { findings: payload.findings.slice(0, 100), inspection_id: data.id },
   });
 
   revalidatePath(`/professional/jobs/${payload.jobId}`);
@@ -788,6 +795,13 @@ export async function createQuoteAction(payload: {
 
   if (!user) {
     return { success: false, error: 'Not authenticated' };
+  }
+
+  // Verify job ownership before attempting mutations (defense in depth)
+  // getJobById already filters by professional_id = user.id, so if it returns null, job is not assigned
+  const job = await getJobById(payload.jobId);
+  if (!job) {
+    return { success: false, error: 'Job not found or not assigned to you' };
   }
 
   const subtotal = payload.lineItems.reduce((acc, i) => acc + (i.quantity * i.unitPrice), 0);
