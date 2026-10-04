@@ -46,6 +46,12 @@ export interface RefundResult {
 
 export interface PaymentProvider {
   /**
+   * getType
+   * Returns the provider type identifier for database auditing and debugging.
+   */
+  getType(): 'mock' | 'razorpay';
+
+  /**
    * createOrder
    * Creates an order/payment intent with the provider.
    * Returns order details needed by frontend to initiate payment.

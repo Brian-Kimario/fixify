@@ -25,6 +25,10 @@ export class MockProvider implements PaymentProvider {
     }
   }
 
+  getType(): 'mock' | 'razorpay' {
+    return 'mock';
+  }
+
   async createOrder(quote: Quote, customer: Customer): Promise<OrderResponse> {
     // Generate mock order ID
     const orderId = `mock_order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

@@ -438,9 +438,6 @@ export async function verifyProfessional(
   reason?: string,
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
-    const admin = await createAdminClient();
-
     // Validate decision
     if (!['approved', 'rejected'].includes(decision)) {
       return { success: false, error: 'Invalid decision value' };
@@ -451,50 +448,28 @@ export async function verifyProfessional(
       return { success: false, error: 'Reason required for rejection' };
     }
 
-    // Fetch professional profile
-    const { data: prof, error: profError } = await admin
-      .from('professional_profiles')
-      .select('user_id, verification_status, display_name')
-      .eq('user_id', profId)
-      .single();
-
-    if (profError || !prof) {
-      return { success: false, error: 'Professional not found' };
-    }
-
-    const oldStatus = (prof as { verification_status: string }).verification_status;
-    const newStatus = decision === 'approved' ? 'verified' : 'rejected';
-
-    // Update professional profile
-    const updateData: Record<string, unknown> = {
-      verification_status: newStatus,
-    };
-
+    // Use service layer functions which handle authorization, persistence, and audit logging
     if (decision === 'approved') {
-      updateData.verification_date = new Date().toISOString();
+      const { approveProfessional } = await import('@/lib/services/verification');
+      const result = await approveProfessional(profId);
+      if (!result.success) {
+        return { success: false, error: result.error || 'Failed to approve professional' };
+      }
+    } else {
+      const { rejectProfessional } = await import('@/lib/services/verification');
+      const result = await rejectProfessional(profId, reason!);
+      if (!result.success) {
+        return { success: false, error: result.error || 'Failed to reject professional' };
+      }
     }
 
-    const { error: updateError } = await (admin.from('professional_profiles') as any)
-      .update(updateData)
-      .eq('user_id', profId);
-
-    if (updateError) {
-      return { success: false, error: `Verification update failed: ${updateError.message}` };
-    }
-
-    // Create immutable audit event
-    // Note: professional_verification_events table doesn't exist yet
-    // This audit trail will be added in a future migration
-    console.log('[verifyProfessional] Audit: Professional', profId, 'verification decision:', decision);
-
-    revalidatePath('/admin/operations');
+    revalidatePath('/admin/professionals');
 
     return {
       success: true,
       data: {
         profId,
         decision,
-        newStatus,
         reason: reason || null,
       },
     };

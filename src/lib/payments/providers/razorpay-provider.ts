@@ -33,6 +33,10 @@ export class RazorpayProvider implements PaymentProvider {
     this.razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
   }
 
+  getType(): 'mock' | 'razorpay' {
+    return 'razorpay';
+  }
+
   async createOrder(quote: Quote, customer: Customer): Promise<OrderResponse> {
     try {
       const amountPaise = Math.round(quote.total * 100);

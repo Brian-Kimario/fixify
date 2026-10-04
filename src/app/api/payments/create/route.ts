@@ -148,6 +148,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // 6. Create payment record with status=pending
     // ────────────────────────────────────────────────────────────────────────
 
+    // Get payment provider first to determine provider type for the record
+    let provider;
+    try {
+      provider = getPaymentProvider();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[api/payments/create] Provider factory error:', msg);
+      return NextResponse.json(
+        { error: 'Payment provider not configured' },
+        { status: 500 }
+      );
+    }
+
     const { data: payment, error: insertErr } = await supabase
       .from('payments')
       .insert({
@@ -157,7 +170,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         payment_type: 'service',
         amount: Number(quote.total),
         currency: 'INR', // Default currency
-        provider: 'razorpay', // Will be 'mock' in dev if configured
+        provider: provider.getType(), // Resolve provider type from instance
         provider_reference: '', // Will be updated after provider creates order
         status: 'pending',
       })
@@ -173,20 +186,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // 7. Get payment provider and create order
+    // 7. Create order with payment provider
     // ────────────────────────────────────────────────────────────────────────
-
-    let provider;
-    try {
-      provider = getPaymentProvider();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      console.error('[api/payments/create] Provider factory error:', msg);
-      return NextResponse.json(
-        { error: 'Payment provider not configured' },
-        { status: 500 }
-      );
-    }
 
     let orderResponse;
     try {
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // 9. Return response to frontend
+    // 10. Return response to frontend
     // ────────────────────────────────────────────────────────────────────────
 
     return NextResponse.json(
@@ -247,7 +248,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         paymentUrl: orderResponse.paymentUrl,
         metadata: {
           ...orderResponse.metadata,
-          isDemoPayment: process.env.MOCK_PAYMENTS === 'true',
+          isDemoPayment: provider.getType() === 'mock',
         },
       },
       { status: 201 }
