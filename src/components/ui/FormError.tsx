@@ -15,7 +15,11 @@ export function FormError({ message, messages }: FormErrorProps) {
   const errors = message ? [message] : messages || [];
 
   return (
-    <div className="rounded-lg border border-danger/30 bg-danger-soft p-3">
+    <div
+      className="rounded-lg border border-danger/30 bg-danger-soft p-3"
+      role="alert"
+      aria-live="assertive"
+    >
       {errors.length === 1 ? (
         <p className="text-sm text-danger">{errors[0]}</p>
       ) : (
