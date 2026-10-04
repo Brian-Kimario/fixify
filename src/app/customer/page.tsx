@@ -73,18 +73,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
     console.warn('Could not query properties:', err);
   }
 
-  // Provide fallback default property if user has not yet added one
-  if (userProperties.length === 0) {
-    userProperties = [
-      {
-        id: 'prop-default',
-        name: 'Oakwood Residence',
-        propertyType: 'Single Family Home',
-        addressLine1: '1428 Elm Creek Road',
-        city: 'Austin, TX',
-      },
-    ];
-  }
+  // If user has no properties, they will see the empty state instead of demo data
 
   // 2. Fetch Active Job (non-completed / non-closed)
   let activeJobData: ActiveJobData | null = null;
@@ -228,51 +217,10 @@ async function CustomerDashboardContent({ user, profile }: any) {
   }
 
   // Baseline demo active job if none exists in dev database so the reviewer can interact with the rail immediately
-  if (!activeJobData) {
-    activeJobData = {
-      id: 'job-fx-4821',
-      referenceNumber: 'FX-4821',
-      serviceTitle: 'Quarter-Turn Shut-Off Valve & Pipe Seal',
-      category: 'Plumbing',
-      propertyName: userProperties[0]?.name || 'Oakwood Residence',
-      propertyAddress: userProperties[0]?.addressLine1 || '1428 Elm Creek Road',
-      currentState: 'IN_PROGRESS',
-      scheduledTime: new Date().toISOString(),
-      etaMinutes: 12,
-      hasPendingQuote: true,
-      pendingQuoteTotal: 108.0,
-      professional: {
-        id: 'pro-dario-venn',
-        name: 'Dario Venn',
-        rating: 4.95,
-        completedJobs: 84,
-        verificationStatus: 'verified',
-        phone: '+1 (555) 234-5678',
-      },
-    };
-
-    activeQuoteData = {
-      id: 'quote-4821',
-      jobId: 'job-fx-4821',
-      referenceNumber: 'FX-4821',
-      serviceTitle: 'Quarter-Turn Shut-Off Valve & Pipe Seal',
-      propertyName: userProperties[0]?.name || 'Oakwood Residence',
-      propertyAddress: userProperties[0]?.addressLine1,
-      proName: 'Dario Venn (Master Plumber)',
-      reason: 'During vanity shutoff disassembly, discovered the supply collar fitting was severely corroded and fused. Requires cutting out the oxidized fitting and mounting a new compression quarter-turn valve to ensure water seal integrity.',
-      findings: 'Micro-leakage behind drywall had started soft wood deterioration. Replacing now prevents drywall replacement later.',
-      lineItems: [
-        { id: '1', type: 'labour', description: 'Fitting extraction & precision copper pipe prep', quantity: 1, unitPrice: 65.0, total: 65.0 },
-        { id: '2', type: 'material', description: 'Brasscraft 1/2" Compression Quarter-Turn Valve', quantity: 1, unitPrice: 28.5, total: 28.5 },
-        { id: '3', type: 'material', description: 'Stainless braided 3/8" x 20" lavatory supply tube', quantity: 1, unitPrice: 10.0, total: 10.0 },
-        { id: '4', type: 'fee', description: 'Fixify 12-Month Workmanship Warranty Guarantee', quantity: 1, unitPrice: 4.5, total: 4.5 },
-      ],
-      subtotal: 65.0,
-      partsTotal: 38.5,
-      platformFee: 4.5,
-      totalAmount: 108.0,
-    };
-  }
+  // DISABLED: Show empty state instead for Phase 3
+  // if (!activeJobData) {
+  //   activeJobData = { ... }
+  // }
 
   // 3. Fetch Recent Activities from Job Events or Fallback
   let recentActivities: ActivityItem[] = [];
@@ -303,44 +251,8 @@ async function CustomerDashboardContent({ user, profile }: any) {
   }
 
   if (recentActivities.length === 0) {
-    recentActivities = [
-      {
-        id: 'act-1',
-        type: 'quote_submitted',
-        title: 'Quote submitted for extra work',
-        description: 'Dario Venn submitted parts & labor authorization for FX-4821.',
-        timestamp: '25m ago',
-        reference: 'FX-4821',
-        link: '#quote',
-      },
-      {
-        id: 'act-2',
-        type: 'pro_assigned',
-        title: 'Technician assigned & verified',
-        description: 'Master Plumber Dario Venn confirmed arrival window for 11:30.',
-        timestamp: '2h ago',
-        reference: 'FX-4821',
-        link: '/customer/bookings',
-      },
-      {
-        id: 'act-3',
-        type: 'job_completed',
-        title: 'Repair completed & certified',
-        description: 'Quarter-turn shutoff valve renewal inspected and pressure tested.',
-        timestamp: 'Yesterday',
-        reference: 'FX-4310',
-        link: '/customer/bookings',
-      },
-      {
-        id: 'act-4',
-        type: 'invoice_ready',
-        title: 'Invoice generated & receipt stored',
-        description: 'Payment processed for ₹145.00 with 12-month Fixify Warranty.',
-        timestamp: '3 days ago',
-        reference: 'INV-9021',
-        link: '/customer/bookings',
-      },
-    ];
+    // DISABLED: Show empty state instead for Phase 3
+    // recentActivities = [ ... ];
   }
 
   // 4. Fetch Completed Jobs for Property Maintenance History
@@ -426,78 +338,16 @@ async function CustomerDashboardContent({ user, profile }: any) {
   }
 
   // Baseline Timeline Records (shown if customer does not have completed jobs yet)
-  if (timelineEvents.length === 0) {
-    timelineEvents = [
-      {
-        id: 'evt-1',
-        date: 'OCT 2026',
-        fullDate: 'October 1, 2026',
-        category: 'Plumbing',
-        title: 'Dual Shut-Off Valve & Supply Line Renewal',
-        propertyName: userProperties[0]?.name || 'Oakwood Residence',
-        summary: 'Proactive replacement of corroded brass shut-off valves under vanity.',
-        findings: 'Found micro-seepage behind drywall escutcheon plate. Replaced with heavy-duty quarter-turn ball valves and braided stainless steel flex lines.',
-        partsReplaced: ['2x 1/2" Compression Quarter-Turn Valves', '2x Stainless Steel 20" Supply Hoses'],
-        cost: 145.0,
-        proName: 'Dario Venn',
-        proRating: 4.95,
-        warrantyValidUntil: 'Oct 2027',
-        referenceNumber: 'FX-4821',
-      },
-      {
-        id: 'evt-2',
-        date: 'JUL 2026',
-        fullDate: 'July 14, 2026',
-        category: 'HVAC',
-        title: 'Mid-Summer Heat Pump Diagnostics & Filter Overhaul',
-        propertyName: userProperties[0]?.name || 'Oakwood Residence',
-        summary: 'Comprehensive airflow balancing and evaporator coil sanitize.',
-        findings: 'Refrigerant pressure nominal (118 PSI suction). High-efficiency MERV 13 media filter replaced. Condensate trap cleared of algae buildup.',
-        partsReplaced: ['MERV 13 Air Media Filter', 'Algae Clear Condensate Tablets'],
-        cost: 190.0,
-        proName: 'Elena Rostova',
-        proRating: 4.98,
-        warrantyValidUntil: 'July 2027',
-        referenceNumber: 'FX-4310',
-      },
-      {
-        id: 'evt-3',
-        date: 'MAR 2026',
-        fullDate: 'March 22, 2026',
-        category: 'Electrical',
-        title: 'Dedicated 20A Circuit & GFCI In-Kitchen Upgrade',
-        propertyName: userProperties[0]?.name || 'Oakwood Residence',
-        summary: 'Installed dual tamper-resistant GFCI outlets for countertop safety compliance.',
-        findings: 'Previous line was ungrounded BX cable. Pulled new Romex run to primary panel and tagged circuit 14.',
-        partsReplaced: ['Leviton 20A GFCI Spec Grade', '12/2 NM-B Wire Run (35ft)'],
-        cost: 260.0,
-        proName: 'Kareem Wells',
-        proRating: 4.9,
-        warrantyValidUntil: 'March 2028',
-        referenceNumber: 'FX-3904',
-      },
-      {
-        id: 'evt-4',
-        date: 'NOV 2025',
-        fullDate: 'November 8, 2025',
-        category: 'Plumbing',
-        title: 'Main Sewer Lateral Camera Inspection & Jetting',
-        propertyName: userProperties[0]?.name || 'Oakwood Residence',
-        summary: 'Hydro-jet clearing of root intrusion near city main connection.',
-        findings: 'High-definition optical scope revealed minor root penetration at cleanout collar. High pressure jetting restored 100% volumetric flow.',
-        partsReplaced: ['Cleanout Cap & Seal Gasket'],
-        cost: 320.0,
-        proName: 'Dario Venn',
-        proRating: 4.95,
-        warrantyValidUntil: 'Nov 2026',
-        referenceNumber: 'FX-3120',
-      },
-    ];
-  }
+  // DISABLED: Show empty state instead for Phase 3
+  // if (timelineEvents.length === 0) { ... }
 
   const displayName = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  // Determine if dashboard should show empty state
+  // Empty if: no properties AND no active job
+  const isEmpty = userProperties.length === 0 && !activeJobData;
 
   return (
     <CustomerDashboardClient
@@ -509,6 +359,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
       properties={userProperties}
       timelineEvents={timelineEvents}
       recentActivities={recentActivities}
+      isEmpty={isEmpty}
     />
   );
 }
