@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest"
+    "test": "vitest",
+    "audit:crawl": "node scripts/audit-crawler.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
@@ -34,6 +35,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "happy-dom": "^20.14.5",
+    "playwright": "^1.63.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.2"

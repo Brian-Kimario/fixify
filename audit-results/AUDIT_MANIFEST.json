@@ -1,0 +1,175 @@
+{
+  "targetUrl": "http://localhost:3000",
+  "timestamp": "2026-10-03T22:42:54.787Z",
+  "routesAudited": [
+    {
+      "name": "01_homepage",
+      "path": "/",
+      "actualUrl": "http://localhost:3000/",
+      "status": 200,
+      "screenshot": "01_homepage.png",
+      "dom": "01_homepage_dom.txt"
+    },
+    {
+      "name": "02_help_center",
+      "path": "/help",
+      "actualUrl": "http://localhost:3000/help",
+      "status": 200,
+      "screenshot": "02_help_center.png",
+      "dom": "02_help_center_dom.txt"
+    },
+    {
+      "name": "03_support_intake",
+      "path": "/support",
+      "actualUrl": "http://localhost:3000/auth/login?role=support&next=%2Fsupport",
+      "status": 200,
+      "screenshot": "03_support_intake.png",
+      "dom": "03_support_intake_dom.txt"
+    },
+    {
+      "name": "04_auth_login",
+      "path": "/auth/login",
+      "actualUrl": "http://localhost:3000/auth/login",
+      "status": 200,
+      "screenshot": "04_auth_login.png",
+      "dom": "04_auth_login_dom.txt"
+    },
+    {
+      "name": "05_auth_register_customer",
+      "path": "/auth/register",
+      "actualUrl": "http://localhost:3000/auth/register",
+      "status": 200,
+      "screenshot": "05_auth_register_customer.png",
+      "dom": "05_auth_register_customer_dom.txt"
+    },
+    {
+      "name": "06_auth_register_pro",
+      "path": "/auth/register/professional",
+      "actualUrl": "http://localhost:3000/auth/register/professional",
+      "status": 200,
+      "screenshot": "06_auth_register_pro.png",
+      "dom": "06_auth_register_pro_dom.txt"
+    },
+    {
+      "name": "07_auth_forgot_password",
+      "path": "/auth/forgot-password",
+      "actualUrl": "http://localhost:3000/auth/forgot-password",
+      "status": 200,
+      "screenshot": "07_auth_forgot_password.png",
+      "dom": "07_auth_forgot_password_dom.txt"
+    },
+    {
+      "name": "10_customer_dashboard",
+      "path": "/customer",
+      "actualUrl": "http://localhost:3000/customer",
+      "status": 200,
+      "screenshot": "10_customer_dashboard.png",
+      "dom": "10_customer_dashboard_dom.txt"
+    },
+    {
+      "name": "11_customer_properties",
+      "path": "/customer/properties",
+      "actualUrl": "http://localhost:3000/customer/properties",
+      "status": 200,
+      "screenshot": "11_customer_properties.png",
+      "dom": "11_customer_properties_dom.txt"
+    },
+    {
+      "name": "12_customer_support",
+      "path": "/customer/support",
+      "actualUrl": "http://localhost:3000/customer/support",
+      "status": 200,
+      "screenshot": "12_customer_support.png",
+      "dom": "12_customer_support_dom.txt"
+    },
+    {
+      "name": "13_customer_settings",
+      "path": "/customer/settings",
+      "actualUrl": "http://localhost:3000/customer/settings",
+      "status": 200,
+      "screenshot": "13_customer_settings.png",
+      "dom": "13_customer_settings_dom.txt"
+    },
+    {
+      "name": "20_pro_today_workspace",
+      "path": "/professional",
+      "actualUrl": "http://localhost:3000/professional",
+      "status": 200,
+      "screenshot": "20_pro_today_workspace.png",
+      "dom": "20_pro_today_workspace_dom.txt"
+    },
+    {
+      "name": "21_pro_jobs_queue",
+      "path": "/professional/jobs",
+      "actualUrl": "http://localhost:3000/professional/jobs",
+      "status": 200,
+      "screenshot": "21_pro_jobs_queue.png",
+      "dom": "21_pro_jobs_queue_dom.txt"
+    },
+    {
+      "name": "22_pro_bids",
+      "path": "/professional/bids",
+      "actualUrl": "http://localhost:3000/professional/bids",
+      "status": 200,
+      "screenshot": "22_pro_bids.png",
+      "dom": "22_pro_bids_dom.txt"
+    },
+    {
+      "name": "23_pro_earnings",
+      "path": "/professional/earnings",
+      "actualUrl": "http://localhost:3000/professional/earnings",
+      "status": 200,
+      "screenshot": "23_pro_earnings.png",
+      "dom": "23_pro_earnings_dom.txt"
+    },
+    {
+      "name": "24_pro_profile",
+      "path": "/professional/profile",
+      "actualUrl": "http://localhost:3000/professional/profile",
+      "status": 200,
+      "screenshot": "24_pro_profile.png",
+      "dom": "24_pro_profile_dom.txt"
+    },
+    {
+      "name": "25_pro_onboarding",
+      "path": "/professional/onboarding",
+      "actualUrl": "http://localhost:3000/professional/onboarding",
+      "status": 200,
+      "screenshot": "25_pro_onboarding.png",
+      "dom": "25_pro_onboarding_dom.txt"
+    },
+    {
+      "name": "30_admin_operations",
+      "path": "/admin",
+      "actualUrl": "http://localhost:3000/admin",
+      "status": 200,
+      "screenshot": "30_admin_operations.png",
+      "dom": "30_admin_operations_dom.txt"
+    },
+    {
+      "name": "31_admin_jobs_review",
+      "path": "/admin/jobs",
+      "actualUrl": "http://localhost:3000/admin/jobs",
+      "status": 200,
+      "screenshot": "31_admin_jobs_review.png",
+      "dom": "31_admin_jobs_review_dom.txt"
+    },
+    {
+      "name": "32_admin_professionals",
+      "path": "/admin/professionals",
+      "actualUrl": "http://localhost:3000/admin/professionals",
+      "status": 200,
+      "screenshot": "32_admin_professionals.png",
+      "dom": "32_admin_professionals_dom.txt"
+    },
+    {
+      "name": "33_admin_customers",
+      "path": "/admin/customers",
+      "actualUrl": "http://localhost:3000/admin/customers",
+      "status": 200,
+      "screenshot": "33_admin_customers.png",
+      "dom": "33_admin_customers_dom.txt"
+    }
+  ],
+  "errorsCaptured": []
+}

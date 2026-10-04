@@ -513,7 +513,11 @@ export async function getProfessionalAvailability(): Promise<Availability[]> {
 
 /**
  * Update professional availability status (online/offline)
- * RLS ensures only own profile can be updated
+ * 
+ * Security:
+ * - RLS ensures only own profile can be updated
+ * - Enforces business rule: must be verified before setting is_available=true
+ * - Uses state machine function to apply validation
  */
 export async function updateAvailabilityStatus(isAvailable: boolean) {
   const supabase = await createClient();
@@ -526,15 +530,27 @@ export async function updateAvailabilityStatus(isAvailable: boolean) {
     throw new Error("Not authenticated");
   }
 
+  // Call DB function to update availability with business rule validation
+  // @ts-ignore - New RPC function not yet in generated types
+  const { error: rpcError } = await supabase.rpc('update_professional_availability', {
+    p_professional_id: user.id,
+    p_is_available: isAvailable,
+  });
+
+  if (rpcError) {
+    console.error('[Professional Actions] Failed to update availability:', rpcError);
+    throw new Error(`Failed to update availability: ${rpcError.message}`);
+  }
+
+  // Fetch updated profile
   const { data, error } = await supabase
     .from("professional_profiles")
-    .update({ is_available: isAvailable })
+    .select("*")
     .eq("user_id", user.id)
-    .select()
     .single();
 
   if (error) {
-    throw new Error(`Failed to update availability: ${error.message}`);
+    throw new Error(`Failed to retrieve updated profile: ${error.message}`);
   }
 
   return data;

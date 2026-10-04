@@ -143,23 +143,43 @@ async function handlePaymentSuccess(payment: RazorpayPaymentEntity): Promise<voi
     return;
   }
 
-  // ── 1. Mark payment as paid ────────────────────────────────────────────────
+  // ── 1. Mark payment as paid via state machine ──────────────────────────────
+  // Use transition_payment_status RPC to record payment with authorization and audit
+  // @ts-ignore - New RPC function not yet in generated types
+  const { error: transitionErr } = await supabase.rpc('transition_payment_status' as any, {
+    p_payment_id: record.id,
+    p_new_status: 'paid',
+    p_actor_user_id: record.customer_id,  // Actor is the customer who owns the payment
+    p_actor_role: 'webhook',  // Mark as webhook-triggered action
+    p_reason: `Payment received via Razorpay: ${payment.id}`,
+    p_metadata: {
+      razorpay_payment_id: payment.id,
+      upi_vpa: payment.vpa ?? null,
+      upi_rrn: payment.acquirer_data?.rrn ?? null,
+      upi_ref_id: payment.acquirer_data?.upi_transaction_id ?? null,
+    },
+  });
+
+  if (transitionErr) {
+    throw new Error(
+      `Failed to record payment via state machine for payment ${record.id}: ${transitionErr.message}`
+    );
+  }
+
+  // Update payment record with additional Razorpay metadata
   const { error: updateErr } = await supabase
     .from('payments')
     .update({
-      status:              'paid',
       razorpay_payment_id: payment.id,
-      // Update provider_reference to the actual payment_id (was order_id initially)
-      provider_reference:  payment.id,
-      upi_vpa:             payment.vpa              ?? null,
-      upi_rrn:             payment.acquirer_data?.rrn                ?? null,
-      upi_ref_id:          payment.acquirer_data?.upi_transaction_id ?? null,
-      paid_at:             new Date().toISOString(),
+      provider_reference: payment.id,  // Was order_id, now update to actual payment_id
+      upi_vpa: payment.vpa ?? null,
+      upi_rrn: payment.acquirer_data?.rrn ?? null,
+      upi_ref_id: payment.acquirer_data?.upi_transaction_id ?? null,
     })
     .eq('id', record.id);
 
   if (updateErr) {
-    throw new Error(`Failed to update payment record ${record.id}: ${updateErr.message}`);
+    throw new Error(`Failed to update payment metadata for payment ${record.id}: ${updateErr.message}`);
   }
 
   // ── 2. Transition job to 'closed' via the DB state machine ─────────────────

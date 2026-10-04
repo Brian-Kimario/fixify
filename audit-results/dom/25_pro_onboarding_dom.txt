@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en" class="h-full"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preload" as="image" href="/brand/fixify-logo.svg"><link rel="stylesheet" href="/_next/static/chunks/src_1-29wki._.css" data-precedence="next_static/chunks/src_1-29wki._.css"><link rel="preload" as="script" fetchpriority="low" href="/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1o6ebfd._.js"><meta name="theme-color" content="#F7F4EC"><title>Professional Setup - Fixify</title><meta name="description" content="Manage your professional profile, jobs, bids, and earnings"><meta name="keywords" content="property maintenance,home repairs,marketplace,verified professionals,plumbing,electrical,handyman"><link rel="shortcut icon" href="/favicon.ico"><link rel="icon" href="/favicon.ico?favicon.2q9xeuo71mkm8.ico" sizes="48x48" type="image/x-icon"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" href="/brand/fixify-logo.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"></head><body class="min-h-full flex flex-col bg-porcelain text-ink antialiased"><div hidden=""><!--$--><!--/$--></div><div class="min-h-screen bg-[#F7F4EC]"><header class="sticky top-0 z-40 bg-[#FFFEFA] border-b border-[#D9DED8]"><div class="flex items-center justify-between px-4 md:px-6 py-3.5 h-16"><a class="inline-flex items-center gap-2 md:gap-2.5 font-bold text-sm md:text-[18px] tracking-[-0.035em] text-[#18211F] flex-shrink-0" href="/professional"><span class="w-[24px] h-[24px] md:w-[29px] md:h-[29px] flex items-center justify-center"><img alt="Fixify" aria-hidden="true" width="24" height="24" decoding="async" data-nimg="1" class="object-contain flex-shrink-0 w-full h-full" style="color:transparent" src="/brand/fixify-logo.svg"></span><span>Fixify</span></a><nav class="hidden md:flex items-center gap-8 flex-1 justify-center"><a href="/professional" class="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Today</a><a href="/professional/jobs" class="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Jobs</a><a href="/professional/earnings" class="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Earnings</a></nav><div class="hidden md:flex items-center gap-3 flex-shrink-0"><button class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#F0F0F0] transition-colors focus:outline-none focus:ring-2 focus:ring-[#176B5B] focus:ring-offset-1" aria-label="User menu" aria-expanded="false" aria-haspopup="menu"><div class="w-8 h-8 rounded-full bg-[#E2EEE9] flex items-center justify-center text-xs font-bold text-[#0D5144] flex-shrink-0 select-none">P</div><svg aria-label="icon">[SVG_ICON]</svg></button></div></div></header><main class="pb-20 md:pb-0 px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto"><div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8"><div class="space-y-8"><div><h1 class="font-display font-bold text-4xl text-ink mb-2">Get Your Profile Ready</h1><p class="text-line text-lg">Complete these steps to start bidding on jobs and earning</p></div><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        
+      "><div class="space-y-4"><div class="flex justify-between items-center"><h2 class="font-display font-bold text-lg text-ink">Setup Progress</h2><span class="font-display font-bold text-lg text-mint">0<!-- --> / <!-- -->6</span></div><div class="w-full bg-line/10 rounded-full h-3 overflow-hidden"><div class="bg-mint h-3 rounded-full transition-all duration-300" style="width:0%"></div></div><p class="text-line text-sm">Complete 6 more steps to get started</p></div></div><div class="space-y-3"><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        
+      "><a class="block" href="/professional/profile/edit"><div class="flex items-start gap-4 p-2 hover:bg-panel/50 rounded-lg transition-colors"><div class="flex-shrink-0 mt-1"><div class="w-6 h-6 rounded-full border-2 border-line"></div></div><div class="flex-1"><div class="flex items-center gap-2"><h3 class="font-display font-bold text-lg text-ink">Complete Your Profile</h3></div><p class="text-line">Add your professional photo, bio, and experience</p></div><div class="flex-shrink-0 text-line group-hover:text-mint transition-colors mt-1">→</div></div></a></div><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        
+      "><a class="block" href="/professional/profile/edit"><div class="flex items-start gap-4 p-2 hover:bg-panel/50 rounded-lg transition-colors"><div class="flex-shrink-0 mt-1"><div class="w-6 h-6 rounded-full border-2 border-line"></div></div><div class="flex-1"><div class="flex items-center gap-2"><h3 class="font-display font-bold text-lg text-ink">Add Your Skills</h3></div><p class="text-line">List the services and expertise you offer</p></div><div class="flex-shrink-0 text-line group-hover:text-mint transition-colors mt-1">→</div></div></a></div><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        
+      "><a class="block" href="/professional/profile/edit"><div class="flex items-start gap-4 p-2 hover:bg-panel/50 rounded-lg transition-colors"><div class="flex-shrink-0 mt-1"><div class="w-6 h-6 rounded-full border-2 border-line"></div></div><div class="flex-1"><div class="flex items-center gap-2"><h3 class="font-display font-bold text-lg text-ink">Set Your Rates</h3></div><p class="text-line">Configure your hourly rates or pricing structure</p></div><div class="flex-shrink-0 text-line group-hover:text-mint transition-colors mt-1">→</div></div></a></div><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        
+      "><a class="block" href="#"><div class="flex items-start gap-4 p-2 hover:bg-panel/50 rounded-lg transition-colors"><div class="flex-shrink-0 mt-1"><div class="w-6 h-6 rounded-full border-2 border-line"></div></div><div class="flex-1"><div class="flex items-center gap-2"><h3 class="font-display font-bold text-lg text-ink">Verify Your Identity</h3></div><p class="text-line">Complete identity and background verification</p></div><div class="flex-shrink-0 text-line group-hover:text-mint transition-colors mt-1">→</div></div></a></div><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        
+      "><a class="block" href="#"><div class="flex items-start gap-4 p-2 hover:bg-panel/50 rounded-lg transition-colors"><div class="flex-shrink-0 mt-1"><div class="w-6 h-6 rounded-full border-2 border-line"></div></div><div class="flex-1"><div class="flex items-center gap-2"><h3 class="font-display font-bold text-lg text-ink">Set Up Payment Method</h3></div><p class="text-line">Add a bank account for payouts</p></div><div class="flex-shrink-0 text-line group-hover:text-mint transition-colors mt-1">→</div></div></a></div><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        
+      "><a class="block" href="#"><div class="flex items-start gap-4 p-2 hover:bg-panel/50 rounded-lg transition-colors"><div class="flex-shrink-0 mt-1"><div class="w-6 h-6 rounded-full border-2 border-line"></div></div><div class="flex-1"><div class="flex items-center gap-2"><h3 class="font-display font-bold text-lg text-ink">Review Terms &amp; Policies</h3></div><p class="text-line">Understand our terms of service and policies</p></div><div class="flex-shrink-0 text-line group-hover:text-mint transition-colors mt-1">→</div></div></a></div></div><div class="
+        bg-panel border border-line rounded-lg p-6 md:p-8
+        shadow-md transition-all duration-200
+        hover:shadow-lg
+        bg-panel
+      "><div class="space-y-3"><h3 class="font-display font-bold text-lg text-ink">Need Help?</h3><p class="text-line text-sm">Check out our guides on how to create an effective profile and win more bids.</p><div class="flex gap-2"><button class="
+        inline-flex items-center justify-center
+        rounded-lg font-medium
+        transition-all duration-200
+        disabled:opacity-50 disabled:cursor-not-allowed
+        focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2 focus:ring-offset-dark
+        bg-panel text-ink border border-line hover:bg-line active:border-mint
+        px-3 py-1.5 text-sm
+        
+      ">View Guides</button><button class="
+        inline-flex items-center justify-center
+        rounded-lg font-medium
+        transition-all duration-200
+        disabled:opacity-50 disabled:cursor-not-allowed
+        focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2 focus:ring-offset-dark
+        bg-panel text-ink border border-line hover:bg-line active:border-mint
+        px-3 py-1.5 text-sm
+        
+      ">Contact Support</button></div></div></div></div></div><!--$--><!--/$--></main><nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFEFA] border-t border-[#D9DED8] flex items-center justify-around h-20"><a href="/professional" class="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1"><svg aria-label="icon">[SVG_ICON]</svg><span class="text-xs font-semibold">Today</span></a><a href="/professional/jobs" class="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1"><svg aria-label="icon">[SVG_ICON]</svg><span class="text-xs font-semibold">Jobs</span></a><a href="/professional/earnings" class="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1"><svg aria-label="icon">[SVG_ICON]</svg><span class="text-xs font-semibold">Earnings</span></a><a href="/professional/profile" class="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1"><svg aria-label="icon">[SVG_ICON]</svg><span class="text-xs font-semibold">Profile</span></a></nav></div><next-route-announcer style="position: absolute;"></next-route-announcer></body></html>

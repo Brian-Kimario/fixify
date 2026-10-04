@@ -197,7 +197,22 @@ export async function uploadVerificationDocument(
       return { success: false, error: 'Failed to record document. Contact support.' };
     }
 
-    // ── Update verification + profile statuses ────────────────────────────────
+    // ── Update verification + profile statuses via state machine ─────────────
+    // Use RPC to transition verification status with authorization and audit
+    // @ts-ignore - New RPC function not yet in generated types
+    const { error: statusError } = await supabase.rpc('transition_professional_verification_status', {
+      p_professional_id: user.id,
+      p_new_status: 'documents_submitted',
+      p_admin_user_id: user.id,  // Professional action, so mark as self-initiated
+      p_reason: 'Professional uploaded verification documents',
+      p_metadata: { verification_id: verificationId },
+    });
+
+    if (statusError) {
+      console.error('[Verification] Failed to transition verification status:', statusError);
+      return { success: false, error: 'Failed to update verification status. Contact support.' };
+    }
+
     // @ts-ignore - Supabase SDK type inference issue
     await (adminClient as any)
       .from('professional_verifications')
@@ -206,12 +221,6 @@ export async function uploadVerificationDocument(
         submitted_at: new Date().toISOString(),
       })
       .eq('id', verificationId);
-
-    // @ts-ignore - Supabase SDK type inference issue
-    await (adminClient as any)
-      .from('professional_profiles')
-      .update({ verification_status: 'documents_submitted' })
-      .eq('user_id', user.id);
 
     revalidatePath('/professional/onboarding');
     return { success: true, error: null, documentId: (docRecord as any).id };
@@ -385,19 +394,22 @@ export async function approveProfessional(
       return { success: false, error: 'Not authorised — admin only' };
     }
 
-    const adminClient = await createAdminClient();
+    // Use state machine to transition verification status with admin authorization
+    // @ts-ignore - New RPC function not yet in generated types
+    const { error: stateError } = await supabase.rpc('transition_professional_verification_status', {
+      p_professional_id: professionalId,
+      p_new_status: 'verified',
+      p_admin_user_id: user.id,
+      p_reason: reason || 'Admin approved professional verification',
+      p_metadata: { admin_user: user.id },
+    });
 
-    // Update professional profile status
-    // @ts-ignore - Supabase SDK type inference issue
-    const { error: profileError } = await (adminClient as any)
-      .from('professional_profiles')
-      .update({ verification_status: 'verified' })
-      .eq('user_id', professionalId);
-
-    if (profileError) {
-      console.error('[Verification] Failed to update profile status:', profileError);
-      return { success: false, error: (profileError as any).message };
+    if (stateError) {
+      console.error('[Verification] Failed to transition verification status:', stateError);
+      return { success: false, error: (stateError as any).message };
     }
+
+    const adminClient = await createAdminClient();
 
     // Update the latest verification record
     // @ts-ignore - Supabase SDK type inference issue
@@ -471,19 +483,22 @@ export async function rejectProfessional(
       return { success: false, error: 'Not authorised — admin only' };
     }
 
-    const adminClient = await createAdminClient();
+    // Use state machine to transition verification status with admin authorization
+    // @ts-ignore - New RPC function not yet in generated types
+    const { error: stateError } = await supabase.rpc('transition_professional_verification_status', {
+      p_professional_id: professionalId,
+      p_new_status: 'rejected',
+      p_admin_user_id: user.id,
+      p_reason: reason,
+      p_metadata: { admin_user: user.id },
+    });
 
-    // Update professional profile status
-    // @ts-ignore - Supabase SDK type inference issue
-    const { error: profileError } = await (adminClient as any)
-      .from('professional_profiles')
-      .update({ verification_status: 'rejected' })
-      .eq('user_id', professionalId);
-
-    if (profileError) {
-      console.error('[Verification] Failed to update profile status:', profileError);
-      return { success: false, error: (profileError as any).message };
+    if (stateError) {
+      console.error('[Verification] Failed to transition verification status:', stateError);
+      return { success: false, error: (stateError as any).message };
     }
+
+    const adminClient = await createAdminClient();
 
     // Update verification record
     // @ts-ignore - Supabase SDK type inference issue

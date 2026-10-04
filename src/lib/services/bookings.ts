@@ -222,27 +222,67 @@ export async function getCompletedBookings(): Promise<BookingWithDetails[]> {
 }
 
 /**
- * Cancel a booking
+ * Cancel a booking using the state machine
+ * 
+ * This function enforces:
+ * - Authorization: User must be the customer who owns the booking
+ * - State validation: Booking must be in a cancellable state
+ * - Atomicity: Associated job is also cancelled if active
+ * - Audit trail: All state transitions recorded in booking_events
  */
 export async function cancelBooking(bookingId: string): Promise<Booking> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('bookings')
-    .update({ booking_status: 'cancelled' })
-    .eq('id', bookingId)
-    .select()
-    .single()
+  // Get authenticated user
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      throw new Error('Booking not found or does not belong to you')
-    }
-    console.error('Error cancelling booking:', error)
-    throw new Error(`Failed to cancel booking: ${error.message}`)
+  if (authError || !user) {
+    throw new Error('Not authenticated')
   }
 
-  return data
+  // Verify user owns this booking
+  const { data: booking, error: fetchError } = await supabase
+    .from('bookings')
+    .select('id, customer_id, booking_status')
+    .eq('id', bookingId)
+    .eq('customer_id', user.id)
+    .single()
+
+  if (fetchError || !booking) {
+    throw new Error('Booking not found or does not belong to you')
+  }
+
+  // Call state machine function to transition booking status
+  // @ts-ignore - New RPC function not yet in generated types
+  const { data: result, error: rpcError } = await supabase.rpc('transition_booking_state', {
+    p_booking_id: bookingId,
+    p_new_status: 'cancelled',
+    p_actor_user_id: user.id,
+    p_actor_role: 'customer',
+    p_reason: 'Customer requested cancellation',
+    p_metadata: {},
+  })
+
+  if (rpcError) {
+    console.error('Error cancelling booking via state machine:', rpcError)
+    throw new Error(`Failed to cancel booking: ${rpcError.message}`)
+  }
+
+  // Fetch updated booking to return
+  const { data: updated, error: fetchError2 } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .single()
+
+  if (fetchError2 || !updated) {
+    throw new Error('Failed to retrieve cancelled booking')
+  }
+
+  return updated
 }
 
 /**
