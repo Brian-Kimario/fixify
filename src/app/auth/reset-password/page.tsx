@@ -2,10 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, Lock } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Symbol } from '@/components/brand/Symbol';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 /**
  * Password Reset/Recovery Form
@@ -26,8 +27,6 @@ function ResetPasswordContent() {
   const router = useRouter();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -291,34 +290,20 @@ function ResetPasswordContent() {
             {error && <div className="status-msg error-msg" role="alert">{error}</div>}
 
             <div className="field">
-              <label htmlFor="new-password">New password</label>
-              <div className="input-wrap">
-                <Lock className="field-icon" size={18} aria-hidden="true" />
-                <input
-                  className="input"
-                  id="new-password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  placeholder="Enter a new password"
-                  value={newPassword}
-                  onChange={(e) => {
-                    setNewPassword(e.target.value);
-                    setError(null);
-                  }}
-                  disabled={isLoading}
-                  required
-                />
-                <button
-                  type="button"
-                  className="show-pass"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  aria-pressed={showPassword}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+              <PasswordField
+                id="new-password"
+                label="New password"
+                type={undefined}
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  setError(null);
+                }}
+                disabled={isLoading}
+                required
+                autoComplete="new-password"
+                placeholder="Enter a new password"
+              />
               <div className="password-hint">
                 <p>Password must contain:</p>
                 <ul>
@@ -331,34 +316,19 @@ function ResetPasswordContent() {
             </div>
 
             <div className="field">
-              <label htmlFor="confirm-password">Confirm password</label>
-              <div className="input-wrap">
-                <Lock className="field-icon" size={18} aria-hidden="true" />
-                <input
-                  className="input"
-                  id="confirm-password"
-                  type={showConfirm ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    setError(null);
-                  }}
-                  disabled={isLoading}
-                  required
-                />
-                <button
-                  type="button"
-                  className="show-pass"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  disabled={isLoading}
-                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
-                  aria-pressed={showConfirm}
-                >
-                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+              <PasswordField
+                id="confirm-password"
+                label="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setError(null);
+                }}
+                disabled={isLoading}
+                required
+                autoComplete="new-password"
+                placeholder="Confirm your password"
+              />
             </div>
 
             <button type="submit" className="submit" disabled={isLoading}>

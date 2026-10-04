@@ -68,6 +68,9 @@ async function ProfessionalDashboardContent() {
   const thisWeekEarnings = earnings.weeklyEarnings[5] || earnings.total || 0;
   const maxWeeklyEarning = Math.max(...earnings.weeklyEarnings, 1);
 
+  // Detect empty state
+  const isEmpty = requestsToReview.length === 0 && activeRouteJobs.length === 0;
+
   return (
     <div className="space-y-10">
       {/* Header */}
@@ -83,7 +86,24 @@ async function ProfessionalDashboardContent() {
         </p>
       </div>
 
+      {/* Empty state */}
+      {isEmpty && (
+        <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-8 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-[#E2EEE9] flex items-center justify-center mb-3">
+            <svg className="w-6 h-6 text-[#176B5B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-[#18211F] mb-1">No requests to review</h2>
+          <p className="text-sm text-[#5A6661] max-w-sm mx-auto">
+            New matching requests will appear here when customers book services matching your skills.
+          </p>
+        </div>
+      )}
+
       {/* Main Grid */}
+      {!isEmpty && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column (2 Cols) */}
         <div className="lg:col-span-2 space-y-8">
@@ -356,6 +376,8 @@ async function ProfessionalDashboardContent() {
 
         </div>
       </div>
+      )}
     </div>
   );
 }
+

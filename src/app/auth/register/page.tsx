@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { registerWithEmail } from './actions';
 import { signInWithGoogle } from '@/app/auth/actions';
 import { Symbol } from '@/components/brand/Symbol';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +33,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
@@ -177,60 +176,30 @@ export default function RegisterPage() {
 
             <div className="field">
               <label htmlFor="password">Password</label>
-              <div className="input-wrap">
-                <input 
-                  className="input password"
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setFieldErrors({...fieldErrors, password: null}); }}
-                  disabled={isLoading}
-                  required
-                  style={{ borderColor: fieldErrors.password ? '#DC2626' : undefined }}
-                />
-                <button 
-                  type="button" 
-                  className="show-pass"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  aria-pressed={showPassword}
-                >
-                  <EyeIcon hidden={showPassword} />
-                </button>
-              </div>
-              {fieldErrors.password && <div className="status-msg">{fieldErrors.password}</div>}
+              <PasswordField
+                id="password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setFieldErrors({...fieldErrors, password: null}); }}
+                error={fieldErrors.password as string | undefined}
+                disabled={isLoading}
+                required
+                autoComplete="new-password"
+                placeholder="Create a password"
+              />
             </div>
 
             <div className="field">
               <label htmlFor="confirmPassword">Confirm password</label>
-              <div className="input-wrap">
-                <input 
-                  className="input password"
-                  id="confirmPassword"
-                  type={showConfirm ? "text" : "password"}
-                  autoComplete="new-password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors({...fieldErrors, confirmPassword: null}); }}
-                  disabled={isLoading}
-                  required
-                  style={{ borderColor: fieldErrors.confirmPassword ? '#DC2626' : undefined }}
-                />
-                <button 
-                  type="button" 
-                  className="show-pass"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  disabled={isLoading}
-                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
-                  aria-pressed={showConfirm}
-                >
-                  <EyeIcon hidden={showConfirm} />
-                </button>
-              </div>
-              {fieldErrors.confirmPassword && <div className="status-msg">{fieldErrors.confirmPassword}</div>}
+              <PasswordField
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors({...fieldErrors, confirmPassword: null}); }}
+                error={fieldErrors.confirmPassword as string | undefined}
+                disabled={isLoading}
+                required
+                autoComplete="new-password"
+                placeholder="Confirm your password"
+              />
             </div>
 
             <button type="submit" className="submit" disabled={isLoading}>

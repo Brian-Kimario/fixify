@@ -96,6 +96,9 @@ async function AdminPageContent() {
   const attentionItems = attentionResult.data;
   const verifQueue = verifQueueResult.data.slice(0, 5); // show top 5 in sidebar
 
+  // Detect empty state
+  const isEmpty = attentionItems.length === 0 && verifQueue.length === 0;
+
   return (
     <div className="px-4 md:px-6 py-6 md:py-8">
       {/* Page header */}
@@ -162,6 +165,20 @@ async function AdminPageContent() {
       </div>
 
       {/* ── Main two-column grid ──────────────────────────────────────── */}
+      {isEmpty ? (
+        <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-8 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-[#E2EEE9] flex items-center justify-center mb-3">
+            <svg className="w-6 h-6 text-[#176B5B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-[#18211F] mb-1">No unresolved items</h2>
+          <p className="text-sm text-[#5A6661] max-w-sm mx-auto">
+            Operations are currently clear. All pending verifications and escalations are resolved.
+          </p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-24 md:mb-0">
         {/* Left: Attention Queue */}
         <div className="lg:col-span-2">
@@ -310,6 +327,7 @@ async function AdminPageContent() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

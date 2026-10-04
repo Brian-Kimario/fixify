@@ -5,6 +5,7 @@ import { Suspense, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signInWithEmail, signInWithGoogle } from '@/app/auth/actions';
 import { Symbol } from '@/components/brand/Symbol';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,6 @@ function LoginFormContent() {
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
   const isLoggedOut = searchParams.get('logged_out') === '1' || searchParams.get('logged_out') === 'true';
 
   const handleEmailSignIn = async (event: FormEvent<HTMLFormElement>) => {
@@ -151,32 +151,17 @@ function LoginFormContent() {
             </div>
 
             <div className="field">
-              <label htmlFor="password">Password</label>
-              <div className="input-wrap">
-                <input 
-                  className="input password"
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setPasswordError(null); }}
-                  disabled={isLoading}
-                  required
-                  style={{ borderColor: passwordError ? '#DC2626' : undefined }}
-                />
-                <button 
-                  type="button" 
-                  className="show-pass"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  aria-pressed={showPassword}
-                >
-                  <EyeIcon hidden={showPassword} />
-                </button>
-              </div>
-              {passwordError && <div className="status-msg">{passwordError}</div>}
+              <PasswordField
+                id="password"
+                label="Password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setPasswordError(null); }}
+                error={passwordError}
+                disabled={isLoading}
+                required
+                autoComplete="current-password"
+                placeholder="Enter your password"
+              />
             </div>
 
             <div className="form-meta">
