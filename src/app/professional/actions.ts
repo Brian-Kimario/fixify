@@ -595,6 +595,137 @@ export async function getProfessionalSkills(): Promise<Skill[]> {
 }
 
 /**
+ * Fetch eligible (unreviewed) requests for the professional
+ * Returns jobs in 'assigned' state that are assigned to this professional
+ */
+export async function fetchEligibleRequests(): Promise<Job[]> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(
+      `
+      id,
+      current_state,
+      created_at,
+      customer:profiles!jobs_customer_id_fkey(id, full_name, phone),
+      property:properties(id, name, address:addresses(id, city, label, address_line_1)),
+      booking:bookings(id, scheduled_start, service:services(id, name, category:service_categories(id, name)))
+    `
+    )
+    .eq("professional_id", user.id)
+    .eq("current_state", "assigned")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch eligible requests: ${error.message}`);
+  }
+
+  return (data || []) as unknown as Job[];
+}
+
+/**
+ * Accept a request (transition from 'assigned' to 'accepted')
+ * Enforces ownership and state validation
+ */
+export async function acceptRequest(jobId: string): Promise<{
+  success: boolean;
+  error?: string;
+  jobId?: string;
+}> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  try {
+    // Verify job exists and is assigned to this professional in 'assigned' state
+    const { data: job, error: fetchError } = await supabase
+      .from("jobs")
+      .select("id, current_state, professional_id")
+      .eq("id", jobId)
+      .eq("professional_id", user.id)
+      .eq("current_state", "assigned")
+      .maybeSingle();
+
+    if (fetchError) {
+      return {
+        success: false,
+        error: `Failed to fetch request: ${fetchError.message}`,
+      };
+    }
+
+    if (!job) {
+      return {
+        success: false,
+        error:
+          "Request not found, already accepted, or you are not assigned to it",
+      };
+    }
+
+    // Transition state from 'assigned' to 'accepted' via RPC
+    const { error: transitionError } = await supabase.rpc(
+      "transition_job_state",
+      {
+        p_job_id: jobId,
+        p_new_state: "accepted",
+        p_actor_user_id: user.id,
+      }
+    );
+
+    if (transitionError) {
+      return {
+        success: false,
+        error: `Failed to accept request: ${transitionError.message}`,
+      };
+    }
+
+    revalidatePath("/professional");
+    revalidatePath(`/professional/jobs/${jobId}`);
+    return { success: true, jobId };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Fetch full job detail with ownership check
+ * Returns comprehensive job data for the job detail page
+ */
+export async function fetchJobDetail(jobId: string): Promise<{
+  data: Job | null;
+  error: string | null;
+}> {
+  try {
+    const job = await getJobById(jobId);
+    if (!job) {
+      return {
+        data: null,
+        error: "Job not found or access denied",
+      };
+    }
+    return { data: job, error: null };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { data: null, error: message };
+  }
+}
+
+/**
  * Submit an on-site inspection report
  */
 export async function submitInspectionAction(payload: {
