@@ -63,6 +63,11 @@ CREATE OR REPLACE FUNCTION public.transition_professional_verification_status(
   p_metadata jsonb DEFAULT '{}'
 )
 RETURNS BOOLEAN AS $$
+-- NOTE: SECURITY DEFINER enforces that this function runs with the privileges of the 
+-- function owner (postgres role), regardless of the calling user. Authorization checks 
+-- inline ensure only admin/support users can change professional verification status.
+SECURITY DEFINER
+SET search_path = public
 DECLARE
   v_current_status text;
   v_valid boolean := false;
@@ -106,11 +111,18 @@ BEGIN
   END IF;
   
   -- Update professional profile
+  -- IMPORTANT: When re-approving after rejection/suspension, automatically restore availability.
+  -- This simplifies UX: professional gets rejected → availability disabled, then re-approved → 
+  -- availability automatically restored without manual toggle. See PROFESSIONAL_RESUBMIT_WORKFLOW.md
   UPDATE public.professional_profiles
   SET 
     verification_status = p_new_status,
-    -- If suspended or rejected, make unavailable
+    -- Availability logic:
+    -- 1. If transitioning TO suspended or rejected: disable availability
+    -- 2. If transitioning FROM suspended/rejected TO verified: auto-restore to true
+    -- 3. Otherwise: preserve current availability setting
     is_available = CASE 
+      WHEN p_new_status = 'verified' AND v_current_status IN ('suspended', 'rejected') THEN true
       WHEN p_new_status IN ('suspended', 'rejected') THEN false
       ELSE is_available
     END,

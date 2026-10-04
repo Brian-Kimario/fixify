@@ -94,6 +94,12 @@ CREATE OR REPLACE FUNCTION public.transition_payment_status(
   p_metadata jsonb DEFAULT '{}'
 )
 RETURNS BOOLEAN AS $$
+-- NOTE: SECURITY DEFINER enforces that this function runs with the privileges of the 
+-- function owner (postgres role), regardless of the calling user. This allows controlled
+-- state transitions even from authenticated users. Authorization checks inline ensure
+-- only authorized actors can change payment status.
+SECURITY DEFINER
+SET search_path = public
 DECLARE
   v_current_status text;
   v_valid boolean := false;

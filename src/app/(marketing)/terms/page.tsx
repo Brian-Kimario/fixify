@@ -168,6 +168,25 @@ export default function TermsPage() {
               </a>
             </p>
           </section>
+
+          {/* Legal Review */}
+          <section className="border-t border-line pt-6 mt-8">
+            <h2 className="text-2xl font-bold text-ink mb-3">Legal Review and Feedback</h2>
+            <p className="text-line">
+              These terms are provisional and will be formally reviewed by legal counsel before production deployment. 
+              If you have feedback regarding these terms or believe there are errors or omissions, please contact:
+            </p>
+            <p className="text-line font-semibold mt-3">
+              Legal Review Team<br />
+              Email:{' '}
+              <a href="mailto:legal@fixify.com" className="text-teal underline">
+                legal@fixify.com
+              </a>
+            </p>
+            <p className="text-line mt-3 text-sm text-line/80">
+              Subject line: "Terms of Service Review — [Your Concern]"
+            </p>
+          </section>
         </div>
 
         {/* Footer Notice */}
