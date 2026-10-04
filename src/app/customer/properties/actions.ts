@@ -109,6 +109,45 @@ export async function createAddress(addressData: {
 }
 
 /**
+ * Delete an address for the customer
+ * Requires confirmation from client before executing
+ */
+export async function deleteAddress(addressId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  // Verify ownership before deleting (RLS will also enforce this)
+  const { data: address, error: fetchError } = await supabase
+    .from("addresses")
+    .select("id, customer_id")
+    .eq("id", addressId)
+    .eq("customer_id", user.id)
+    .single();
+
+  if (fetchError || !address) {
+    throw new Error("Address not found or does not belong to your account.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("addresses")
+    .delete()
+    .eq("id", addressId);
+
+  if (deleteError) {
+    throw new Error(`Failed to delete address: ${deleteError.message}`);
+  }
+
+  return { success: true };
+}
+
+/**
  * Create a new property for the customer
  */
 export async function createProperty(propertyData: {

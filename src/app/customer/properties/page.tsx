@@ -1,4 +1,5 @@
 import { getCustomerProperties, getCustomerAddresses } from "./actions";
+import { AddressList } from "./AddressList";
 
 export default async function PropertiesPage() {
   try {
@@ -121,35 +122,7 @@ export default async function PropertiesPage() {
               <p className="text-[#5A6661] text-sm">Add addresses for quick selection when booking services.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {addresses.map((addr) => (
-                <div
-                  key={addr.id}
-                  className="bg-[#FFFEFA] border border-[#D9DED8] rounded-lg p-5 md:p-6 hover:border-[#176B5B] transition"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-[#18211F] text-base">{addr.label}</h3>
-                      <p className="text-sm text-[#5A6661] mt-1">{addr.address_line_1}</p>
-                      <p className="text-sm text-[#5A6661]">{addr.city}</p>
-                      {addr.latitude && addr.longitude && (
-                        <p className="text-xs text-[#7C8681] mt-2">
-                          📍 {addr.latitude.toFixed(4)}, {addr.longitude.toFixed(4)}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button className="px-3 py-2 text-sm font-bold text-[#176B5B] border border-[#D9DED8] rounded-lg hover:bg-[#F1EEE5] transition">
-                        Edit
-                      </button>
-                      <button className="px-3 py-2 text-sm font-bold text-[#A9523D] border border-[#DFC0B7] rounded-lg hover:bg-[#F3E1DA] transition">
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AddressList addresses={addresses} />
           )}
         </div>
       </div>
