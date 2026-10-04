@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { animate } from 'animejs';
 import { 
   X, 
@@ -14,6 +15,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { respondToQuoteAction } from '@/app/customer/actions';
+import { SuccessState } from '@/components/ui/SuccessState';
 import { formatCurrency } from '@/lib/currency';
 
 export interface QuoteLineItem {
@@ -56,10 +58,13 @@ export function QuoteApprovalPanel({
   quote,
   onDecisionCompleted,
 }: QuoteApprovalPanelProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [declineReason, setDeclineReason] = useState('');
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showSuccessState, setShowSuccessState] = useState(false);
+  const [successData, setSuccessData] = useState<{ jobId?: string; bookingId?: string } | null>(null);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -97,6 +102,29 @@ export function QuoteApprovalPanel({
 
   if (!isOpen && !panelRef.current) return null;
 
+  // Show success state overlay when quote is approved
+  if (showSuccessState && successData?.jobId) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-[#18211F]/40 backdrop-blur-sm" />
+        <div className="relative">
+          <SuccessState
+            title="Quote approved"
+            description="Work will begin soon. The professional will contact you with next steps."
+            action={{
+              label: 'View booking',
+              onClick: () => router.push(`/customer/bookings/${successData.jobId}`),
+            }}
+            secondaryAction={{
+              label: 'Back to dashboard',
+              onClick: () => router.push('/customer'),
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   const sampleQuote: QuoteApprovalData = quote || {
     id: 'sample-quote-1',
     jobId: 'job-fx-4821',
@@ -132,16 +160,24 @@ export function QuoteApprovalPanel({
         });
 
         if (res.success) {
-          setStatusMessage({
-            type: 'success',
-            text: decision === 'approved' ? 'Quote approved! Technician has been notified to proceed.' : 'Quote declined. Technician will pause extra work.',
-          });
-          if (onDecisionCompleted) {
-            onDecisionCompleted(decision);
+          if (decision === 'approved') {
+            // Show success state for quote approval
+            setSuccessData({ jobId: sampleQuote.jobId, bookingId: sampleQuote.jobId });
+            setShowSuccessState(true);
+            setStatusMessage(null);
+          } else {
+            // For declined, show inline message and close
+            setStatusMessage({
+              type: 'success',
+              text: 'Quote declined. Technician will pause extra work.',
+            });
+            if (onDecisionCompleted) {
+              onDecisionCompleted(decision);
+            }
+            setTimeout(() => {
+              onClose();
+            }, 1200);
           }
-          setTimeout(() => {
-            onClose();
-          }, 1200);
         } else {
           setStatusMessage({ type: 'error', text: res.error || 'Failed to update quote decision.' });
         }

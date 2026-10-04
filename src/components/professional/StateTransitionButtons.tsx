@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { updateJobState } from '@/lib/services/jobs';
+import { SuccessState } from '@/components/ui/SuccessState';
 
 // ── Configuration ──────────────────────────────────────────────────────────────
 
@@ -71,10 +73,13 @@ export function StateTransitionButtons({
   jobId,
   currentState,
 }: StateTransitionButtonsProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [toast, setToast] = useState<Toast | null>(null);
   const [pendingState, setPendingState] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
+  const [showSuccessState, setShowSuccessState] = useState(false);
+  const [successState, setSuccessState] = useState<string | null>(null);
 
   const nextStates = ALLOWED_TRANSITIONS[currentState] ?? [];
 
@@ -101,6 +106,15 @@ export function StateTransitionButtons({
 
         if (result.success) {
           const label = TRANSITION_LABELS[targetState] ?? targetState;
+          
+          // Show success state for job acceptance
+          if (targetState === 'accepted') {
+            setSuccessState(targetState);
+            setShowSuccessState(true);
+            return;
+          }
+          
+          // For other transitions, show toast
           showToast('success', `✓ ${label} — job updated successfully.`);
         } else {
           showToast('error', ('error' in result ? result.error : 'State transition failed.'));
@@ -115,6 +129,29 @@ export function StateTransitionButtons({
 
   if (nextStates.length === 0) {
     return null;
+  }
+
+  // Show success state for job acceptance
+  if (showSuccessState && successState === 'accepted') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-[#18211F]/40 backdrop-blur-sm" />
+        <div className="relative">
+          <SuccessState
+            title="Request accepted"
+            description="You're now assigned to this job. The customer has been notified. Schedule your visit and get started."
+            action={{
+              label: 'View job details',
+              onClick: () => router.push(`/professional/jobs/${jobId}`),
+            }}
+            secondaryAction={{
+              label: 'Back to requests',
+              onClick: () => router.push('/professional/jobs'),
+            }}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (

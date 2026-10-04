@@ -11,6 +11,7 @@
  */
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   approveProfessional,
   rejectProfessional,
@@ -23,6 +24,7 @@ import {
   reactivateProfessional,
   type AdminProfessional,
 } from '@/lib/services/admin';
+import { SuccessState } from '@/components/ui/SuccessState';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -249,10 +251,12 @@ function ProfessionalCard({
   onActionDone,
   onOpenPreview,
 }: ProfessionalCardProps) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
+  const [showSuccessState, setShowSuccessState] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleApprove = () => {
@@ -260,7 +264,7 @@ function ProfessionalCard({
     startTransition(async () => {
       const result = await approveProfessional(professional.user_id);
       if (result.success) {
-        onActionDone(professional.user_id);
+        setShowSuccessState(true);
       } else {
         setActionError(result.error ?? 'Failed to approve');
       }
@@ -286,6 +290,35 @@ function ProfessionalCard({
 
   const name = professional.full_name || professional.display_name;
   const docCount = professional.documents.length;
+
+  // Show success state overlay when professional is approved
+  if (showSuccessState) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-[#18211F]/40 backdrop-blur-sm" />
+        <div className="relative">
+          <SuccessState
+            title="Professional verified"
+            description={`${name} is now verified and eligible to receive service requests on the platform.`}
+            action={{
+              label: 'View profile',
+              onClick: () => {
+                onActionDone(professional.user_id);
+                router.push(`/admin/professionals?view=${professional.user_id}`);
+              },
+            }}
+            secondaryAction={{
+              label: 'Back to queue',
+              onClick: () => {
+                onActionDone(professional.user_id);
+                setShowSuccessState(false);
+              },
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
