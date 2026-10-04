@@ -9,7 +9,7 @@
  * 3. VERIFICATION: Approve Professional, Reject Professional
  */
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import {
   resolveQuoteDispute,
   reassignJob,
@@ -126,17 +126,15 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
 // Dispute case buttons
 function DisputeButtons({
   caseId,
-  isPending,
   onSuccess,
 }: {
   caseId: string;
-  isPending: boolean;
   onSuccess: (message: string) => void;
 }) {
   const [showConfirm, setShowConfirm] = useState<'approve' | 'revision' | 'adjust' | null>(null);
   const [adjustAmount, setAdjustAmount] = useState('');
   const [error, setError] = useState('');
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const handleApprove = () => {
     startTransition(async () => {
@@ -279,17 +277,15 @@ function DisputeButtons({
 // Reassignment case buttons
 function ReassignmentButtons({
   caseId,
-  isPending,
   onSuccess,
 }: {
   caseId: string;
-  isPending: boolean;
   onSuccess: (message: string) => void;
 }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedProf, setSelectedProf] = useState('');
   const [error, setError] = useState('');
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const mockProfessionals = [
     { id: 'prof1', name: 'Raj Kumar (Plumbing)' },
@@ -381,18 +377,16 @@ function ReassignmentButtons({
 // Verification case buttons
 function VerificationButtons({
   caseId,
-  isPending,
   onSuccess,
 }: {
   caseId: string;
-  isPending: boolean;
   onSuccess: (message: string) => void;
 }) {
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [error, setError] = useState('');
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const handleApprove = () => {
     startTransition(async () => {
@@ -511,15 +505,15 @@ export function ActionButtons({ caseType, caseId, onSuccess }: ActionButtonsProp
       <h3 className="text-sm font-bold text-[#18211F] mb-4">Actions</h3>
 
       {caseType === 'dispute' && (
-        <DisputeButtons caseId={caseId} isPending={isPending} onSuccess={handleSuccess} />
+        <DisputeButtons caseId={caseId} onSuccess={handleSuccess} />
       )}
 
       {caseType === 'reassignment' && (
-        <ReassignmentButtons caseId={caseId} isPending={isPending} onSuccess={handleSuccess} />
+        <ReassignmentButtons caseId={caseId} onSuccess={handleSuccess} />
       )}
 
       {caseType === 'verification' && (
-        <VerificationButtons caseId={caseId} isPending={isPending} onSuccess={handleSuccess} />
+        <VerificationButtons caseId={caseId} onSuccess={handleSuccess} />
       )}
 
       {successMessage && <Toast message={successMessage} type="success" />}

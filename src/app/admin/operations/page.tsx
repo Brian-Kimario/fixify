@@ -6,7 +6,7 @@
  * Displays all cases needing admin attention with filterable queue and slide-over drawer.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchNeedsAttention, type AttentionItem } from '@/app/admin/actions';
 import { OperationsQueue } from '@/components/admin/OperationsQueue';
 import { CaseDrawer } from '@/components/admin/CaseDrawer';
@@ -20,18 +20,13 @@ export default function OperationsPage() {
   const [typeFilter, setTypeFilter] = useState<'dispute' | 'reassignment' | 'verification' | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<'high' | 'medium' | 'low' | 'all'>('all');
 
-  // Load cases on mount
-  useEffect(() => {
-    loadCases();
-  }, []);
-
-  const loadCases = async () => {
+  const loadCases = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const result = await fetchNeedsAttention({
-        type: typeFilter === 'all' ? undefined : typeFilter,
-        priority: priorityFilter === 'all' ? undefined : priorityFilter,
+        type: typeFilter === 'all' ? undefined : (typeFilter as 'dispute' | 'reassignment' | 'verification'),
+        priority: priorityFilter === 'all' ? undefined : (priorityFilter as 'high' | 'medium' | 'low'),
       });
 
       if (result.success && result.data) {
@@ -44,7 +39,13 @@ export default function OperationsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [typeFilter, priorityFilter]);
+
+  // Load cases on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    void loadCases();
+  }, [loadCases]);
 
   const handleSelectCase = (item: AttentionItem) => {
     setSelectedCase(item);

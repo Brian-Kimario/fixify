@@ -32,7 +32,7 @@ export interface AttentionItem {
   createdAt: string;
 }
 
-export interface ActionResult<T = any> {
+export interface ActionResult<T = Record<string, unknown>> {
   success: boolean;
   data?: T;
   error?: string;
@@ -80,7 +80,7 @@ export async function fetchNeedsAttention(filters?: {
   priority?: 'high' | 'medium' | 'low';
 }): Promise<ActionResult<AttentionItem[]>> {
   try {
-    const adminId = await requireAdmin();
+    await requireAdmin();
     const admin = await createAdminClient();
 
     const items: AttentionItem[] = [];
@@ -90,7 +90,6 @@ export async function fetchNeedsAttention(filters?: {
     // Cases where customer has disputed quote (booking in dispute state)
     // ─────────────────────────────────────────────────────────────────────────
     if (!filters?.type || filters.type === 'dispute') {
-      // @ts-ignore
       const { data: disputes, error: disputeError } = await admin
         .from('bookings')
         .select(
@@ -109,7 +108,7 @@ export async function fetchNeedsAttention(filters?: {
         .order('created_at', { ascending: false });
 
       if (!disputeError && disputes) {
-        for (const booking of disputes) {
+        for (const booking of disputes as never[]) {
           const bookingData = booking as {
             id: string;
             booking_reference: string;
@@ -120,8 +119,6 @@ export async function fetchNeedsAttention(filters?: {
             professionals?: { display_name: string; email: string };
             services?: { name: string };
           };
-          const customerName = bookingData.customers?.full_name ?? 'Unknown Customer';
-          const profName = bookingData.professionals?.display_name ?? 'Unassigned';
           const serviceName = bookingData.services?.name ?? 'Service';
           const amount = bookingData.quoted_or_base_amount
             ? `₹${Number(bookingData.quoted_or_base_amount).toLocaleString('en-IN')}`
@@ -142,10 +139,8 @@ export async function fetchNeedsAttention(filters?: {
     // ─────────────────────────────────────────────────────────────────────────
     // Case Type 2: Job Reassignments
     // Cases where professional is unavailable (flagged or status indicates unavailable)
-    // Simplified: look for jobs with specific flags or professional unavailability
     // ─────────────────────────────────────────────────────────────────────────
     if (!filters?.type || filters.type === 'reassignment') {
-      // @ts-ignore
       const { data: reassignments, error: reassignError } = await admin
         .from('bookings')
         .select(
@@ -163,18 +158,25 @@ export async function fetchNeedsAttention(filters?: {
         .order('created_at', { ascending: false });
 
       if (!reassignError && reassignments) {
-        for (const booking of reassignments as any[]) {
-          const customerName = booking.customers?.full_name ?? 'Unknown';
-          const profName = booking.professionals?.display_name ?? 'Unassigned';
-          const serviceName = booking.services?.name ?? 'Service';
+        for (const booking of reassignments as never[]) {
+          const bookingData = booking as {
+            id: string;
+            booking_reference: string;
+            status: string;
+            created_at: string;
+            customers?: { full_name: string; email: string };
+            professionals?: { display_name: string; email: string };
+            services?: { name: string };
+          };
+          const serviceName = bookingData.services?.name ?? 'Service';
 
           items.push({
-            id: booking.id,
+            id: bookingData.id,
             type: 'reassignment',
             label: 'Professional unavailable — needs reassignment',
-            sub: `${booking.booking_reference} • ${serviceName} • ${profName}`,
+            sub: `${bookingData.booking_reference} • ${serviceName}`,
             priority: 'high',
-            createdAt: booking.created_at,
+            createdAt: bookingData.created_at,
           });
         }
       }
@@ -185,7 +187,6 @@ export async function fetchNeedsAttention(filters?: {
     // Professionals awaiting admin review/approval
     // ─────────────────────────────────────────────────────────────────────────
     if (!filters?.type || filters.type === 'verification') {
-      // @ts-ignore
       const { data: verifications, error: verifError } = await admin
         .from('professional_profiles')
         .select(
@@ -201,18 +202,25 @@ export async function fetchNeedsAttention(filters?: {
         .order('created_at', { ascending: false });
 
       if (!verifError && verifications) {
-        for (const prof of verifications as any[]) {
-          const status = prof.verification_status;
+        for (const prof of verifications as never[]) {
+          const profData = prof as {
+            user_id: string;
+            display_name: string;
+            verification_status: string;
+            created_at: string;
+            profiles?: { email: string };
+          };
+          const status = profData.verification_status;
           const priority =
             status === 'documents_submitted' ? 'high' : status === 'under_review' ? 'medium' : 'low';
 
           items.push({
-            id: prof.user_id,
+            id: profData.user_id,
             type: 'verification',
             label: `Professional verification: ${status === 'documents_submitted' ? 'Documents ready for review' : 'Under review'}`,
-            sub: `${prof.display_name} • ${prof.profiles?.email ?? 'N/A'}`,
+            sub: `${profData.display_name} • ${profData.profiles?.email ?? 'N/A'}`,
             priority: priority as 'high' | 'medium' | 'low',
-            createdAt: prof.created_at,
+            createdAt: profData.created_at,
           });
         }
       }
@@ -271,7 +279,6 @@ export async function resolveQuoteDispute(
     }
 
     // Fetch booking to verify it exists
-    // @ts-ignore
     const { data: booking, error: bookingError } = await admin
       .from('bookings')
       .select('id, status, quoted_or_base_amount, customer_id, professional_id')
@@ -282,10 +289,10 @@ export async function resolveQuoteDispute(
       return { success: false, error: 'Booking not found' };
     }
 
-    const oldAmount = (booking as any).quoted_or_base_amount;
+    const oldAmount = (booking as { quoted_or_base_amount: number }).quoted_or_base_amount;
 
     // Execute mutation
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     if (resolution === 'approve_quote') {
       updateData.status = 'quote_approved';
@@ -296,7 +303,6 @@ export async function resolveQuoteDispute(
       updateData.status = 'quote_adjusted';
     }
 
-    // @ts-ignore
     const { error: updateError } = await admin
       .from('bookings')
       .update(updateData)
@@ -307,11 +313,10 @@ export async function resolveQuoteDispute(
     }
 
     // Create immutable audit event
-    // @ts-ignore
     const { error: auditError } = await admin.from('booking_events').insert({
       booking_id: bookingId,
-      from_status: (booking as any).status,
-      to_status: updateData.status,
+      from_status: (booking as { status: string }).status,
+      to_status: updateData.status as string,
       actor_user_id: adminId,
       actor_role: 'admin',
       reason: 'admin_dispute_resolved',
@@ -364,7 +369,6 @@ export async function reassignJob(
     }
 
     // Fetch booking
-    // @ts-ignore
     const { data: booking, error: bookingError } = await admin
       .from('bookings')
       .select('id, status, professional_id')
@@ -375,10 +379,9 @@ export async function reassignJob(
       return { success: false, error: 'Booking not found' };
     }
 
-    const oldProfessionalId = (booking as any).professional_id;
+    const oldProfessionalId = (booking as { professional_id: string }).professional_id;
 
     // Verify new professional exists, is verified, and available
-    // @ts-ignore
     const { data: newProf, error: profError } = await admin
       .from('professional_profiles')
       .select('user_id, verification_status, is_available')
@@ -389,16 +392,15 @@ export async function reassignJob(
       return { success: false, error: 'Target professional not found' };
     }
 
-    if ((newProf as any).verification_status !== 'verified') {
+    if ((newProf as { verification_status: string }).verification_status !== 'verified') {
       return { success: false, error: 'Target professional not verified' };
     }
 
-    if (!(newProf as any).is_available) {
+    if (!(newProf as { is_available: boolean }).is_available) {
       return { success: false, error: 'Target professional not available' };
     }
 
     // Update booking with new professional
-    // @ts-ignore
     const { error: updateError } = await admin
       .from('bookings')
       .update({ professional_id: newProfessionalId })
@@ -409,11 +411,10 @@ export async function reassignJob(
     }
 
     // Create audit event
-    // @ts-ignore
     const { error: auditError } = await admin.from('booking_events').insert({
       booking_id: bookingId,
-      from_status: (booking as any).status,
-      to_status: (booking as any).status, // Status unchanged, just professional changed
+      from_status: (booking as { status: string }).status,
+      to_status: (booking as { status: string }).status, // Status unchanged, just professional changed
       actor_user_id: adminId,
       actor_role: 'admin',
       reason: 'admin_job_reassigned',
@@ -468,7 +469,6 @@ export async function verifyProfessional(
     }
 
     // Fetch professional profile
-    // @ts-ignore
     const { data: prof, error: profError } = await admin
       .from('professional_profiles')
       .select('user_id, verification_status, display_name')
@@ -479,11 +479,11 @@ export async function verifyProfessional(
       return { success: false, error: 'Professional not found' };
     }
 
-    const oldStatus = (prof as any).verification_status;
+    const oldStatus = (prof as { verification_status: string }).verification_status;
     const newStatus = decision === 'approved' ? 'verified' : 'rejected';
 
     // Update professional profile
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       verification_status: newStatus,
     };
 
@@ -491,7 +491,6 @@ export async function verifyProfessional(
       updateData.verification_date = new Date().toISOString();
     }
 
-    // @ts-ignore
     const { error: updateError } = await admin
       .from('professional_profiles')
       .update(updateData)
@@ -502,7 +501,6 @@ export async function verifyProfessional(
     }
 
     // Create immutable audit event in professional_verification_events
-    // @ts-ignore
     const { error: auditError } = await admin
       .from('professional_verification_events')
       .insert({
