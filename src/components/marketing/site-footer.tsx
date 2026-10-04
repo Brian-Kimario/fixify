@@ -36,6 +36,14 @@ export function SiteFooter() {
             <Link href="#footer">Trust & safety</Link>
             <Link href="mailto:hello@fixify.example">Contact Fixify</Link>
           </div>
+
+          <div>
+            <p className="foot-title">LEGAL</p>
+            <Link href="/terms">Terms of Service</Link>
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/cookies">Cookie Policy</Link>
+            <Link href="/refund-policy">Refund Policy</Link>
+          </div>
         </div>
 
         <div className="foot-bottom">
@@ -59,7 +67,7 @@ export function SiteFooter() {
 
         .foot-grid {
           display: grid;
-          grid-template-columns: 1.6fr repeat(3, 1fr);
+          grid-template-columns: 1.6fr repeat(4, 1fr);
           gap: 36px;
           margin-bottom: clamp(40px, 6vw, 64px);
         }
