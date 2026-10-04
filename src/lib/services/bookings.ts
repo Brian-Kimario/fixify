@@ -108,7 +108,7 @@ export async function createBooking(
     throw new Error(`Failed to create booking: ${error.message}`)
   }
 
-  return data
+  return data as Booking
 }
 
 /**
@@ -134,7 +134,7 @@ export async function getCustomerBookings(): Promise<BookingWithDetails[]> {
     throw new Error(`Failed to fetch bookings: ${error.message}`)
   }
 
-  return data || []
+  return (data || []) as BookingWithDetails[]
 }
 
 /**
@@ -164,7 +164,7 @@ export async function getBooking(bookingId: string): Promise<BookingWithDetails 
     throw new Error(`Failed to fetch booking: ${error.message}`)
   }
 
-  return data
+  return data as BookingWithDetails
 }
 
 /**
@@ -191,7 +191,7 @@ export async function getActiveBookings(): Promise<BookingWithDetails[]> {
     throw new Error(`Failed to fetch active bookings: ${error.message}`)
   }
 
-  return data || []
+  return (data || []) as BookingWithDetails[]
 }
 
 /**
@@ -218,7 +218,7 @@ export async function getCompletedBookings(): Promise<BookingWithDetails[]> {
     throw new Error(`Failed to fetch completed bookings: ${error.message}`)
   }
 
-  return data || []
+  return (data || []) as BookingWithDetails[]
 }
 
 /**
@@ -282,7 +282,7 @@ export async function cancelBooking(bookingId: string): Promise<Booking> {
     throw new Error('Failed to retrieve cancelled booking')
   }
 
-  return updated
+  return updated as Booking
 }
 
 /**

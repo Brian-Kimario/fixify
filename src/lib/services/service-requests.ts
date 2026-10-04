@@ -85,7 +85,7 @@ export async function createServiceRequest(
     throw new Error(`Failed to create service request: ${error.message}`)
   }
 
-  return data
+  return data as ServiceRequest
 }
 
 /**
@@ -110,7 +110,7 @@ export async function getCustomerServiceRequests(): Promise<ServiceRequestWithDe
     throw new Error(`Failed to fetch service requests: ${error.message}`)
   }
 
-  return data || []
+  return (data || []) as ServiceRequestWithDetails[]
 }
 
 /**
@@ -136,7 +136,7 @@ export async function getDraftServiceRequests(): Promise<ServiceRequestWithDetai
     throw new Error(`Failed to fetch draft service requests: ${error.message}`)
   }
 
-  return data || []
+  return (data || []) as ServiceRequestWithDetails[]
 }
 
 /**
@@ -165,7 +165,7 @@ export async function getServiceRequest(requestId: string): Promise<ServiceReque
     throw new Error(`Failed to fetch service request: ${error.message}`)
   }
 
-  return data
+  return data as ServiceRequestWithDetails
 }
 
 /**
@@ -198,7 +198,7 @@ export async function updateServiceRequest(
     throw new Error(`Failed to update service request: ${error.message}`)
   }
 
-  return data
+  return data as ServiceRequest
 }
 
 /**

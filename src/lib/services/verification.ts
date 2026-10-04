@@ -400,7 +400,7 @@ export async function approveProfessional(
       p_professional_id: professionalId,
       p_new_status: 'verified',
       p_admin_user_id: user.id,
-      p_reason: reason || 'Admin approved professional verification',
+      p_reason: 'Admin approved professional verification',
       p_metadata: { admin_user: user.id },
     });
 

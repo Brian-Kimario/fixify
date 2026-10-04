@@ -22,18 +22,19 @@ export default async function PaymentResultPage({ params }: PaymentResultPagePro
 
   const { data: payment, error } = await supabase
     .from('payments')
-    .select('id, status, amount, currency, paid_at, job_id, upi_vpa')
+    .select('id, status, amount, currency, paid_at, job_id')
     .eq('id', paymentId)
     .eq('customer_id', user.id)   // RLS + explicit ownership: customer can only see own
     .maybeSingle();
 
   if (error || !payment) notFound();
 
-  const isPaid    = payment.status === 'paid';
-  const isFailed  = payment.status === 'failed';
+  const paymentData = payment as { status: string; amount: number; currency: string; paid_at: string | null; job_id: string | null; id: string };
+  const isPaid    = paymentData.status === 'paid';
+  const isFailed  = paymentData.status === 'failed';
   const isPending = !isPaid && !isFailed;
 
-  const formattedAmount = Number(payment.amount).toLocaleString('en-IN', {
+  const formattedAmount = Number(paymentData.amount).toLocaleString('en-IN', {
     style: 'currency', currency: 'INR', maximumFractionDigits: 0,
   });
 
@@ -77,9 +78,7 @@ export default async function PaymentResultPage({ params }: PaymentResultPagePro
 
           {isPaid && (
             <p className="text-sm text-[#5A6661]">
-              {formattedAmount} paid
-              {payment.upi_vpa ? ` · ${payment.upi_vpa}` : ''}.
-              Your invoice will be available in your bookings shortly.
+              {formattedAmount} paid. Your invoice will be available in your bookings shortly.
             </p>
           )}
 
@@ -101,12 +100,12 @@ export default async function PaymentResultPage({ params }: PaymentResultPagePro
         <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl px-5 py-4 text-xs text-[#7C8681] space-y-1">
           <p>
             Reference:{' '}
-            <span className="font-mono text-[#5A6661]">{payment.id.slice(0, 8)}…</span>
+            <span className="font-mono text-[#5A6661]">{paymentData.id.slice(0, 8)}…</span>
           </p>
-          {isPaid && payment.paid_at && (
+          {isPaid && paymentData.paid_at && (
             <p>
               Paid at:{' '}
-              {new Date(payment.paid_at).toLocaleString('en-IN', {
+              {new Date(paymentData.paid_at).toLocaleString('en-IN', {
                 day: 'numeric', month: 'short', year: 'numeric',
                 hour: '2-digit', minute: '2-digit',
               })}
@@ -117,8 +116,8 @@ export default async function PaymentResultPage({ params }: PaymentResultPagePro
         {/* Actions */}
         <div className="space-y-3">
           {/* Retry button for failed payments — links back to the booking */}
-          {isFailed && payment.job_id && (
-            <RetryLink jobId={payment.job_id} />
+          {isFailed && paymentData.job_id && (
+            <RetryLink jobId={paymentData.job_id} />
           )}
 
           <Link

@@ -68,7 +68,11 @@ export async function getProfessionalVerificationData(): Promise<{
     return {
       data: {
         ...profile,
-        verification_details: verification,
+        verification_status: (profile.verification_status as VerificationStatus),
+        verification_details: verification ? {
+          ...verification,
+          status: (verification.status as VerificationStatus),
+        } : null,
       },
       error: null,
     };
@@ -115,7 +119,7 @@ export async function submitVerificationDocuments(data: {
       const { error } = await (adminClient as any)
         .from('professional_verifications')
         .update({
-          status: 'documents_submitted',
+          status: 'documents_submitted' as const,
           submitted_at: new Date().toISOString(),
         })
         .eq('id', existingVerification.id);

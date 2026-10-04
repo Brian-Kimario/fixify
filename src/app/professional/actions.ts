@@ -480,7 +480,7 @@ export async function getVerificationStatus(): Promise<Verification[]> {
     );
   }
 
-  return data || [];
+  return (data || []) as unknown as Verification[];
 }
 
 /**

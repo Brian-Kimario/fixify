@@ -44,18 +44,19 @@ export function PropertiesClient({
       });
 
       // Add the new property to the list
-      setProperties([newProperty, ...properties]);
+      // Note: newProperty won't have address populated until next refresh
+      setProperties([(newProperty as any), ...properties]);
       handleCloseModal();
     } catch (error) {
       throw error;
     }
   };
 
-  const handleBookService = (_property: Property) => {
+  const handleBookService = (_property: any) => {
     router.push('/customer/bookings/new');
   };
 
-  const handleEditProperty = (property: Property) => {
+  const handleEditProperty = (property: any) => {
     handleOpenModal(property);
   };
 

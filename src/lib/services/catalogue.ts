@@ -143,9 +143,15 @@ export async function getServiceCategory(categoryId: string): Promise<{
     throw new Error(`Failed to fetch services: ${servicesError.message}`)
   }
 
+  // Map service_options to options key
+  const mappedServices = (servicesData || []).map((service: any) => ({
+    ...service,
+    options: service.service_options || [],
+  }));
+
   return {
     category: categoryData,
-    services: (servicesData || []) as ServiceWithOptions[],
+    services: mappedServices as ServiceWithOptions[],
   }
 }
 
@@ -178,7 +184,13 @@ export async function getService(serviceId: string): Promise<ServiceWithOptions 
     throw new Error(`Failed to fetch service: ${error.message}`)
   }
 
-  return data as ServiceWithOptions
+  // Map service_options to options key
+  const mappedData = data ? {
+    ...data,
+    options: (data as any).service_options || [],
+  } : null;
+
+  return mappedData as ServiceWithOptions | null
 }
 
 /**
@@ -210,7 +222,7 @@ export async function searchServices(
     throw new Error(`Failed to search services: ${error.message}`)
   }
 
-  return data || []
+  return (data || []) as Service[]
 }
 
 /**
@@ -296,7 +308,16 @@ export async function getFullCatalogue(): Promise<
     throw new Error(`Failed to fetch catalogue: ${error.message}`)
   }
 
-  return data || []
+  // Map service_options to options key for each service
+  const mappedData = (data || []).map((category: any) => ({
+    ...category,
+    services: (category.services || []).map((service: any) => ({
+      ...service,
+      options: service.service_options || [],
+    })),
+  }));
+
+  return mappedData
 }
 
 /**

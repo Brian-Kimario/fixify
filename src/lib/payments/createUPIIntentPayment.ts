@@ -130,7 +130,7 @@ export async function createUPIIntentPayment(
   // ── 4. Idempotency — reuse existing pending order ───────────────────────────
   const { data: existing } = await supabase
     .from('payments')
-    .select('id, status, razorpay_order_id, amount')
+    .select('id, status, provider_reference, amount')
     .eq('job_id', jobId)
     .in('status', ['pending', 'paid'])
     .order('created_at', { ascending: false })
@@ -141,7 +141,7 @@ export async function createUPIIntentPayment(
     return { success: false, error: 'This job has already been paid.' };
   }
 
-  if (existing?.status === 'pending' && existing.razorpay_order_id) {
+  if (existing?.status === 'pending' && existing.provider_reference) {
     // Return existing order — safe for page refresh / back-button scenarios
     const { data: profile } = await supabase
       .from('profiles')
@@ -151,7 +151,7 @@ export async function createUPIIntentPayment(
 
     return {
       success:        true,
-      order_id:       existing.razorpay_order_id,
+      order_id:       existing.provider_reference,
       amount:         Math.round(Number(existing.amount) * 100),
       currency:       'INR',
       key_id:         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
@@ -215,15 +215,11 @@ export async function createUPIIntentPayment(
       customer_id:        user.id,
       job_id:             jobId,
       payment_type:       'service',
-      payment_method:     'upi_intent',
       amount:             amountPaise / 100,   // schema stores rupees (numeric 10,2)
       currency:           'INR',
       provider:           'razorpay',
       provider_reference: razorpayOrder.id,    // unique; updated to payment_id on capture
-      razorpay_order_id:  razorpayOrder.id,
       status:             'pending',
-      attempt_count:      1,
-      last_attempt_at:    new Date().toISOString(),
     })
     .select('id')
     .single();

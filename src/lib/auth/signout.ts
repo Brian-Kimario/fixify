@@ -131,14 +131,9 @@ export async function logSignOutEvent(
     const supabase = await createServerSupabase();
 
     await supabase.from('audit_logs').insert({
-      actor_user_id: userId,
+      user_id: userId,
+      created_by: userId,
       action: allDevices ? 'logout_all_devices' : 'logout',
-      entity_type: 'session',
-      metadata: {
-        reason,
-        timestamp: new Date().toISOString(),
-        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
-      },
     });
 
     console.log(`[AuditLog] Logged sign-out event for user ${userId}`);

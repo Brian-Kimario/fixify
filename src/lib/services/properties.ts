@@ -61,7 +61,7 @@ export async function getCustomerProperties(): Promise<PropertyWithAddress[]> {
     throw new Error(`Failed to fetch properties: ${error.message}`)
   }
 
-  return data || []
+  return (data || []) as PropertyWithAddress[]
 }
 
 /**
@@ -98,7 +98,7 @@ export async function getProperty(propertyId: string): Promise<PropertyWithAddre
     throw new Error(`Failed to fetch property: ${error.message}`)
   }
 
-  return data
+  return data as PropertyWithAddress
 }
 
 /**
@@ -152,7 +152,7 @@ export async function createProperty(
     throw new Error(`Failed to create property: ${error.message}`)
   }
 
-  return data
+  return data as Property
 }
 
 /**
@@ -184,7 +184,7 @@ export async function updateProperty(
     throw new Error(`Failed to update property: ${error.message}`)
   }
 
-  return data
+  return data as Property
 }
 
 /**
