@@ -14,6 +14,13 @@ export interface CreateBookingInput {
   notes?: string;
 }
 
+// ── Output shape ────────────────────────────────────────────────────────────
+
+export interface CreateBookingOutput {
+  bookingId: string;
+  bookingReference: string;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function generateBookingReference(): string {
@@ -35,7 +42,7 @@ function generateBookingReference(): string {
  */
 export async function createBookingAction(
   input: CreateBookingInput
-): Promise<{ bookingId: string }> {
+): Promise<CreateBookingOutput> {
   const supabase = await createClient();
 
   // ── Auth ────────────────────────────────────────────────────────────────────
@@ -114,6 +121,10 @@ export async function createBookingAction(
     throw new Error(`Failed to create booking: ${bookingError?.message ?? 'Unknown error'}`);
   }
 
-  // ── Redirect to confirmation page ───────────────────────────────────────────
-  redirect(`/customer/bookings/${booking.id}?new=1`);
+  // ── Return booking data instead of redirecting ────────────────────────────────
+  // Client will handle navigation after showing success state
+  return {
+    bookingId: booking.id,
+    bookingReference,
+  };
 }

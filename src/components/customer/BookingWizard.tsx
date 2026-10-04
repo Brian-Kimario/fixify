@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { createBookingAction } from '@/app/customer/bookings/new/actions';
+import { SuccessState } from '@/components/ui/SuccessState';
+import { useRouter } from 'next/navigation';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -166,6 +168,7 @@ export function BookingWizard({
   preselectedPropertyId,
   initialProblemNotes,
 }: BookingWizardProps) {
+  const router = useRouter();
   // ── State ──────────────────────────────────────────────────────────────────
   const [step, setStep] = useState<number>(() => {
     if (preselectedServiceId) return 2; // skip to DateTime
@@ -195,6 +198,8 @@ export function BookingWizard({
   const [notes, setNotes] = useState<string>(initialProblemNotes ?? '');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [showSuccessState, setShowSuccessState] = useState(false);
+  const [successData, setSuccessData] = useState<{ bookingId?: string } | null>(null);
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const currentCategory = categories.find((c) => c.id === selectedCategoryId);
@@ -596,18 +601,19 @@ export function BookingWizard({
               setError(null);
               startTransition(async () => {
                 try {
-                  await createBookingAction({
+                  const result = await createBookingAction({
                     serviceId: selectedService.id,
                     propertyId: selectedPropertyId,
                     scheduledStart: new Date(scheduledStart).toISOString(),
                     selectedOptions,
                     notes: notes.trim() || undefined,
                   });
+                  // Show success state with booking ID
+                  setSuccessData({ bookingId: result.bookingId });
+                  setShowSuccessState(true);
                 } catch (err: unknown) {
                   const msg =
                     err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-                  // NEXT_REDIRECT is a thrown redirect — let it propagate
-                  if (msg.includes('NEXT_REDIRECT')) throw err;
                   setError(msg);
                 }
               });
@@ -632,6 +638,23 @@ export function BookingWizard({
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
+  if (showSuccessState && successData?.bookingId) {
+    return (
+      <SuccessState
+        title="Request submitted"
+        description="Your request is now waiting for professional review. You'll be notified when a professional shows interest."
+        action={{
+          label: 'View request',
+          onClick: () => router.push(`/customer/bookings/${successData.bookingId}`),
+        }}
+        secondaryAction={{
+          label: 'Done',
+          onClick: () => router.push('/customer'),
+        }}
+      />
+    );
+  }
+
   return (
     <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-2xl p-6 md:p-8 shadow-sm">
       <StepBar current={step} />
