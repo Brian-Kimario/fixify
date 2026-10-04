@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { respondToQuoteAction } from '@/app/customer/actions';
 import { SuccessState } from '@/components/ui/SuccessState';
+import { ConfirmationModal } from '@/components/ui/Modal';
 import { formatCurrency } from '@/lib/currency';
 
 export interface QuoteLineItem {
@@ -62,6 +63,7 @@ export function QuoteApprovalPanel({
   const [isPending, startTransition] = useTransition();
   const [declineReason, setDeclineReason] = useState('');
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showSuccessState, setShowSuccessState] = useState(false);
   const [successData, setSuccessData] = useState<{ jobId?: string; bookingId?: string } | null>(null);
@@ -391,7 +393,7 @@ export function QuoteApprovalPanel({
             {!showDeclineConfirm && (
               <button
                 type="button"
-                onClick={() => setShowDeclineConfirm(true)}
+                onClick={() => setShowDeclineModal(true)}
                 disabled={isPending}
                 className="w-full py-2.5 text-xs font-semibold text-[#5A6661] hover:text-[#DC2626] transition-colors"
               >
@@ -399,6 +401,22 @@ export function QuoteApprovalPanel({
               </button>
             )}
           </div>
+
+        {/* Decline confirmation modal */}
+        {showDeclineModal && (
+          <ConfirmationModal
+            title="Reject this quote?"
+            body="You can request another estimate from this professional. They will be notified of your decision."
+            confirmText="Reject quote"
+            cancelText="Keep reviewing"
+            isDangerous={false}
+            onConfirm={() => {
+              setShowDeclineModal(false);
+              setShowDeclineConfirm(true);
+            }}
+            onCancel={() => setShowDeclineModal(false)}
+          />
+        )}
         </div>
       </div>
     </div>

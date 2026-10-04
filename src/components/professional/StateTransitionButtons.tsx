@@ -39,10 +39,11 @@ const TRANSITION_STYLES: Record<string, string> = {
 };
 
 /** States that require an explicit confirmation dialog before proceeding */
-const REQUIRES_CONFIRMATION = new Set(['cancelled', 'completed']);
+const REQUIRES_CONFIRMATION = new Set(['cancelled', 'declined', 'completed']);
 
 const CONFIRMATION_MESSAGES: Record<string, string> = {
   cancelled: 'Are you sure you want to cancel this job? This cannot be undone.',
+  declined: 'Decline this request? It will be offered to other professionals.',
   completed: 'Mark this job as complete? Please confirm all work has been finished.',
 };
 
