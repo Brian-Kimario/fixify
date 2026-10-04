@@ -444,7 +444,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
   RAISE;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- ============================================================================
 -- TRIGGERS
