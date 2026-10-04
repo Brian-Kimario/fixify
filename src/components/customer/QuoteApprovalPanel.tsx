@@ -127,7 +127,7 @@ export function QuoteApprovalPanel({
     );
   }
 
-  const sampleQuote: QuoteApprovalData = quote || {
+  const sampleQuote: QuoteApprovalData = {
     id: 'sample-quote-1',
     jobId: 'job-fx-4821',
     referenceNumber: 'FX-4821',
@@ -150,13 +150,18 @@ export function QuoteApprovalPanel({
     expiresInHours: 24,
   };
 
+  // Use the quote data passed in props, or fall back to sample for display purposes
+  const displayQuote = quote || sampleQuote;
+
   const handleDecision = (decision: 'approved' | 'declined') => {
     setStatusMessage(null);
     startTransition(async () => {
       try {
+        // Use the quote data passed in props, or fall back to sample
+        const activeQuote = quote || sampleQuote;
         const res = await respondToQuoteAction({
-          quoteId: sampleQuote.id,
-          jobId: sampleQuote.jobId,
+          quoteId: activeQuote.id,
+          jobId: activeQuote.jobId,
           decision,
           reason: decision === 'declined' ? declineReason : undefined,
         });
@@ -164,7 +169,7 @@ export function QuoteApprovalPanel({
         if (res.success) {
           if (decision === 'approved') {
             // Show success state for quote approval
-            setSuccessData({ jobId: sampleQuote.jobId, bookingId: sampleQuote.jobId });
+            setSuccessData({ jobId: activeQuote.jobId, bookingId: activeQuote.jobId });
             setShowSuccessState(true);
             setStatusMessage(null);
           } else {
@@ -217,7 +222,7 @@ export function QuoteApprovalPanel({
                 <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B6A1E] px-2.5 py-1 rounded-full bg-[#F5EBD7] border border-[#DDCCAB]">
                   EXTRA WORK AUTHORIZATION
                 </span>
-                <span className="text-xs font-mono font-bold text-[#18211F]">{sampleQuote.referenceNumber}</span>
+                <span className="text-xs font-mono font-bold text-[#18211F]">{displayQuote.referenceNumber}</span>
               </div>
               <button
                 type="button"
@@ -234,7 +239,7 @@ export function QuoteApprovalPanel({
               Quote for Additional Work
             </h3>
             <p className="text-xs text-[#5A6661] mt-1">
-              Submitted by <strong>{sampleQuote.proName}</strong> for {sampleQuote.propertyName}
+              Submitted by <strong>{displayQuote.proName}</strong> for {displayQuote.propertyName}
             </p>
           </div>
 
@@ -265,11 +270,11 @@ export function QuoteApprovalPanel({
                 <span>Technician’s Inspection & Reason</span>
               </div>
               <p className="text-xs text-[#5A6661] leading-relaxed">
-                {sampleQuote.reason}
+                {displayQuote.reason}
               </p>
-              {sampleQuote.findings && (
+              {displayQuote.findings && (
                 <div className="mt-2.5 pt-2.5 border-t border-[#D9DED8]/70 text-[11px] text-[#7C8681]">
-                  <strong className="text-[#18211F]">Preventive Value:</strong> {sampleQuote.findings}
+                  <strong className="text-[#18211F]">Preventive Value:</strong> {displayQuote.findings}
                 </div>
               )}
             </div>
@@ -284,7 +289,7 @@ export function QuoteApprovalPanel({
               </div>
 
               <div className="border border-[#D9DED8] rounded-xl overflow-hidden divide-y divide-[#D9DED8]">
-                {sampleQuote.lineItems.map((item) => (
+                {displayQuote.lineItems.map((item) => (
                   <div key={item.id} className="p-3.5 flex items-start justify-between gap-4 bg-white text-xs">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -309,15 +314,15 @@ export function QuoteApprovalPanel({
             <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-xs text-[#5A6661]">
                 <span>Service Labor</span>
-                <span className="font-mono font-medium">{formatCurrency(sampleQuote.subtotal)}</span>
+                <span className="font-mono font-medium">{formatCurrency(displayQuote.subtotal)}</span>
               </div>
               <div className="flex justify-between text-xs text-[#5A6661]">
                 <span>Parts & Materials</span>
-                <span className="font-mono font-medium">{formatCurrency(sampleQuote.partsTotal)}</span>
+                <span className="font-mono font-medium">{formatCurrency(displayQuote.partsTotal)}</span>
               </div>
               <div className="flex justify-between text-xs text-[#5A6661]">
                 <span>Fixify Platform Guarantee & Coverage</span>
-                <span className="font-mono font-medium">{formatCurrency(sampleQuote.platformFee)}</span>
+                <span className="font-mono font-medium">{formatCurrency(displayQuote.platformFee)}</span>
               </div>
               <div className="pt-3 border-t border-[#D9DED8] flex justify-between items-baseline">
                 <div>
@@ -325,7 +330,7 @@ export function QuoteApprovalPanel({
                   <span className="text-[11px] text-[#7C8681]">Billed only upon verified completion</span>
                 </div>
                 <strong className="text-2xl font-bold font-mono text-[#18211F]">
-                  {formatCurrency(sampleQuote.totalAmount)}
+                  {formatCurrency(displayQuote.totalAmount)}
                 </strong>
               </div>
             </div>
@@ -384,7 +389,7 @@ export function QuoteApprovalPanel({
                 <span>Authorizing...</span>
               ) : (
                 <>
-                  <span>Approve work ({formatCurrency(sampleQuote.totalAmount)})</span>
+                  <span>Approve work ({formatCurrency(displayQuote.totalAmount)})</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
