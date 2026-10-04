@@ -1,7 +1,9 @@
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { CustomerDashboardClient } from '@/components/customer/CustomerDashboardClient';
+import { SkeletonDashboard } from '@/components/ui/SkeletonDashboard';
 import type { ActiveJobData } from '@/components/customer/ActiveJobPanel';
 import type { QuoteApprovalData } from '@/components/customer/QuoteApprovalPanel';
 import type { TimelineEvent } from '@/components/customer/PropertyMaintenanceTimeline';
@@ -20,6 +22,14 @@ export default async function CustomerDashboardPage() {
     redirect('/auth/login');
   }
 
+  return (
+    <Suspense fallback={<SkeletonDashboard variant="customer" className="p-6 md:p-8" />}>
+      <CustomerDashboardContent user={user} profile={profile} />
+    </Suspense>
+  );
+}
+
+async function CustomerDashboardContent({ user, profile }: any) {
   const supabase = await createClient();
 
   // 1. Fetch Customer Properties

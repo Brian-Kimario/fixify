@@ -1,11 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import {
   getAdminMetrics,
   getAttentionQueue,
 } from '@/lib/services/admin';
 import { getUnverifiedProfessionals as getVerifQueue } from '@/lib/services/verification';
+import { SkeletonDashboard } from '@/components/ui/SkeletonDashboard';
 
 export const metadata = {
   title: 'Admin Console — Fixify',
@@ -60,6 +62,14 @@ function timeAgo(dateStr: string | null) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
+  return (
+    <Suspense fallback={<SkeletonDashboard variant="admin" className="p-6 md:p-8" />}>
+      <AdminPageContent />
+    </Suspense>
+  );
+}
+
+async function AdminPageContent() {
   const supabase = await createClient();
   const {
     data: { user },

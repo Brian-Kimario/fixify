@@ -1,6 +1,8 @@
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { Suspense } from 'react';
 import { getProfessionalJobs, getEarningsData } from '@/app/professional/actions';
+import { SkeletonDashboard } from '@/components/ui/SkeletonDashboard';
 import { AvailabilityToggle } from '@/components/professional/AvailabilityToggle';
 import { RequestCardActions } from '@/components/professional/RequestCardActions';
 import { ActiveJobProgressRail } from '@/components/professional/ActiveJobProgressRail';
@@ -9,6 +11,14 @@ import Link from 'next/link';
 export const metadata = { title: 'Professional Dashboard — Fixify' };
 
 export default async function ProfessionalDashboard() {
+  return (
+    <Suspense fallback={<SkeletonDashboard variant="professional" className="p-6 md:p-8" />}>
+      <ProfessionalDashboardContent />
+    </Suspense>
+  );
+}
+
+async function ProfessionalDashboardContent() {
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
 
