@@ -61,7 +61,8 @@ async function requireAdmin(): Promise<string> {
     .single();
 
   if (profileError || !profile) throw new Error('Unauthorized: profile not found');
-  if ((profile as any).role !== 'admin') throw new Error('Unauthorized: not an admin');
+  const profileData = profile as { role: string };
+  if (profileData.role !== 'admin') throw new Error('Unauthorized: not an admin');
 
   return user.id;
 }
@@ -108,21 +109,31 @@ export async function fetchNeedsAttention(filters?: {
         .order('created_at', { ascending: false });
 
       if (!disputeError && disputes) {
-        for (const booking of disputes as any[]) {
-          const customerName = booking.customers?.full_name ?? 'Unknown Customer';
-          const profName = booking.professionals?.display_name ?? 'Unassigned';
-          const serviceName = booking.services?.name ?? 'Service';
-          const amount = booking.quoted_or_base_amount
-            ? `₹${Number(booking.quoted_or_base_amount).toLocaleString('en-IN')}`
+        for (const booking of disputes) {
+          const bookingData = booking as {
+            id: string;
+            booking_reference: string;
+            status: string;
+            created_at: string;
+            quoted_or_base_amount: number;
+            customers?: { full_name: string; email: string };
+            professionals?: { display_name: string; email: string };
+            services?: { name: string };
+          };
+          const customerName = bookingData.customers?.full_name ?? 'Unknown Customer';
+          const profName = bookingData.professionals?.display_name ?? 'Unassigned';
+          const serviceName = bookingData.services?.name ?? 'Service';
+          const amount = bookingData.quoted_or_base_amount
+            ? `₹${Number(bookingData.quoted_or_base_amount).toLocaleString('en-IN')}`
             : 'N/A';
 
           items.push({
-            id: booking.id,
+            id: bookingData.id,
             type: 'dispute',
             label: 'Quote disputed by customer',
-            sub: `${booking.booking_reference} • ${serviceName} • ${amount}`,
+            sub: `${bookingData.booking_reference} • ${serviceName} • ${amount}`,
             priority: 'high',
-            createdAt: booking.created_at,
+            createdAt: bookingData.created_at,
           });
         }
       }

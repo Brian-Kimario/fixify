@@ -12,7 +12,7 @@
  *   onSelectCase: (item) => void — click handler to open drawer
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { AttentionItem } from '@/app/admin/actions';
 
 interface OperationsQueueProps {

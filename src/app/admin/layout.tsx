@@ -16,6 +16,7 @@ interface AdminLayoutProps {
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Overview', exact: true },
+  { href: '/admin/operations', label: 'Operations', exact: false },
   { href: '/admin/jobs', label: 'Jobs', exact: false },
   { href: '/admin/professionals', label: 'Verification', exact: false },
   { href: '/admin/customers', label: 'Customers', exact: false },
@@ -30,6 +31,16 @@ const MOBILE_NAV = [
       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
         <rect x="4" y="4" width="6" height="6" /><rect x="14" y="4" width="6" height="6" />
         <rect x="4" y="14" width="6" height="6" /><rect x="14" y="14" width="6" height="6" />
+      </svg>
+    ),
+  },
+  {
+    href: '/admin/operations',
+    label: 'Operations',
+    exact: false,
+    icon: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
+        <path d="M12 8v8M8 12h8M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
       </svg>
     ),
   },

@@ -73,7 +73,6 @@ function getCaseDetails(caseItem: AttentionItem | null): CaseDetails {
 
   // Parse sub line: "BOOKING_REF • SERVICE • AMOUNT" or similar
   const parts = caseItem.sub.split(' • ');
-  const bookingRef = parts[0] || '';
   const service = parts[1] || '';
   const amount = parts[2] || '';
 

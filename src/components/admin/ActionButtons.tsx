@@ -9,7 +9,7 @@
  * 3. VERIFICATION: Approve Professional, Reject Professional
  */
 
-import React, { useState, useTransition } from 'react';
+import React, { useState } from 'react';
 import {
   resolveQuoteDispute,
   reassignJob,
@@ -496,7 +496,6 @@ function VerificationButtons({
 }
 
 export function ActionButtons({ caseType, caseId, onSuccess }: ActionButtonsProps) {
-  const [isPending, setIsPending] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleSuccess = (message: string) => {
