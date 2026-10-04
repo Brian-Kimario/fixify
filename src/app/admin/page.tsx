@@ -152,7 +152,7 @@ export default async function AdminPage() {
       </div>
 
       {/* ── Main two-column grid ──────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-24 md:mb-0">
         {/* Left: Attention Queue */}
         <div className="lg:col-span-2">
           <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl overflow-hidden">
@@ -215,15 +215,42 @@ export default async function AdminPage() {
         </div>
 
         {/* Right: Verification panel + System health */}
-        <div className="space-y-6">
-          {/* Verification panel */}
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl overflow-hidden">
+        <div className="space-y-6 order-last md:order-none">
+          {/* System health card (appears last on mobile, first on desktop via order) */}
+          <div className="bg-[#18211F] text-white rounded-xl p-5 md:p-6 md:order-last order-2">
+            <div className="text-xs font-bold uppercase tracking-[0.11em] text-gray-400 mb-4">
+              SYSTEM SIGNALS
+            </div>
+            <h2 className="text-lg md:text-xl font-bold mb-4">Operational health</h2>
+            <div className="space-y-3">
+              {[
+                { label: 'Payment webhook processing', status: 'Healthy', ok: true },
+                { label: 'SMS / email dispatch', status: 'Healthy', ok: true },
+                { label: 'AI problem intake & routing', status: 'Active', ok: true },
+              ].map((s) => (
+                <div key={s.label} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">{s.label}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        s.ok ? 'bg-[#2F7D5B]' : 'bg-[#9B6A1E]'
+                      }`}
+                    />
+                    {s.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Verification panel (appears first on mobile, second on desktop via order) */}
+          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl overflow-hidden md:order-first order-1">
             <div className="px-5 md:px-6 py-4 md:py-5 border-b border-[#D9DED8] flex items-start justify-between">
               <div>
                 <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
                   VERIFICATION
                 </div>
-                <h2 className="text-lg font-bold text-[#18211F]">Professional files</h2>
+                <h2 className="text-base md:text-lg font-bold text-[#18211F]">Professional files</h2>
               </div>
               <span className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mt-1 flex-shrink-0">
                 {verifQueue.length} PENDING
@@ -269,33 +296,6 @@ export default async function AdminPage() {
               >
                 Open verification queue →
               </Link>
-            </div>
-          </div>
-
-          {/* System health card */}
-          <div className="bg-[#18211F] text-white rounded-xl p-5 md:p-6">
-            <div className="text-xs font-bold uppercase tracking-[0.11em] text-gray-400 mb-4">
-              SYSTEM SIGNALS
-            </div>
-            <h2 className="text-lg md:text-xl font-bold mb-4">Operational health</h2>
-            <div className="space-y-3">
-              {[
-                { label: 'Payment webhook processing', status: 'Healthy', ok: true },
-                { label: 'SMS / email dispatch', status: 'Healthy', ok: true },
-                { label: 'AI problem intake & routing', status: 'Active', ok: true },
-              ].map((s) => (
-                <div key={s.label} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-300">{s.label}</span>
-                  <span className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        s.ok ? 'bg-[#2F7D5B]' : 'bg-[#9B6A1E]'
-                      }`}
-                    />
-                    {s.status}
-                  </span>
-                </div>
-              ))}
             </div>
           </div>
         </div>
