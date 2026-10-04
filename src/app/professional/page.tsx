@@ -59,13 +59,13 @@ export default async function ProfessionalDashboard() {
   const maxWeeklyEarning = Math.max(...earnings.weeklyEarnings, 1);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Header */}
       <div>
         <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-2">
           PROFESSIONAL · TODAY
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-3">
           Good morning, {displayName.split(' ')[0]}
         </h1>
         <p className="text-[#5A6661] max-w-2xl">
@@ -74,16 +74,16 @@ export default async function ProfessionalDashboard() {
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column (2 Cols) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-8">
           
           {/* Interactive Availability Toggle */}
           <AvailabilityToggle initialStatus={isAvailable} />
 
           {/* ── Requests to Review ── */}
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl overflow-hidden shadow-sm">
-            <div className="px-5 md:px-6 py-4 md:py-5 border-b border-[#D9DED8] flex items-center justify-between">
+          <div className="bg-gradient-to-br from-[#FFFEFA] to-[#F9FAF8] border-2 border-[#C8DDD5] rounded-xl overflow-hidden shadow-sm">
+            <div className="px-5 md:px-6 py-5 md:py-6 border-b border-[#D9DED8] flex items-center justify-between bg-[#FFFEFA]">
               <div>
                 <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
                   REQUESTS TO REVIEW
@@ -222,7 +222,7 @@ export default async function ProfessionalDashboard() {
         </div>
 
         {/* Right Column (1 Col) */}
-        <div className="space-y-6">
+        <div className="space-y-8">
 
           {/* ── Active Job Card ── */}
           {currentActiveJob ? (
