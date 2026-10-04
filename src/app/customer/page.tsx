@@ -218,6 +218,9 @@ async function CustomerDashboardContent({ user, profile }: any) {
 
   // Baseline demo active job if none exists in dev database so the reviewer can interact with the rail immediately
   // DISABLED: Show empty state instead for Phase 3
+  // Demo data fallbacks are intentionally disabled in production to avoid confusing users
+  // with placeholder data when they have no real data (trust-first positioning).
+  // Future iterations may conditionally enable in development/staging environments for QA.
   // if (!activeJobData) {
   //   activeJobData = { ... }
   // }
@@ -251,7 +254,9 @@ async function CustomerDashboardContent({ user, profile }: any) {
   }
 
   if (recentActivities.length === 0) {
-    // DISABLED: Show empty state instead for Phase 3
+    // Demo data fallbacks are intentionally disabled in production
+    // to maintain trust and avoid confusing users with placeholder data.
+    // Show empty state instead.
     // recentActivities = [ ... ];
   }
 
@@ -339,6 +344,8 @@ async function CustomerDashboardContent({ user, profile }: any) {
 
   // Baseline Timeline Records (shown if customer does not have completed jobs yet)
   // DISABLED: Show empty state instead for Phase 3
+  // Demo data fallbacks are intentionally disabled in production
+  // to maintain trust and avoid confusing users with placeholder data.
   // if (timelineEvents.length === 0) { ... }
 
   const displayName = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
