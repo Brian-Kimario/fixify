@@ -83,17 +83,17 @@ export function CustomerDashboardClient({
     <div className="min-h-screen bg-[#F7F4EC] text-[#18211F]">
       {/* ── Fixed/Sticky Top Navigation Bar ── */}
       <header className="sticky top-0 z-30 bg-[#F7F4EC]/90 backdrop-blur-md border-b border-[#D9DED8]/80">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          <div>
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="min-w-0 flex-1">
             <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7C8681] block">
               YOUR RESIDENTIAL RECORD
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18211F] mt-0.5">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#18211F] mt-0.5 truncate">
               {greeting}, {displayName}
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             {/* Quick Property Switcher or Indicator */}
             {primaryProperty && (
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D9DED8] bg-[#FFFEFA] text-xs font-semibold text-[#18211F]">
@@ -127,7 +127,7 @@ export function CustomerDashboardClient({
       </header>
 
       {/* ── Main Dashboard Surface ── */}
-      <main className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         
         {/* State management: Show loading/error/empty states */}
         {isLoading && <LoadingState />}
@@ -138,9 +138,9 @@ export function CustomerDashboardClient({
         {!isLoading && !error && !isEmpty && (
           <>
             {/* ── AREA 1: ABOVE THE FOLD DOMAIN ZONE ── */}
-            <section aria-label="Active workspace and immediate intake" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <section aria-label="Active workspace and immediate intake" className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
               {/* Active Job Panel (High Urgency: dominates above fold, ~60% width) */}
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-2 space-y-8">
                 <ActiveJobPanel
                   job={currentJob}
                   onOpenQuoteDrawer={() => setIsQuoteDrawerOpen(true)}
@@ -157,7 +157,7 @@ export function CustomerDashboardClient({
               </div>
 
               {/* Right Column: Property Record Snapshot & Recent Activity (40% width) */}
-              <div className="lg:col-span-5 space-y-6">
+              <div className="lg:col-span-1 space-y-8">
                 {/* Primary Property Record Card */}
                 <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-[22px] overflow-hidden shadow-[0_4px_24px_rgba(24,33,31,0.03)]">
                   <div className="h-36 bg-gradient-to-tr from-[#18211F] to-[#263b36] relative p-5 flex flex-col justify-end text-white overflow-hidden">
