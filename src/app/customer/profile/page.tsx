@@ -1,6 +1,7 @@
 import { getCurrentProfile } from '@/lib/auth';
 import { Card, Button } from '@/components/ui';
 import { VerificationBadge } from '@/components/customer/VerificationBadge';
+import { MobileSignOutButton } from '@/components/shared/MobileSignOutButton';
 import Link from 'next/link';
 
 export const metadata = {
@@ -162,6 +163,19 @@ export default async function ProfilePage() {
           </Link>
         </div>
       </Card>
+
+      {/* Sign Out — shown on mobile since the header SignOutMenu is desktop-only */}
+      <div className="md:hidden">
+        <Card>
+          <div className="space-y-3">
+            <h3 className="font-display font-bold text-ink">Session</h3>
+            <p className="text-sm text-[#5A6661]">
+              Sign out of your account on this device.
+            </p>
+            <MobileSignOutButton />
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

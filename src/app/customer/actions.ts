@@ -92,7 +92,8 @@ export async function submitProblemIntakeAction(payload: {
 
 /**
  * Server Action: Respond to Quote (Approve or Decline)
- * Updates quotes row, changes job state, and records an audit event in job_events
+ * Updates the quotes row, then uses transition_job_state() RPC to change job state.
+ * This ensures the state machine enforces valid transitions and records audit events.
  */
 export async function respondToQuoteAction(payload: {
   quoteId: string;
@@ -100,81 +101,69 @@ export async function respondToQuoteAction(payload: {
   decision: 'approved' | 'declined';
   reason?: string;
 }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    const newQuoteStatus = payload.decision === 'approved' ? 'approved' : 'declined';
-    const newJobState = payload.decision === 'approved' ? 'in_progress' : 'assigned';
-
-    // Update quotes table
-    const { error: quoteError } = await supabase
-      .from('quotes')
-      .update({
-        status: newQuoteStatus,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', payload.quoteId);
-
-    if (quoteError) {
-      console.warn('Quote table update error (might be using sample quote ID):', quoteError.message);
-    }
-
-    // Update jobs table state
-    if (payload.jobId && !payload.jobId.startsWith('sample')) {
-      await supabase
-        .from('jobs')
-        .update({
-          current_state: newJobState,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', payload.jobId);
-
-      // Record immutable event in job_events
-      await supabase
-        .from('job_events')
-        .insert({
-          job_id: payload.jobId,
-          from_state: 'quote_pending',
-          to_state: newJobState,
-          actor_user_id: user.id,
-          event_type: payload.decision === 'approved' ? 'quote_approved' : 'quote_declined',
-          metadata: { reason: payload.reason || null },
-        });
-    }
-
-    revalidatePath('/customer');
-    return { success: true };
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Failed to process quote response';
-    console.error('respondToQuoteAction error:', errorMsg);
-    return { success: true }; // Allow UI to advance gracefully in mock/sample mode
+  if (!user) {
+    return { success: false, error: 'User not authenticated' };
   }
-}
 
-/**
- * Server Action: Simulate Job State Change (for demonstration/testing of Anime.js transitions)
- */
-export async function simulateJobStateAction(jobId: string, newState: string) {
-  try {
-    const supabase = await createClient();
-    await supabase
-      .from('jobs')
-      .update({
-        current_state: newState,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId);
-
-    revalidatePath('/customer');
-    return { success: true };
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Failed to update job state';
-    console.error('simulateJobStateAction error:', errorMsg);
-    return { success: false, error: errorMsg };
+  // Skip non-real job IDs (e.g. sample/demo IDs used in UI previews)
+  if (!payload.jobId || payload.jobId.startsWith('sample')) {
+    return { success: false, error: 'Invalid job ID' };
   }
+
+  // Verify the customer owns this job before any mutation
+  const { data: job, error: jobFetchError } = await supabase
+    .from('jobs')
+    .select('id, current_state, customer_id')
+    .eq('id', payload.jobId)
+    .eq('customer_id', user.id)
+    .single();
+
+  if (jobFetchError || !job) {
+    return { success: false, error: 'Job not found or access denied' };
+  }
+
+  if (job.current_state !== 'quote_pending') {
+    return { success: false, error: `Job is in state '${job.current_state}', not 'quote_pending'. Cannot respond to quote.` };
+  }
+
+  const newQuoteStatus = payload.decision === 'approved' ? 'approved' : 'declined';
+  // Approved quote → in_progress; declined quote → back to assigned (awaiting reassign)
+  const newJobState = payload.decision === 'approved' ? 'in_progress' : 'assigned';
+
+  // Update quote status (RLS ensures ownership via job→customer_id)
+  const { error: quoteError } = await supabase
+    .from('quotes')
+    .update({
+      status: newQuoteStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', payload.quoteId);
+
+  if (quoteError) {
+    console.error('respondToQuoteAction — quote update error:', quoteError.message);
+    return { success: false, error: 'Failed to update quote status' };
+  }
+
+  // Use the authoritative state machine RPC instead of direct .update()
+  const { error: rpcError } = await supabase.rpc('transition_job_state', {
+    p_job_id: payload.jobId,
+    p_new_state: newJobState,
+    p_actor_user_id: user.id,
+    p_metadata: {
+      event_type: payload.decision === 'approved' ? 'quote_approved' : 'quote_declined',
+      quote_id: payload.quoteId,
+      reason: payload.reason || null,
+    },
+  });
+
+  if (rpcError) {
+    console.error('respondToQuoteAction — transition_job_state RPC error:', rpcError.message);
+    return { success: false, error: 'Failed to transition job state: ' + rpcError.message };
+  }
+
+  revalidatePath('/customer');
+  return { success: true };
 }

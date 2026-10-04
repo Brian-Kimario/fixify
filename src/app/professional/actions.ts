@@ -683,24 +683,25 @@ export async function createQuoteAction(payload: {
     }
   }
 
-  // 3. Move job to quote_pending
-  await supabase
-    .from('jobs')
-    .update({
-      current_state: 'quote_pending',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', payload.jobId);
-
-  // 4. Log immutable event
-  await supabase.from('job_events').insert({
-    job_id: payload.jobId,
-    from_state: 'arrived',
-    to_state: 'quote_pending',
-    actor_user_id: user.id,
-    event_type: 'quote_submitted',
-    metadata: { total, reason: payload.reason },
+  // 3. Move job to quote_pending via the authoritative state machine RPC.
+  //    This validates the transition, prevents race conditions, and records the audit event.
+  const { error: rpcError } = await supabase.rpc('transition_job_state', {
+    p_job_id: payload.jobId,
+    p_new_state: 'quote_pending',
+    p_actor_user_id: user.id,
+    p_metadata: {
+      event_type: 'quote_submitted',
+      quote_id: quote.id,
+      total,
+      reason: payload.reason,
+    },
   });
+
+  if (rpcError) {
+    console.error('createQuoteAction — transition_job_state RPC error:', rpcError.message);
+    // Quote was already inserted; return partial success with the error so caller can decide
+    return { success: false, error: 'Quote created but job state transition failed: ' + rpcError.message };
+  }
 
   revalidatePath(`/professional/jobs/${payload.jobId}`);
   revalidatePath('/professional');

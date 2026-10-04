@@ -1,6 +1,7 @@
 'use client'
 
 import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from './database.types'
 
 /**
  * Browser/client-side Supabase client
@@ -18,5 +19,5 @@ export function createClient() {
     throw new Error('Missing Supabase environment variables (URL or anon key)')
   }
 
-  return createBrowserClient(supabaseUrl, supabaseKey)
+  return createBrowserClient<Database>(supabaseUrl, supabaseKey)
 }
