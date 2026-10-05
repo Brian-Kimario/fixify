@@ -1,4 +1,4 @@
-
+import type { Metadata } from 'next';
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { SiteHeader } from '@/components/marketing/site-header';
 import { RepairSceneHero } from '@/components/marketing/repair-scene-hero';
@@ -8,7 +8,28 @@ import { PropertyRecordPreview } from '@/components/marketing/property-record-pr
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { REPAIR_CATEGORIES } from '@/lib/repair-categories';
 
-export const metadata = { title: 'Fixify — Property maintenance, properly managed', description: 'Describe a repair or maintenance problem, find the right service, and connect with a verified professional through Fixify.' };
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
+
+export const metadata: Metadata = {
+  title: "Fixify — Property Maintenance, Made Simple",
+  description: "Connect with verified professionals for plumbing, electrical, handyman and other property maintenance services. Describe your problem and let Fixify handle the rest.",
+  openGraph: {
+    title: "Fixify — Property Maintenance, Made Simple",
+    description: "Connect with verified professionals for plumbing, electrical, handyman and other property maintenance services",
+    url: siteUrl,
+    type: "website",
+    images: [{ url: "/og-image-1200x630.png", width: 1200, height: 630, alt: "Fixify" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fixify — Property Maintenance, Made Simple",
+    description: "Connect with verified professionals for property maintenance services",
+    images: ["/og-image-1200x630.png"],
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
+};
 
 export default async function HomePage() {
   const user = await getCurrentUser(); const profile = await getCurrentProfile();

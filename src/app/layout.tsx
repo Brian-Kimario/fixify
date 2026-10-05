@@ -3,11 +3,15 @@ import "./globals.css";
 import "../styles/variables.css";
 import { AnimationProvider } from "@/components/ui/AnimationProvider";
 import { WebVitalsReporter } from "@/components/WebVitalsReporter";
+import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
+
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
 
 export const metadata: Metadata = {
-  title: "Fixify — Property maintenance, properly managed",
+  metadataBase: new URL(siteUrl),
+  title: "Fixify — Property Maintenance, Made Simple",
   description:
-    "Connect with verified professionals for property maintenance. Describe your problem and let Fixify handle the rest.",
+    "Connect with verified professionals for plumbing, electrical, handyman and other property maintenance services. Describe your problem and let Fixify handle the rest.",
   keywords: [
     "property maintenance",
     "home repairs",
@@ -17,6 +21,31 @@ export const metadata: Metadata = {
     "electrical",
     "handyman",
   ],
+  openGraph: {
+    title: "Fixify — Property Maintenance, Made Simple",
+    description: "Connect with verified professionals for property maintenance services",
+    url: siteUrl,
+    type: "website",
+    locale: "en_US",
+    images: [
+      {
+        url: "/og-image-1200x630.png",
+        width: 1200,
+        height: 630,
+        alt: "Fixify property maintenance marketplace",
+        type: "image/png",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fixify — Property Maintenance, Made Simple",
+    description: "Connect with verified professionals for property maintenance services",
+    images: ["/og-image-1200x630.png"],
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -48,6 +77,8 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
         <link rel="alternate icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="canonical" href={siteUrl} />
+        <OrganizationSchema />
       </head>
       <body className="min-h-full flex flex-col bg-porcelain text-ink antialiased">
         <WebVitalsReporter />

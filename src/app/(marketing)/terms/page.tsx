@@ -1,13 +1,25 @@
 import { Metadata } from 'next';
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
+
 export const metadata: Metadata = {
   title: 'Terms of Service | Fixify',
   description: 'Fixify marketplace terms of service for customers and service professionals',
   openGraph: {
     title: 'Terms of Service | Fixify',
     description: 'Fixify marketplace terms of service',
-    url: '/terms',
+    url: `${siteUrl}/terms`,
     type: 'website',
+    images: [{ url: "/og-image-1200x630.png", width: 1200, height: 630, alt: "Terms" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: 'Terms of Service | Fixify',
+    description: 'Fixify marketplace terms of service',
+    images: ["/og-image-1200x630.png"],
+  },
+  alternates: {
+    canonical: `${siteUrl}/terms`,
   },
 };
 
