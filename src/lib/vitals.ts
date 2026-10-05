@@ -37,9 +37,7 @@ export function reportWebVitals(metric: WebVitalsMetric) {
       }
     } catch (error) {
       // Silently fail to avoid disrupting user experience
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Failed to report web vital:', error)
-      }
+      console.error('Failed to report web vital:', error)
     }
   }
 }

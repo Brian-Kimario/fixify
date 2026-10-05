@@ -326,7 +326,6 @@ function ResetPasswordContent() {
               <PasswordField
                 id="new-password"
                 label="New password"
-                type={undefined}
                 value={newPassword}
                 onChange={(e) => {
                   setNewPassword(e.target.value);
