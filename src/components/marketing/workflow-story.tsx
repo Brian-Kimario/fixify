@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Check, ClipboardCheck, FileCheck2, Search, ShieldCheck, Wrench } from 'lucide-react';
 
@@ -54,7 +55,17 @@ export function WorkflowStory() {
       <div className="workflow-shell">
         <div className="workflow-intro"><p className="workflow-kicker">HOW FIXIFY WORKS / IN FOUR MOVES</p><h2>From a small concern to a finished job.</h2><p>Scroll through the real service journey. Every stage is visible, every extra decision is yours, and every completed repair stays attached to the property.</p></div>
         <div className="workflow-layout">
-          <div className="workflow-visual-wrap"><div className="workflow-visual"><img key={active.image} src={active.image} alt={active.alt} /><div className="workflow-visual-shade" /><div className="workflow-visual-meta"><span>FIXIFY / {active.label.toUpperCase()}</span><span>{active.number} / 04</span></div><div className="workflow-visual-caption"><span className="workflow-icon"><ActiveIcon size={18} /></span><div><strong>{active.title}</strong><span>{active.label} stage</span></div></div></div><div className="workflow-rail"><span className="workflow-rail-fill" style={{ height: `${((activeStep + 1) / steps.length) * 100}%` }} /></div></div>
+          <div className="workflow-visual-wrap"><div className="workflow-visual">
+            <Image
+              key={active.image}
+              src={active.image}
+              alt={active.alt}
+              fill
+              sizes="(max-width: 900px) 100vw, 45vw"
+              priority={activeStep === 0}
+              className="object-cover"
+            />
+            <div className="workflow-visual-shade" /><div className="workflow-visual-meta"><span>FIXIFY / {active.label.toUpperCase()}</span><span>{active.number} / 04</span></div><div className="workflow-visual-caption"><span className="workflow-icon"><ActiveIcon size={18} /></span><div><strong>{active.title}</strong><span>{active.label} stage</span></div></div></div><div className="workflow-rail"><span className="workflow-rail-fill" style={{ height: `${((activeStep + 1) / steps.length) * 100}%` }} /></div></div>
           <div className="workflow-steps">{steps.map((step, index) => { const Icon = step.icon; return <article key={step.number} data-step={index} className={`workflow-step ${activeStep === index ? 'is-active' : ''}`}><div className="workflow-step-index">{step.number}</div><div className="workflow-step-body"><div className="workflow-step-label"><Icon size={15} /> {step.label}</div><h3>{step.title}</h3><p>{step.description}</p>{index === 2 && <div className="workflow-approval"><ClipboardCheck size={15} /><span>Extra work only begins after you approve the quote.</span></div>}{index === steps.length - 1 && <a href="#property" className="workflow-link">See the property record <ArrowRight size={15} /></a>}</div><span className="workflow-step-check">{activeStep > index ? <Check size={14} /> : index + 1}</span></article>; })}</div>
         </div>
       </div>

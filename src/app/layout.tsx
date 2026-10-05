@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "../styles/variables.css";
 import { AnimationProvider } from "@/components/ui/AnimationProvider";
+import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 
 export const metadata: Metadata = {
   title: "Fixify — Property maintenance, properly managed",
@@ -49,6 +50,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-full flex flex-col bg-porcelain text-ink antialiased">
+        <WebVitalsReporter />
         {/* Skip to main content link - visible on keyboard focus */}
         <a
           href="#main-content"

@@ -225,8 +225,20 @@ export async function middleware(request: NextRequest) {
     response.headers.set("Content-Security-Policy", ADMIN_CSP);
   }
 
-  // 5. Caching Security: Never cache protected dashboards, sensitive user state, or API endpoints
-  if (isProtectedRoute || isAuthRoute || pathname.startsWith("/api")) {
+  // 5. Caching Strategy
+  const publicCacheRoutes = ["/", "/help", "/demo-contact"];
+  const volatileDataRoutes = ["/api/csrf-token"];
+
+  // Public static routes: cache for 1 hour on CDN + browser
+  if (publicCacheRoutes.includes(pathname)) {
+    response.headers.set("Cache-Control", "public, s-maxage=3600, max-age=3600, stale-while-revalidate=86400");
+  }
+  // Volatile data (CSRF tokens): cache for 1 minute
+  else if (volatileDataRoutes.includes(pathname)) {
+    response.headers.set("Cache-Control", "max-age=60, s-maxage=60");
+  }
+  // Protected dashboards and auth routes: never cache
+  else if (isProtectedRoute || isAuthRoute || pathname.startsWith("/api")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");

@@ -1,4 +1,9 @@
 import type { NextConfig } from 'next'
+import withBundleAnalyzer from '@next/bundle-analyzer'
+
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
 
 const nextConfig: NextConfig = {
   typescript: {
@@ -16,8 +21,12 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.pexels.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'manuscdn.com',
+      },
     ],
   },
 }
 
-export default nextConfig
+export default withAnalyzer(nextConfig)

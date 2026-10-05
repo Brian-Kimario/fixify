@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, ChevronLeft, ChevronRight, Pause, Play, ShieldCheck } from 'lucide-react';
 import { PremiumSplitHeadline, usePremiumHeroMotion } from '@/components/ui/animations/premium-motion';
@@ -91,12 +92,29 @@ export function RepairSceneHero({ categories, defaultCategory }: RepairSceneHero
 
         <div className="repair-showcase" aria-live="polite">
           <div ref={mainCardRef} className="showcase-main premium-hero-card" style={{ backgroundColor: slide.accent }}>
-            <img key={slide.image} src={slide.image} alt={`${slide.label} technician repair in progress`} />
+            <Image
+              key={slide.image}
+              src={slide.image}
+              alt={`${slide.label} technician repair in progress`}
+              fill
+              sizes="(max-width: 1000px) 100vw, 60vw"
+              priority={activeIndex === 0}
+              className="object-cover"
+            />
             <div className="showcase-shade" />
             <div className="showcase-topline"><span>FIXIFY / REPAIR STORY</span><span>{String(activeIndex + 1).padStart(2, '0')} / 04</span></div>
             <div className="showcase-copy"><span className="showcase-label">{slide.label}</span><h2>{slide.title}</h2><p>{slide.detail}</p></div>
           </div>
-          <div ref={secondaryCardRef} className="showcase-secondary premium-hero-card"><img src={slide.secondary} alt={`${slide.label} completed repair detail`} /><span>THE RESULT</span></div>
+          <div ref={secondaryCardRef} className="showcase-secondary premium-hero-card">
+            <Image
+              src={slide.secondary}
+              alt={`${slide.label} completed repair detail`}
+              fill
+              sizes="(max-width: 1000px) 33vw, 20vw"
+              className="object-cover"
+            />
+            <span>THE RESULT</span>
+          </div>
           <div className="showcase-controls"><button type="button" onClick={() => goTo(activeIndex - 1)} aria-label="Previous repair story"><ChevronLeft size={17} /></button><div className="showcase-progress">{slides.map((item, index) => <button key={item.id} type="button" aria-label={`Show ${item.label} story`} aria-current={activeIndex === index} onClick={() => { goTo(index); setPlaying(false); }}><span style={{ transform: `scaleX(${activeIndex === index ? 1 : 0})` }} /></button>)}</div><button type="button" onClick={() => goTo(activeIndex + 1)} aria-label="Next repair story"><ChevronRight size={17} /></button><button type="button" className="showcase-play" onClick={() => setPlaying((current) => !current)} aria-label={playing ? 'Pause slideshow' : 'Play slideshow'}>{playing ? <Pause size={14} /> : <Play size={14} />}</button></div>
           <p className="showcase-caption">Real problems. Real technicians. One managed path from concern to complete.</p>
         </div>

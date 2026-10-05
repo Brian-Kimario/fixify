@@ -8,6 +8,8 @@
  * Reference: index.html .property section
  */
 
+import Image from 'next/image';
+
 const propertyRecords = [
   { date: '12 Sep 2026', service: 'Kitchen plumbing', action: 'Trap replaced' },
   { date: '21 Aug 2026', service: 'Split AC', action: 'Service completed' },
@@ -45,9 +47,11 @@ export function PropertyRecordPreview() {
             <div className="relative bg-[#FFFEFA] border border-[#C6CEC7] rounded-[28px] p-7 shadow-md overflow-hidden min-h-[470px]">
               {/* Property Photo (top-right) */}
               <div className="absolute right-6 top-6 w-[180px] h-[140px] rounded-[18px] overflow-hidden transform rotate-[2deg]">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=84"
                   alt="Modern apartment exterior"
+                  width={180}
+                  height={140}
                   className="w-full h-full object-cover"
                 />
               </div>
