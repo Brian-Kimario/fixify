@@ -220,6 +220,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
 
     activeJobData = {
       id: rawJob.id,
+      bookingId: rawBooking?.id,
       referenceNumber: rawBooking?.booking_reference || `FX-${rawJob.id.slice(0, 4).toUpperCase()}`,
       serviceTitle: rawService?.name || 'Home Maintenance & Repair',
       category: rawCategory || 'General Service',

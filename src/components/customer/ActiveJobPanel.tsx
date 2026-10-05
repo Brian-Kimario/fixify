@@ -28,6 +28,7 @@ export type JobRailState =
 
 export interface ActiveJobData {
   id: string;
+  bookingId?: string;
   referenceNumber: string;
   serviceTitle: string;
   category: string;
@@ -328,7 +329,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
           </button>
 
           <Link
-            href={`/customer/bookings/${job.id}`}
+            href={`/customer/bookings/${job.bookingId || job.id}`}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#176B5B] hover:bg-[#0D5144] text-white text-xs font-bold rounded-[10px] transition-colors"
           >
             <span>Full details</span>

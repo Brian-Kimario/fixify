@@ -179,7 +179,7 @@ export function CustomerDashboardClient({
                           VERIFIED REPAIRS
                         </span>
                         <strong className="text-xl font-bold text-[#18211F] mt-0.5 block">
-                          {timelineEvents.length || 14}
+                          {timelineEvents.length || 0}
                         </strong>
                         <span className="text-[10px] text-[#176B5B] font-semibold mt-0.5 block">All logged</span>
                       </div>
@@ -188,10 +188,14 @@ export function CustomerDashboardClient({
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#7C8681] block">
                           WARRANTY STATUS
                         </span>
-                        <strong className="text-xl font-bold text-[#176B5B] mt-0.5 block">
-                          Active
+                        <strong className={`text-xl font-bold mt-0.5 block ${
+                          timelineEvents.length > 0 ? 'text-[#176B5B]' : 'text-[#7C8681]'
+                        }`}>
+                          {timelineEvents.length > 0 ? 'Active' : 'None'}
                         </strong>
-                        <span className="text-[10px] text-[#5A6661] mt-0.5 block">Fixify 12-Mo Guarantee</span>
+                        <span className="text-[10px] text-[#5A6661] mt-0.5 block">
+                          {timelineEvents.length > 0 ? `Until ${timelineEvents[0]?.warrantyValidUntil || 'date pending'}` : 'No repairs yet'}
+                        </span>
                       </div>
                     </div>
 

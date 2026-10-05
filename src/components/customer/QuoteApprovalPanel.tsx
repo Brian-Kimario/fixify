@@ -127,41 +127,60 @@ export function QuoteApprovalPanel({
     );
   }
 
-  const sampleQuote: QuoteApprovalData = {
-    id: 'sample-quote-1',
-    jobId: 'job-fx-4821',
-    referenceNumber: 'FX-4821',
-    serviceTitle: 'Kitchen Vanity Leak Repair',
-    propertyName: 'Oakwood Residence',
-    propertyAddress: '1428 Elm Creek Road, Apt 4B',
-    proName: 'Dario Venn (Master Plumber)',
-    reason: 'During vanity shutoff disassembly, discovered the supply collar fitting was severely corroded and fused. Requires cutting out the oxidized fitting and mounting a new compression quarter-turn valve to ensure water seal integrity.',
-    findings: 'Micro-leakage behind drywall had started soft wood deterioration. Replacing now prevents drywall replacement later.',
-    lineItems: [
-      { id: '1', type: 'labour', description: 'Fitting extraction & precision copper pipe prep', quantity: 1, unitPrice: 65.0, total: 65.0 },
-      { id: '2', type: 'material', description: 'Brasscraft 1/2" Compression Quarter-Turn Valve', quantity: 1, unitPrice: 28.5, total: 28.5 },
-      { id: '3', type: 'material', description: 'Stainless braided 3/8" x 20" lavatory supply tube', quantity: 1, unitPrice: 10.0, total: 10.0 },
-      { id: '4', type: 'fee', description: 'Fixify 12-Month Workmanship Warranty Guarantee', quantity: 1, unitPrice: 4.5, total: 4.5 },
-    ],
-    subtotal: 65.0,
-    partsTotal: 38.5,
-    platformFee: 4.5,
-    totalAmount: 108.0,
-    expiresInHours: 24,
-  };
+  // Use the quote data passed in props—it contains real backend data
+  // This component should only render when a quote is available
+  const displayQuote = quote;
 
-  // Use the quote data passed in props, or fall back to sample for display purposes
-  const displayQuote = quote || sampleQuote;
+  // Guard: if no quote, don't render content
+  if (!displayQuote && isOpen) {
+    return (
+      <div 
+        className={`fixed inset-0 z-50 overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          ref={backdropRef}
+          onClick={() => !isPending && onClose()}
+          className="fixed inset-0 bg-[#18211F]/50 backdrop-blur-sm transition-opacity"
+        />
+        <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+          <div
+            ref={panelRef}
+            className="w-screen max-w-lg bg-[#FFFEFA] border-l border-[#D9DED8] shadow-2xl flex flex-col h-full overflow-y-auto"
+          >
+            <div className="p-6 border-b border-[#D9DED8] bg-[#F7F4EC]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7C8681]">
+                  QUOTE UNAVAILABLE
+                </span>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-9 h-9 rounded-full border border-[#D9DED8] bg-white flex items-center justify-center text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition-colors"
+                  aria-label="Close quote drawer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 flex items-center justify-center p-6">
+              <p className="text-sm text-[#5A6661] text-center">Quote details could not be loaded. Please try again.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleDecision = (decision: 'approved' | 'declined') => {
+    if (!displayQuote) return; // Safety check
     setStatusMessage(null);
     startTransition(async () => {
       try {
-        // Use the quote data passed in props, or fall back to sample
-        const activeQuote = quote || sampleQuote;
         const res = await respondToQuoteAction({
-          quoteId: activeQuote.id,
-          jobId: activeQuote.jobId,
+          quoteId: displayQuote.id,
+          jobId: displayQuote.jobId,
           decision,
           reason: decision === 'declined' ? declineReason : undefined,
         });
@@ -169,7 +188,7 @@ export function QuoteApprovalPanel({
         if (res.success) {
           if (decision === 'approved') {
             // Show success state for quote approval
-            setSuccessData({ jobId: activeQuote.jobId, bookingId: activeQuote.jobId });
+            setSuccessData({ jobId: displayQuote.jobId, bookingId: displayQuote.jobId });
             setShowSuccessState(true);
             setStatusMessage(null);
           } else {
@@ -405,6 +424,15 @@ export function QuoteApprovalPanel({
                 Decline quote or request clarification
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isPending}
+              className="w-full py-2.5 px-4 bg-white border border-[#D9DED8] text-[#5A6661] hover:text-[#18211F] text-xs font-semibold rounded-[10px] transition-colors"
+            >
+              Close
+            </button>
           </div>
 
         {/* Decline confirmation modal */}
