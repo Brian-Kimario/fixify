@@ -33,11 +33,10 @@ export default async function CustomerDashboardPage() {
 async function CustomerDashboardContent({ user, profile }: any) {
   const supabase = await createClient();
 
-  // Parallelize all 5 queries using Promise.all()
-  // Queries 1-4 are independent; query 5 depends on query 1 result
-  // so we fetch queries 1-4 in parallel, then query 5
+  // Parallelize all independent queries using Promise.all()
+  // Queries 1-4 are independent; query 5 depends on extracting activeJobId from query 2
   
-  const [propsResult, jobsResult, eventsResult] = await Promise.all([
+  const [propsResult, jobsResult, quotesResult, eventsResult] = await Promise.all([
     // Query 1: Fetch Customer Properties
     (async () => {
       try {
@@ -114,10 +113,58 @@ async function CustomerDashboardContent({ user, profile }: any) {
       }
     })(),
 
-    // Query 3: Fetch Recent Activities from Job Events
-    // FIX: Add filter to job_events to only fetch events for current user's jobs
+    // Query 3: Fetch Pending Quote (parallelized by fetching all pending quotes for customer)
+    // This query no longer depends on activeJobId since we fetch all pending quotes
+    // and filter them after extracting the job ID
     (async () => {
       try {
+        const { data: quotes } = await supabase
+          .from('quotes')
+          .select(`
+            id,
+            job_id,
+            subtotal,
+            taxes_or_fees,
+            total,
+            reason,
+            status,
+            quote_items (
+              id,
+              item_type,
+              description,
+              quantity,
+              unit_price,
+              line_total
+            )
+          `)
+          .eq('status', 'pending_customer')
+          .order('created_at', { ascending: false })
+          .limit(10); // Fetch more quotes to find the one matching active job
+
+        return quotes || [];
+      } catch (err) {
+        console.warn('Could not query quotes:', err);
+        return [];
+      }
+    })(),
+
+    // Query 4: Fetch Recent Activities from Job Events
+    // FIX: Use job_ids to filter events for current user's jobs (not by actor_user_id)
+    // Since we fetch all job IDs for the customer, we can filter events to those jobs
+    (async () => {
+      try {
+        // First, fetch all job IDs for this customer to filter events
+        const { data: customerJobs } = await supabase
+          .from('jobs')
+          .select('id')
+          .eq('customer_id', user.id);
+
+        if (!customerJobs || customerJobs.length === 0) {
+          return [];
+        }
+
+        const jobIds = customerJobs.map(j => j.id);
+
         const { data: events } = await supabase
           .from('job_events')
           .select(`
@@ -128,8 +175,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
             metadata,
             job_id
           `)
-          // FIX 2: Add customer_id filter by joining on job_id
-          .eq('actor_user_id', user.id)
+          .in('job_id', jobIds)
           .order('created_at', { ascending: false })
           .limit(5);
 
@@ -205,65 +251,41 @@ async function CustomerDashboardContent({ user, profile }: any) {
     };
   }
 
-  // Query 4: Check for pending quote (dependent on active job)
+  // Extract pending quote from parallel batch
   let activeQuoteData: QuoteApprovalData | null = null;
   
-  if (activeJobId) {
-    try {
-      const { data: quotes } = await supabase
-        .from('quotes')
-        .select(`
-          id,
-          job_id,
-          subtotal,
-          taxes_or_fees,
-          total,
-          reason,
-          status,
-          quote_items (
-            id,
-            item_type,
-            description,
-            quantity,
-            unit_price,
-            line_total
-          )
-        `)
-        .eq('job_id', activeJobId)
-        .eq('status', 'pending_customer')
-        .limit(1);
+  if (quotesResult && quotesResult.length > 0 && activeJobId) {
+    // Find the quote that matches the active job
+    const matchingQuote = quotesResult.find((q: any) => q.job_id === activeJobId);
+    
+    if (matchingQuote && activeJobData) {
+      const q = matchingQuote;
+      const lineItems = (q.quote_items || []).map((item: any) => ({
+        id: item.id,
+        type: (item.item_type as 'labour' | 'material' | 'fee') || 'material',
+        description: item.description,
+        quantity: Number(item.quantity) || 1,
+        unitPrice: Number(item.unit_price) || 0,
+        total: Number(item.line_total) || 0,
+      }));
 
-      if (quotes && quotes.length > 0 && activeJobData) {
-        const q = quotes[0];
-        const lineItems = (q.quote_items || []).map((item: any) => ({
-          id: item.id,
-          type: (item.item_type as 'labour' | 'material' | 'fee') || 'material',
-          description: item.description,
-          quantity: Number(item.quantity) || 1,
-          unitPrice: Number(item.unit_price) || 0,
-          total: Number(item.line_total) || 0,
-        }));
+      activeQuoteData = {
+        id: q.id,
+        jobId: q.job_id,
+        referenceNumber: activeJobData.referenceNumber,
+        serviceTitle: activeJobData.serviceTitle,
+        propertyName: activeJobData.propertyName,
+        proName: activeJobData.professional?.name || 'Technician',
+        reason: q.reason || 'Additional repair authorization requested.',
+        lineItems,
+        subtotal: Number(q.subtotal) || 65.0,
+        partsTotal: lineItems.filter((i) => i.type === 'material').reduce((acc, i) => acc + i.total, 0) || 38.5,
+        platformFee: Number(q.taxes_or_fees) || 4.5,
+        totalAmount: Number(q.total) || 108.0,
+      };
 
-        activeQuoteData = {
-          id: q.id,
-          jobId: q.job_id,
-          referenceNumber: activeJobData.referenceNumber,
-          serviceTitle: activeJobData.serviceTitle,
-          propertyName: activeJobData.propertyName,
-          proName: activeJobData.professional?.name || 'Technician',
-          reason: q.reason || 'Additional repair authorization requested.',
-          lineItems,
-          subtotal: Number(q.subtotal) || 65.0,
-          partsTotal: lineItems.filter((i) => i.type === 'material').reduce((acc, i) => acc + i.total, 0) || 38.5,
-          platformFee: Number(q.taxes_or_fees) || 4.5,
-          totalAmount: Number(q.total) || 108.0,
-        };
-
-        activeJobData.hasPendingQuote = true;
-        activeJobData.pendingQuoteTotal = activeQuoteData.totalAmount;
-      }
-    } catch (err) {
-      console.warn('Could not query quotes:', err);
+      activeJobData.hasPendingQuote = true;
+      activeJobData.pendingQuoteTotal = activeQuoteData.totalAmount;
     }
   }
 
