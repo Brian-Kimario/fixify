@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Search } from 'lucide-react';
@@ -116,9 +117,12 @@ export default function HelpPage() {
               {/* Hero Visual */}
               <div className="relative min-h-[400px]">
                 <div className="absolute inset-0 rounded-[28px] overflow-hidden bg-[#d7d2c6] shadow-[0_18px_50px_rgba(24,33,31,0.08)]" style={{ transform: 'rotate(1deg)' }}>
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1100&q=84"
                     alt="Help center"
+                    fill
+                    priority
+                    sizes="(max-width: 1200px) 100vw, 80vw"
                     className="w-full h-full object-cover"
                     style={{ filter: 'saturate(0.82) contrast(0.98)' }}
                   />

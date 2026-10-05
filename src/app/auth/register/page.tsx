@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -98,7 +99,15 @@ export default function RegisterPage() {
     <main id="main-content" className="page">
       {/* Left Visual */}
       <section className="visual" aria-label="Fixify invitation">
-        <img src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1800&q=88" alt="Professional services in a home environment" loading="eager" />
+        <Image 
+          src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1800&q=88" 
+          alt="Professional services in a home environment"
+          fill
+          priority
+          sizes="(max-width: 900px) 100vw, 50vw"
+          className="object-cover"
+          style={{ filter: 'saturate(0.88) contrast(1.06) brightness(0.78)' }}
+        />
         <div className="visual-grid" aria-hidden="true"></div>
         <div className="visual-top">
           <Link className="back" href="/">Back to home</Link>

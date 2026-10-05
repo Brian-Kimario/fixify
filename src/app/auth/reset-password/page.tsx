@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2, Loader2, Lock } from 'lucide-react';
@@ -144,7 +145,15 @@ function ResetPasswordContent() {
     return (
       <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
-          <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
+          <Image 
+            src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" 
+            alt="Calm bedroom interior"
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 50vw"
+            className="object-cover"
+            style={{ filter: 'saturate(0.88) contrast(1.06) brightness(0.78)' }}
+          />
           <div className="visual-grid" aria-hidden="true" />
         </section>
 
@@ -177,7 +186,15 @@ function ResetPasswordContent() {
     return (
       <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
-          <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
+          <Image 
+            src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" 
+            alt="Calm bedroom interior"
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 50vw"
+            className="object-cover"
+            style={{ filter: 'saturate(0.88) contrast(1.06) brightness(0.78)' }}
+          />
           <div className="visual-grid" aria-hidden="true" />
           <div className="visual-top"><Link className="back" href="/">Back to home</Link></div>
         </section>
@@ -224,7 +241,15 @@ function ResetPasswordContent() {
     return (
       <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
-          <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
+          <Image 
+            src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" 
+            alt="Calm bedroom interior"
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 50vw"
+            className="object-cover"
+            style={{ filter: 'saturate(0.88) contrast(1.06) brightness(0.78)' }}
+          />
           <div className="visual-grid" aria-hidden="true" />
           <div className="visual-top"><Link className="back" href="/">Back to home</Link></div>
         </section>
@@ -269,7 +294,15 @@ function ResetPasswordContent() {
   return (
     <main id="main-content" className="page">
       <section className="visual" aria-label="Fixify home maintenance introduction">
-        <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
+        <Image 
+            src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" 
+            alt="Calm bedroom interior"
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 50vw"
+            className="object-cover"
+            style={{ filter: 'saturate(0.88) contrast(1.06) brightness(0.78)' }}
+          />
         <div className="visual-grid" aria-hidden="true" />
         <div className="visual-top"><Link className="back" href="/">Back to home</Link></div>
         <div className="visual-bottom">
@@ -414,7 +447,15 @@ export default function ResetPasswordPage() {
     <Suspense fallback={
       <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
-          <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
+          <Image 
+            src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" 
+            alt="Calm bedroom interior"
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 50vw"
+            className="object-cover"
+            style={{ filter: 'saturate(0.88) contrast(1.06) brightness(0.78)' }}
+          />
           <div className="visual-grid" aria-hidden="true" />
         </section>
 

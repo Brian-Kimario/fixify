@@ -36,9 +36,13 @@ export function Hero() {
         {/* Right - Visual */}
         <div className="hero-visual reveal in delay1">
           <div className="hero-photo tilt">
-            <img 
+            <Image 
               src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1700&q=88" 
               alt="Warm modern home interior with natural light"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, (max-width: 1400px) 60vw, 800px"
+              className="object-cover"
             />
             <div className="photo-caption">
               <strong>A home worth taking care of.</strong>
@@ -63,9 +67,12 @@ export function Hero() {
             </div>
           </div>
           <div className="photo-chip tilt">
-            <img 
+            <Image 
               src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=700&q=86" 
               alt="Professional electrical maintenance work"
+              fill
+              sizes="126px"
+              className="object-cover"
             />
           </div>
           <div className="orbit-line" aria-hidden="true"></div>
