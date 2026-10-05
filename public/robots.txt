@@ -1,5 +1,5 @@
 # Fixify robots.txt
-# https://fixify.vercel.app/robots.txt
+# https://fixify-amber.vercel.app/robots.txt
 
 User-agent: *
 Allow: /
@@ -32,4 +32,4 @@ Disallow: /.next/
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://fixify.vercel.app/sitemap.xml
+Sitemap: https://fixify-amber.vercel.app/sitemap.xml
