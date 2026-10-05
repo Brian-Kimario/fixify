@@ -1,0 +1,35 @@
+# Fixify robots.txt
+# https://fixify.vercel.app/robots.txt
+
+User-agent: *
+Allow: /
+
+# Public pages — allow all
+Allow: /
+Allow: /help
+Allow: /support
+Allow: /terms
+Allow: /privacy
+Allow: /cookies
+Allow: /refund-policy
+Allow: /contact
+Allow: /demo-contact
+Allow: /auth/login
+Allow: /auth/register
+
+# Private/authenticated pages — disallow
+Disallow: /customer/
+Disallow: /professional/
+Disallow: /admin/
+Disallow: /auth/debug
+Disallow: /auth/test-login
+Disallow: /auth/verify-email
+Disallow: /auth/reset-password
+Disallow: /auth/forgot-password
+
+# Disable crawling of development/internal routes
+Disallow: /.next/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://fixify.vercel.app/sitemap.xml
