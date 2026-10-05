@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { FAQPageSchema } from '@/components/seo/FAQPageSchema';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
 
@@ -24,5 +25,10 @@ export const metadata: Metadata = {
 };
 
 export default function HelpLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <FAQPageSchema />
+      {children}
+    </>
+  );
 }
