@@ -57,6 +57,11 @@ export const metadata: Metadata = {
     ],
     shortcut: "/favicon.ico",
   },
+  verification: {
+    other: {
+      "strix-verification": ["strix-verify-c9a07f22b5eef84cb1df84c3127358b1"],
+    },
+  },
 };
 
 export const viewport: Viewport = {
