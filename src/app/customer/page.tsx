@@ -100,7 +100,11 @@ async function CustomerDashboardContent({ user, profile }: any) {
               display_name,
               rating_average,
               completed_jobs_count,
-              verification_status
+              verification_status,
+              profiles (
+                full_name,
+                phone
+              )
             )
           `)
           .eq('customer_id', user.id)
@@ -228,16 +232,11 @@ async function CustomerDashboardContent({ user, profile }: any) {
       professional: rawPro ? {
         id: rawPro.user_id,
         name: rawPro.display_name || 'Certified Professional',
+        phone: (Array.isArray(rawPro.profiles) ? rawPro.profiles[0]?.phone : rawPro.profiles?.phone) || undefined,
         rating: Number(rawPro.rating_average) || 4.9,
         completedJobs: Number(rawPro.completed_jobs_count) || 48,
         verificationStatus: (rawPro.verification_status as 'verified' | 'pending' | 'not_verified') || 'verified',
-      } : {
-        id: 'pro-assigned',
-        name: 'Dario Venn (Master Plumber)',
-        rating: 4.95,
-        completedJobs: 84,
-        verificationStatus: 'verified',
-      },
+      } : undefined,
     };
   }
 

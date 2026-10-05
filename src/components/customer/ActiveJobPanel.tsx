@@ -77,16 +77,10 @@ function mapDbStateToRail(state: string): JobRailState {
 export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: ActiveJobPanelProps) {
   // If no job is provided, show calm reassuring state
   const currentRailState = job ? mapDbStateToRail(job.currentState) : 'REQUEST';
-  const [simulatedState, setSimulatedState] = useState<JobRailState>(currentRailState);
 
-  // Sync with prop when job updates
-  useEffect(() => {
-    if (job) {
-      setSimulatedState(mapDbStateToRail(job.currentState));
-    }
-  }, [job]);
-
-  const activeIndex = RAIL_STEPS.findIndex((s) => s.id === simulatedState);
+  // Display only current backend state; no local state simulation
+  // Progress bar is read-only and reflects backend job state only
+  const activeIndex = RAIL_STEPS.findIndex((s) => s.id === currentRailState);
   const progressPercent = activeIndex >= 0 ? (activeIndex / (RAIL_STEPS.length - 1)) * 100 : 0;
 
   // Refs for Anime.js
@@ -110,7 +104,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
         ease: 'outBack',
       });
     }
-  }, [progressPercent, simulatedState]);
+  }, [progressPercent, currentRailState]);
 
   if (!job) {
     return (
@@ -182,12 +176,12 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
           <div className="px-3 py-1.5 rounded-full border border-[#E7BE78]/30 bg-[#E7BE78]/10 text-[#E7BE78] text-xs font-bold tracking-wide flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
             <span>
-              {simulatedState === 'ON_THE_WAY' && (job.etaMinutes ? `ETA ~${job.etaMinutes} mins` : 'ETA ~14 mins')}
-              {simulatedState === 'ARRIVED' && 'Arrived on site'}
-              {simulatedState === 'IN_PROGRESS' && 'Work underway'}
-              {simulatedState === 'COMPLETED' && 'Job verified complete'}
-              {simulatedState === 'ASSIGNED' && 'Confirmed for appointment'}
-              {simulatedState === 'REQUEST' && 'Matching technician'}
+              {currentRailState === 'ON_THE_WAY' && (job.etaMinutes ? `ETA ~${job.etaMinutes} mins` : 'ETA ~14 mins')}
+              {currentRailState === 'ARRIVED' && 'Arrived on site'}
+              {currentRailState === 'IN_PROGRESS' && 'Work underway'}
+              {currentRailState === 'COMPLETED' && 'Job verified complete'}
+              {currentRailState === 'ASSIGNED' && 'Confirmed for appointment'}
+              {currentRailState === 'REQUEST' && 'Matching technician'}
             </span>
           </div>
         </div>
@@ -213,12 +207,11 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
               const isCurrent = idx === activeIndex;
 
               return (
-                <button
+                <div
                   key={step.id}
-                  type="button"
-                  onClick={() => setSimulatedState(step.id)}
-                  title={`Click to preview state: ${step.label}`}
-                  className="flex flex-col items-center group cursor-pointer text-left focus:outline-none"
+                  className="flex flex-col items-center text-left"
+                  role="presentation"
+                  aria-disabled="true"
                 >
                   {/* Step Marker */}
                   <div
@@ -228,7 +221,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
                         ? 'bg-[#72D0B7] border-[#72D0B7] text-[#18211F] shadow-[0_0_0_4px_rgba(114,208,183,0.15)]'
                         : isCurrent
                         ? 'bg-[#E7BE78] border-[#E7BE78] text-[#18211F] ring-4 ring-[#E7BE78]/20 ring-offset-2 ring-offset-[#18211F] scale-110'
-                        : 'bg-[#18211F] border-white/25 text-white/40 group-hover:border-white/50'
+                        : 'bg-[#18211F] border-white/25 text-white/40'
                     }`}
                   >
                     {isPast ? (
@@ -255,7 +248,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
                       {step.subLabel}
                     </span>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -263,7 +256,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
       </div>
 
       {/* Quote Approval Alert Banner (High Urgency) */}
-      {(job.hasPendingQuote || simulatedState === 'IN_PROGRESS') && onOpenQuoteDrawer && (
+      {(job.hasPendingQuote || currentRailState === 'IN_PROGRESS') && onOpenQuoteDrawer && (
         <div className="relative z-10 my-4 p-4 rounded-xl bg-gradient-to-r from-[#9B6A1E]/30 to-[#9B6A1E]/10 border border-[#E7BE78]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-[#E7BE78] flex-shrink-0 mt-0.5" />
