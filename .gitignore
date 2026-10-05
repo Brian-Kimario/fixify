@@ -84,3 +84,4 @@ supabase/seed.sql.local
 
 # Vercel CLI
 .vercel/
+.vercel

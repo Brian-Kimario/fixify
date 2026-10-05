@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { ConfirmationModal } from '@/components/ui/Modal';
+import { AddressFormModal } from './AddressFormModal';
 import { deleteAddress } from './actions';
 import type { Address } from './types';
 
@@ -12,13 +13,21 @@ interface AddressListProps {
 export function AddressList({ addresses: initialAddresses }: AddressListProps) {
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
+  const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const handleDeleteClick = (addr: Address) => {
     setAddressToDelete(addr);
     setShowDeleteConfirm(true);
+    setError(null);
+  };
+
+  const handleEditClick = (addr: Address) => {
+    setAddressToEdit(addr);
+    setShowEditModal(true);
     setError(null);
   };
 
@@ -45,6 +54,25 @@ export function AddressList({ addresses: initialAddresses }: AddressListProps) {
     setError(null);
   };
 
+  const handleEditSubmit = async (data: Partial<Address>) => {
+    if (!addressToEdit) return;
+
+    startTransition(async () => {
+      try {
+        const { updateAddress } = await import('./actions');
+        const updatedAddress = await updateAddress(addressToEdit.id, data);
+        setAddresses(
+          addresses.map((a) => (a.id === addressToEdit.id ? updatedAddress : a))
+        );
+        setShowEditModal(false);
+        setAddressToEdit(null);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to update address';
+        setError(msg);
+      }
+    });
+  };
+
   return (
     <>
       <div className="space-y-3">
@@ -65,7 +93,11 @@ export function AddressList({ addresses: initialAddresses }: AddressListProps) {
                 )}
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <button className="px-3 py-2 text-sm font-bold text-[#176B5B] border border-[#D9DED8] rounded-lg hover:bg-[#F1EEE5] transition">
+                <button
+                  onClick={() => handleEditClick(addr)}
+                  disabled={isPending}
+                  className="px-3 py-2 text-sm font-bold text-[#176B5B] border border-[#D9DED8] rounded-lg hover:bg-[#F1EEE5] transition disabled:opacity-60"
+                >
                   Edit
                 </button>
                 <button
@@ -89,7 +121,19 @@ export function AddressList({ addresses: initialAddresses }: AddressListProps) {
         ))}
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Edit Modal */}
+      <AddressFormModal
+        isOpen={showEditModal}
+        initialData={addressToEdit}
+        onClose={() => {
+          setShowEditModal(false);
+          setAddressToEdit(null);
+        }}
+        onSubmit={handleEditSubmit}
+        isLoading={isPending}
+      />
+
+      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && addressToDelete && (
         <ConfirmationModal
           title="Delete address?"

@@ -181,3 +181,161 @@ export async function createProperty(propertyData: {
 
   return data;
 }
+
+/**
+ * Update an address for the customer
+ * Requires ownership verification
+ */
+export async function updateAddress(
+  addressId: string,
+  addressData: {
+    label?: string;
+    address_line_1?: string;
+    city?: string;
+    state_region?: string;
+    postal_code?: string;
+    latitude?: number;
+    longitude?: number;
+  }
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  // Verify ownership before updating (RLS will also enforce this)
+  const { data: address, error: fetchError } = await supabase
+    .from("addresses")
+    .select("id, customer_id")
+    .eq("id", addressId)
+    .eq("customer_id", user.id)
+    .single();
+
+  if (fetchError || !address) {
+    throw new Error("Address not found or does not belong to your account.");
+  }
+
+  const { data, error } = await supabase
+    .from("addresses")
+    .update(addressData)
+    .eq("id", addressId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update address: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
+ * Update a property for the customer
+ * Requires ownership verification
+ */
+export async function updateProperty(
+  propertyId: string,
+  propertyData: {
+    name?: string;
+    property_type?: string;
+    address_id?: string;
+    notes?: string;
+  }
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  // Verify ownership before updating (RLS will also enforce this)
+  const { data: property, error: fetchError } = await supabase
+    .from("properties")
+    .select("id, owner_customer_id")
+    .eq("id", propertyId)
+    .eq("owner_customer_id", user.id)
+    .single();
+
+  if (fetchError || !property) {
+    throw new Error("Property not found or does not belong to your account.");
+  }
+
+  const { data, error } = await supabase
+    .from("properties")
+    .update(propertyData)
+    .eq("id", propertyId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update property: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
+ * Delete a property for the customer
+ * Verify ownership and check if property has active jobs before deleting
+ */
+export async function deleteProperty(propertyId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  // Verify ownership before deleting (RLS will also enforce this)
+  const { data: property, error: fetchError } = await supabase
+    .from("properties")
+    .select("id, owner_customer_id")
+    .eq("id", propertyId)
+    .eq("owner_customer_id", user.id)
+    .single();
+
+  if (fetchError || !property) {
+    throw new Error("Property not found or does not belong to your account.");
+  }
+
+  // Check if property has active bookings
+  const { data: bookings, error: bookingError } = await supabase
+    .from("bookings")
+    .select("id")
+    .eq("property_id", propertyId)
+    .neq("status", "completed")
+    .neq("status", "cancelled");
+
+  if (bookingError) {
+    throw new Error(`Failed to check active jobs: ${bookingError.message}`);
+  }
+
+  if (bookings && bookings.length > 0) {
+    throw new Error(
+      "Cannot delete property with active jobs. Please cancel or complete all jobs first."
+    );
+  }
+
+  const { error: deleteError } = await supabase
+    .from("properties")
+    .delete()
+    .eq("id", propertyId);
+
+  if (deleteError) {
+    throw new Error(`Failed to delete property: ${deleteError.message}`);
+  }
+
+  return { success: true };
+}
