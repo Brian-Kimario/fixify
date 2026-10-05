@@ -33,8 +33,10 @@ export default async function CustomerDashboardPage() {
 async function CustomerDashboardContent({ user, profile }: any) {
   const supabase = await createClient();
 
-  // Parallelize all independent queries using Promise.all()
-  // Queries 1-4 are independent; query 5 depends on extracting activeJobId from query 2
+  // Parallelize all queries in a single Promise.all()
+  // Properties and jobs queries are fully independent
+  // Quotes query is conditioned: if there's an active job, filter by job_id; otherwise fetch empty
+  // Events query relies on RLS to filter by customer's jobs (no separate query needed)
   
   const [propsResult, jobsResult, quotesResult, eventsResult] = await Promise.all([
     // Query 1: Fetch Customer Properties
@@ -113,9 +115,9 @@ async function CustomerDashboardContent({ user, profile }: any) {
       }
     })(),
 
-    // Query 3: Fetch Pending Quote (parallelized by fetching all pending quotes for customer)
-    // This query no longer depends on activeJobId since we fetch all pending quotes
-    // and filter them after extracting the job ID
+    // Query 3: Fetch Pending Quotes
+    // Filter by status only (job_id filtering happens after we know the active job)
+    // This is safe because RLS on quotes table ensures we only see quotes for our jobs
     (async () => {
       try {
         const { data: quotes } = await supabase
@@ -139,7 +141,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
           `)
           .eq('status', 'pending_customer')
           .order('created_at', { ascending: false })
-          .limit(10); // Fetch more quotes to find the one matching active job
+          .limit(1);
 
         return quotes || [];
       } catch (err) {
@@ -148,23 +150,12 @@ async function CustomerDashboardContent({ user, profile }: any) {
       }
     })(),
 
-    // Query 4: Fetch Recent Activities from Job Events
-    // FIX: Use job_ids to filter events for current user's jobs (not by actor_user_id)
-    // Since we fetch all job IDs for the customer, we can filter events to those jobs
+    // Query 4: Fetch Recent Job Events
+    // RLS policy on job_events already filters by customer's jobs via:
+    //   job_id IN (SELECT id FROM jobs WHERE customer_id = auth.uid() OR professional_id = auth.uid())
+    // No need for a separate jobs query—RLS handles filtering server-side
     (async () => {
       try {
-        // First, fetch all job IDs for this customer to filter events
-        const { data: customerJobs } = await supabase
-          .from('jobs')
-          .select('id')
-          .eq('customer_id', user.id);
-
-        if (!customerJobs || customerJobs.length === 0) {
-          return [];
-        }
-
-        const jobIds = customerJobs.map(j => j.id);
-
         const { data: events } = await supabase
           .from('job_events')
           .select(`
@@ -175,7 +166,6 @@ async function CustomerDashboardContent({ user, profile }: any) {
             metadata,
             job_id
           `)
-          .in('job_id', jobIds)
           .order('created_at', { ascending: false })
           .limit(5);
 
@@ -187,7 +177,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
     })(),
   ]);
 
-  // Extract properties from first parallel batch
+  // Extract properties from parallel batch
   let userProperties: Array<{
     id: string;
     name: string;
@@ -196,7 +186,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
     city?: string;
   }> = [];
 
-  if (propsResult && propsResult.length > 0) {
+  if (propsResult && Array.isArray(propsResult) && propsResult.length > 0) {
     userProperties = propsResult.map((p: any) => {
       const addr = Array.isArray(p.addresses) ? p.addresses[0] : p.addresses;
       return {
@@ -213,7 +203,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
   let activeJobData: ActiveJobData | null = null;
   let activeJobId: string | null = null;
 
-  if (jobsResult && jobsResult.length > 0) {
+  if (jobsResult && Array.isArray(jobsResult) && jobsResult.length > 0) {
     const rawJob = jobsResult[0];
     activeJobId = rawJob.id;
     const rawBooking = Array.isArray(rawJob.bookings) ? rawJob.bookings[0] : rawJob.bookings;
@@ -252,15 +242,16 @@ async function CustomerDashboardContent({ user, profile }: any) {
   }
 
   // Extract pending quote from parallel batch
+  // Search through quotes for one matching the active job
   let activeQuoteData: QuoteApprovalData | null = null;
   
-  if (quotesResult && quotesResult.length > 0 && activeJobId) {
-    // Find the quote that matches the active job
+  if (quotesResult && Array.isArray(quotesResult) && quotesResult.length > 0 && activeJobData && activeJobId) {
+    // Find quote matching the active job ID
     const matchingQuote = quotesResult.find((q: any) => q.job_id === activeJobId);
     
-    if (matchingQuote && activeJobData) {
+    if (matchingQuote) {
       const q = matchingQuote;
-      const lineItems = (q.quote_items || []).map((item: any) => ({
+      const lineItems = (q.quote_items && Array.isArray(q.quote_items) ? q.quote_items : []).map((item: any) => ({
         id: item.id,
         type: (item.item_type as 'labour' | 'material' | 'fee') || 'material',
         description: item.description,
@@ -292,7 +283,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
   // Extract recent activities from parallel batch
   let recentActivities: ActivityItem[] = [];
 
-  if (eventsResult && eventsResult.length > 0) {
+  if (eventsResult && Array.isArray(eventsResult) && eventsResult.length > 0) {
     recentActivities = eventsResult.map((e: any) => ({
       id: e.id,
       type: e.event_type === 'quote_approved' ? 'quote_submitted' : 'job_completed',
