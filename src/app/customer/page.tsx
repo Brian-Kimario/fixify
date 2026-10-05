@@ -101,7 +101,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
               rating_average,
               completed_jobs_count,
               verification_status,
-              profiles (
+              profiles!professional_profiles_user_id_fkey (
                 full_name,
                 phone
               )
@@ -232,7 +232,9 @@ async function CustomerDashboardContent({ user, profile }: any) {
       professional: rawPro ? {
         id: rawPro.user_id,
         name: rawPro.display_name || 'Certified Professional',
-        phone: (Array.isArray(rawPro.profiles) ? rawPro.profiles[0]?.phone : rawPro.profiles?.phone) || undefined,
+        phone: (Array.isArray(rawPro['profiles!professional_profiles_user_id_fkey']) 
+          ? rawPro['profiles!professional_profiles_user_id_fkey'][0]?.phone 
+          : rawPro['profiles!professional_profiles_user_id_fkey']?.phone) || undefined,
         rating: Number(rawPro.rating_average) || 4.9,
         completedJobs: Number(rawPro.completed_jobs_count) || 48,
         verificationStatus: (rawPro.verification_status as 'verified' | 'pending' | 'not_verified') || 'verified',

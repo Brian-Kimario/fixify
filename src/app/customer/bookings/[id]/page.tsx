@@ -65,7 +65,18 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
       jobs (
         id,
         current_state,
-        payments ( id, status )
+        payments ( id, status ),
+        professional_profiles (
+          user_id,
+          display_name,
+          rating_average,
+          completed_jobs_count,
+          verification_status,
+          profiles!professional_profiles_user_id_fkey (
+            full_name,
+            phone
+          )
+        )
       )
     `)
     .eq('id', id)
@@ -85,6 +96,27 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
   const jobRow = Array.isArray(booking.jobs)
     ? booking.jobs[0]
     : (booking.jobs as { id: string; current_state: string; payments: { id: string; status: string }[] } | null);
+
+  // ── Professional data (if assigned) ───────────────────────────────────────
+  let professional: { id: string; name: string; phone?: string; rating: number; completedJobs: number; verificationStatus: string } | null = null;
+  
+  if (jobRow && Array.isArray(booking.jobs)) {
+    const job = booking.jobs[0] as any;
+    const rawPro = Array.isArray(job?.professional_profiles) ? job.professional_profiles[0] : job?.professional_profiles;
+    
+    if (rawPro) {
+      professional = {
+        id: rawPro.user_id,
+        name: rawPro.display_name || 'Certified Professional',
+        phone: (Array.isArray(rawPro['profiles!professional_profiles_user_id_fkey'])
+          ? rawPro['profiles!professional_profiles_user_id_fkey'][0]?.phone
+          : rawPro['profiles!professional_profiles_user_id_fkey']?.phone) || undefined,
+        rating: Number(rawPro.rating_average) || 4.9,
+        completedJobs: Number(rawPro.completed_jobs_count) || 0,
+        verificationStatus: rawPro.verification_status || 'pending',
+      };
+    }
+  }
 
   const existingPayments = (jobRow?.payments ?? []) as { id: string; status: string }[];
   const alreadyPaid      = existingPayments.some((p) => p.status === 'paid');
@@ -223,6 +255,40 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
                       {property.address.area ? `, ${property.address.area}` : ''}
                       {`, ${property.address.city}`}
                     </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Professional details — shown when job is assigned/accepted/active */}
+          {professional && jobRow && ['accepted', 'on_the_way', 'arrived', 'in_progress', 'quote_pending', 'completed'].includes(jobRow.current_state) && (
+            <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-3">Technician</p>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#E2EEE9] text-[#176B5B] flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  {professional.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-[#18211F]">{professional.name}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-[#5A6661]">★ {professional.rating.toFixed(1)}</span>
+                    <span className="text-xs text-[#5A6661]">·</span>
+                    <span className="text-xs text-[#5A6661]">{professional.completedJobs} jobs</span>
+                    {professional.verificationStatus === 'verified' && (
+                      <>
+                        <span className="text-xs text-[#5A6661]">·</span>
+                        <span className="text-xs font-semibold text-[#2F7D5B]">✓ Verified</span>
+                      </>
+                    )}
+                  </div>
+                  {professional.phone && (
+                    <a
+                      href={`tel:${professional.phone}`}
+                      className="text-xs text-[#176B5B] hover:underline mt-2 inline-flex items-center gap-1"
+                    >
+                      {professional.phone}
+                    </a>
                   )}
                 </div>
               </div>
