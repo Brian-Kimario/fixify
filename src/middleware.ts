@@ -47,8 +47,29 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
+            // FIX 1: HttpOnly prevents JavaScript from accessing cookies (XSS protection)
+            // FIX 2: Secure forces HTTPS only (prevents MITM interception)
+            // FIX 3: SameSite=Strict prevents CSRF attacks
+            // FIX 4: Reduce token lifetime from 6 months to 7 days
+            
+            const isAuthCookie = name.includes('auth') || name.includes('session') || name.startsWith('sb-');
+            
+            const secureOptions = isAuthCookie
+              ? {
+                  ...options,
+                  httpOnly: true,
+                  secure: process.env.NODE_ENV === 'production',
+                  sameSite: 'strict' as const,
+                  maxAge: 7 * 24 * 60 * 60, // 7 days instead of 6 months
+                }
+              : {
+                  ...options,
+                  httpOnly: true,
+                  secure: process.env.NODE_ENV === 'production',
+                };
+
             request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
+            response.cookies.set(name, value, secureOptions);
           });
         },
       },
