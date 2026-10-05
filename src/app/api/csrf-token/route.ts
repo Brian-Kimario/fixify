@@ -11,12 +11,13 @@ import { handleCSRFTokenRequest } from "@/lib/csrf-middleware";
  * // Use token in X-CSRF-Token header for state-changing requests
  * 
  * Cache: 1 minute (volatile data — token regenerates frequently)
+ * Cache headers are set by middleware.ts for this route
  */
 export async function GET(request: NextRequest) {
   const response = await handleCSRFTokenRequest();
   
-  // Cache CSRF tokens for 1 minute — volatile but predictable per session
-  response.headers.set("Cache-Control", "max-age=60, s-maxage=60");
+  // Middleware sets cache headers for this route (max-age=60, s-maxage=60)
+  // Do not duplicate headers here
   
   return response;
 }
