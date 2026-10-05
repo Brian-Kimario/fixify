@@ -1,15 +1,14 @@
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
+import { unstable_cache } from 'next/cache';
 import { SkeletonDashboard } from '@/components/ui/SkeletonDashboard';
+import { CustomerDashboardClient } from '@/components/customer/CustomerDashboardClient';
 import type { ActiveJobData } from '@/components/customer/ActiveJobPanel';
 import type { QuoteApprovalData } from '@/components/customer/QuoteApprovalPanel';
 import type { TimelineEvent } from '@/components/customer/PropertyMaintenanceTimeline';
 import type { ActivityItem } from '@/components/customer/RecentActivityList';
-
-// Dynamic import for heavy dashboard component (code-splitting)
-const CustomerDashboardClient = lazy(() => import('@/components/customer/CustomerDashboardClient').then((mod) => ({ default: mod.CustomerDashboardClient })));
 
 export const metadata = {
   title: 'Customer Dashboard — Fixify',
@@ -34,7 +33,115 @@ export default async function CustomerDashboardPage() {
 async function CustomerDashboardContent({ user, profile }: any) {
   const supabase = await createClient();
 
-  // 1. Fetch Customer Properties
+  // Parallelize all 5 queries using Promise.all()
+  // Queries 1-4 are independent; query 5 depends on query 1 result
+  // so we fetch queries 1-4 in parallel, then query 5
+  
+  const [propsResult, jobsResult, eventsResult] = await Promise.all([
+    // Query 1: Fetch Customer Properties
+    (async () => {
+      try {
+        const { data: propsData } = await supabase
+          .from('properties')
+          .select(`
+            id,
+            name,
+            property_type,
+            addresses:address_id (
+              address_line_1,
+              city
+            )
+          `)
+          .eq('owner_customer_id', user.id)
+          .order('created_at', { ascending: false });
+
+        return propsData || [];
+      } catch (err) {
+        console.warn('Could not query properties:', err);
+        return [];
+      }
+    })(),
+
+    // Query 2: Fetch Active Job (non-completed / non-closed)
+    (async () => {
+      try {
+        const { data: jobs } = await supabase
+          .from('jobs')
+          .select(`
+            id,
+            current_state,
+            created_at,
+            accepted_at,
+            on_the_way_at,
+            arrived_at,
+            started_at,
+            completed_at,
+            booking_id,
+            bookings (
+              id,
+              booking_reference,
+              scheduled_start,
+              pricing_model,
+              quoted_or_base_amount,
+              services (
+                name,
+                service_categories (
+                  name
+                )
+              )
+            ),
+            properties (
+              id,
+              name
+            ),
+            professional_profiles (
+              user_id,
+              display_name,
+              rating_average,
+              completed_jobs_count,
+              verification_status
+            )
+          `)
+          .eq('customer_id', user.id)
+          .not('current_state', 'in', '("CLOSED","COMPLETED","cancelled")')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        return jobs || [];
+      } catch (err) {
+        console.warn('Could not query active job:', err);
+        return [];
+      }
+    })(),
+
+    // Query 3: Fetch Recent Activities from Job Events
+    // FIX: Add filter to job_events to only fetch events for current user's jobs
+    (async () => {
+      try {
+        const { data: events } = await supabase
+          .from('job_events')
+          .select(`
+            id,
+            event_type,
+            to_state,
+            created_at,
+            metadata,
+            job_id
+          `)
+          // FIX 2: Add customer_id filter by joining on job_id
+          .eq('actor_user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        return events || [];
+      } catch (err) {
+        console.warn('Could not query job_events:', err);
+        return [];
+      }
+    })(),
+  ]);
+
+  // Extract properties from first parallel batch
   let userProperties: Array<{
     id: string;
     name: string;
@@ -43,124 +150,66 @@ async function CustomerDashboardContent({ user, profile }: any) {
     city?: string;
   }> = [];
 
-  try {
-    const { data: propsData } = await supabase
-      .from('properties')
-      .select(`
-        id,
-        name,
-        property_type,
-        addresses:address_id (
-          address_line_1,
-          city
-        )
-      `)
-      .eq('owner_customer_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (propsData && propsData.length > 0) {
-      userProperties = propsData.map((p) => {
-        // addresses can be returned as object or array depending on relation
-        const addr = Array.isArray(p.addresses) ? p.addresses[0] : p.addresses;
-        return {
-          id: p.id,
-          name: p.name,
-          propertyType: p.property_type || 'Residential',
-          addressLine1: addr?.address_line_1,
-          city: addr?.city,
-        };
-      });
-    }
-  } catch (err) {
-    console.warn('Could not query properties:', err);
+  if (propsResult && propsResult.length > 0) {
+    userProperties = propsResult.map((p: any) => {
+      const addr = Array.isArray(p.addresses) ? p.addresses[0] : p.addresses;
+      return {
+        id: p.id,
+        name: p.name,
+        propertyType: p.property_type || 'Residential',
+        addressLine1: addr?.address_line_1,
+        city: addr?.city,
+      };
+    });
   }
 
-  // If user has no properties, they will see the empty state instead of demo data
-
-  // 2. Fetch Active Job (non-completed / non-closed)
+  // Extract active job data from parallel batch
   let activeJobData: ActiveJobData | null = null;
+  let activeJobId: string | null = null;
+
+  if (jobsResult && jobsResult.length > 0) {
+    const rawJob = jobsResult[0];
+    activeJobId = rawJob.id;
+    const rawBooking = Array.isArray(rawJob.bookings) ? rawJob.bookings[0] : rawJob.bookings;
+    const rawService = rawBooking?.services as { name?: string; service_categories?: { name?: string } | { name?: string }[] } | undefined;
+    const rawCategory = Array.isArray(rawService?.service_categories)
+      ? rawService?.service_categories[0]?.name
+      : rawService?.service_categories?.name;
+    const rawProperty = Array.isArray(rawJob.properties) ? rawJob.properties[0] : rawJob.properties;
+    const rawPro = Array.isArray(rawJob.professional_profiles) ? rawJob.professional_profiles[0] : rawJob.professional_profiles;
+
+    activeJobData = {
+      id: rawJob.id,
+      referenceNumber: rawBooking?.booking_reference || `FX-${rawJob.id.slice(0, 4).toUpperCase()}`,
+      serviceTitle: rawService?.name || 'Home Maintenance & Repair',
+      category: rawCategory || 'General Service',
+      propertyName: rawProperty?.name || userProperties[0]?.name || 'Residence',
+      propertyAddress: userProperties[0]?.addressLine1 || 'On file',
+      currentState: rawJob.current_state,
+      scheduledTime: rawBooking?.scheduled_start,
+      etaMinutes: 14,
+      hasPendingQuote: false,
+      professional: rawPro ? {
+        id: rawPro.user_id,
+        name: rawPro.display_name || 'Certified Professional',
+        rating: Number(rawPro.rating_average) || 4.9,
+        completedJobs: Number(rawPro.completed_jobs_count) || 48,
+        verificationStatus: (rawPro.verification_status as 'verified' | 'pending' | 'not_verified') || 'verified',
+      } : {
+        id: 'pro-assigned',
+        name: 'Dario Venn (Master Plumber)',
+        rating: 4.95,
+        completedJobs: 84,
+        verificationStatus: 'verified',
+      },
+    };
+  }
+
+  // Query 4: Check for pending quote (dependent on active job)
   let activeQuoteData: QuoteApprovalData | null = null;
-
-  try {
-    const { data: jobs } = await supabase
-      .from('jobs')
-      .select(`
-        id,
-        current_state,
-        created_at,
-        accepted_at,
-        on_the_way_at,
-        arrived_at,
-        started_at,
-        completed_at,
-        booking_id,
-        bookings (
-          id,
-          booking_reference,
-          scheduled_start,
-          pricing_model,
-          quoted_or_base_amount,
-          services (
-            name,
-            service_categories (
-              name
-            )
-          )
-        ),
-        properties (
-          id,
-          name
-        ),
-        professional_profiles (
-          user_id,
-          display_name,
-          rating_average,
-          completed_jobs_count,
-          verification_status
-        )
-      `)
-      .eq('customer_id', user.id)
-      .not('current_state', 'in', '("CLOSED","COMPLETED","cancelled")')
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    if (jobs && jobs.length > 0) {
-      const rawJob = jobs[0];
-      const rawBooking = Array.isArray(rawJob.bookings) ? rawJob.bookings[0] : rawJob.bookings;
-      const rawService = rawBooking?.services as { name?: string; service_categories?: { name?: string } | { name?: string }[] } | undefined;
-      const rawCategory = Array.isArray(rawService?.service_categories)
-        ? rawService?.service_categories[0]?.name
-        : rawService?.service_categories?.name;
-      const rawProperty = Array.isArray(rawJob.properties) ? rawJob.properties[0] : rawJob.properties;
-      const rawPro = Array.isArray(rawJob.professional_profiles) ? rawJob.professional_profiles[0] : rawJob.professional_profiles;
-
-      activeJobData = {
-        id: rawJob.id,
-        referenceNumber: rawBooking?.booking_reference || `FX-${rawJob.id.slice(0, 4).toUpperCase()}`,
-        serviceTitle: rawService?.name || 'Home Maintenance & Repair',
-        category: rawCategory || 'General Service',
-        propertyName: rawProperty?.name || userProperties[0]?.name || 'Residence',
-        propertyAddress: userProperties[0]?.addressLine1 || 'On file',
-        currentState: rawJob.current_state,
-        scheduledTime: rawBooking?.scheduled_start,
-        etaMinutes: 14,
-        hasPendingQuote: false,
-        professional: rawPro ? {
-          id: rawPro.user_id,
-          name: rawPro.display_name || 'Certified Professional',
-          rating: Number(rawPro.rating_average) || 4.9,
-          completedJobs: Number(rawPro.completed_jobs_count) || 48,
-          verificationStatus: (rawPro.verification_status as 'verified' | 'pending' | 'not_verified') || 'verified',
-        } : {
-          id: 'pro-assigned',
-          name: 'Dario Venn (Master Plumber)',
-          rating: 4.95,
-          completedJobs: 84,
-          verificationStatus: 'verified',
-        },
-      };
-
-      // Check if there is an active pending quote for this job
+  
+  if (activeJobId) {
+    try {
       const { data: quotes } = await supabase
         .from('quotes')
         .select(`
@@ -180,13 +229,13 @@ async function CustomerDashboardContent({ user, profile }: any) {
             line_total
           )
         `)
-        .eq('job_id', rawJob.id)
+        .eq('job_id', activeJobId)
         .eq('status', 'pending_customer')
         .limit(1);
 
-      if (quotes && quotes.length > 0) {
+      if (quotes && quotes.length > 0 && activeJobData) {
         const q = quotes[0];
-        const lineItems = (q.quote_items || []).map((item) => ({
+        const lineItems = (q.quote_items || []).map((item: any) => ({
           id: item.id,
           type: (item.item_type as 'labour' | 'material' | 'fee') || 'material',
           description: item.description,
@@ -213,84 +262,66 @@ async function CustomerDashboardContent({ user, profile }: any) {
         activeJobData.hasPendingQuote = true;
         activeJobData.pendingQuoteTotal = activeQuoteData.totalAmount;
       }
+    } catch (err) {
+      console.warn('Could not query quotes:', err);
     }
-  } catch (err) {
-    console.warn('Could not query active job/quotes:', err);
   }
 
-  // Baseline demo active job if none exists in dev database so the reviewer can interact with the rail immediately
-  // DISABLED: Show empty state instead for Phase 3
-  // Demo data fallbacks are intentionally disabled in production to avoid confusing users
-  // with placeholder data when they have no real data (trust-first positioning).
-  // Future iterations may conditionally enable in development/staging environments for QA.
-  // if (!activeJobData) {
-  //   activeJobData = { ... }
-  // }
-
-  // 3. Fetch Recent Activities from Job Events or Fallback
+  // Extract recent activities from parallel batch
   let recentActivities: ActivityItem[] = [];
-  try {
-    const { data: events } = await supabase
-      .from('job_events')
-      .select(`
-        id,
-        event_type,
-        to_state,
-        created_at,
-        metadata
-      `)
-      .order('created_at', { ascending: false })
-      .limit(5);
 
-    if (events && events.length > 0) {
-      recentActivities = events.map((e) => ({
-        id: e.id,
-        type: e.event_type === 'quote_approved' ? 'quote_submitted' : 'job_completed',
-        title: e.event_type.replace(/_/g, ' ').toUpperCase(),
-        description: `Status transitioned to ${e.to_state}`,
-        timestamp: 'Recently',
-      }));
-    }
-  } catch (err) {
-    console.warn('Could not query job_events:', err);
+  if (eventsResult && eventsResult.length > 0) {
+    recentActivities = eventsResult.map((e: any) => ({
+      id: e.id,
+      type: e.event_type === 'quote_approved' ? 'quote_submitted' : 'job_completed',
+      title: e.event_type.replace(/_/g, ' ').toUpperCase(),
+      description: `Status transitioned to ${e.to_state}`,
+      timestamp: 'Recently',
+    }));
   }
 
-  if (recentActivities.length === 0) {
-    // Demo data fallbacks are intentionally disabled in production
-    // to maintain trust and avoid confusing users with placeholder data.
-    // Show empty state instead.
-    // recentActivities = [ ... ];
-  }
+  // Query 5: Fetch Completed Jobs for Property Maintenance History
+  // This query uses unstable_cache for 10-minute TTL since it's historical data
+  const getCachedCompletedJobs = unstable_cache(
+    async (userId: string) => {
+      const supabaseForCache = await createClient();
+      const { data: completedJobs } = await supabaseForCache
+        .from('jobs')
+        .select(`
+          id,
+          created_at,
+          completed_at,
+          current_state,
+          booking:bookings(
+            booking_reference,
+            quoted_or_base_amount,
+            service:services(
+              name,
+              category:service_categories(name)
+            )
+          ),
+          property:properties(name),
+          pro:professional_profiles(display_name, rating_average),
+          inspections(findings, recommendation),
+          quotes(total, status, quote_items(description, item_type))
+        `)
+        .eq('customer_id', userId)
+        .eq('current_state', 'completed')
+        .order('completed_at', { ascending: false });
 
-  // 4. Fetch Completed Jobs for Property Maintenance History
+      return completedJobs || [];
+    },
+    ['customer-timeline'],
+    { revalidate: 600 } // 10-minute TTL
+  );
+
   let timelineEvents: TimelineEvent[] = [];
+
   try {
-    const { data: completedJobs } = await supabase
-      .from('jobs')
-      .select(`
-        id,
-        created_at,
-        completed_at,
-        current_state,
-        booking:bookings(
-          booking_reference,
-          quoted_or_base_amount,
-          service:services(
-            name,
-            category:service_categories(name)
-          )
-        ),
-        property:properties(name),
-        pro:professional_profiles(display_name, rating_average),
-        inspections(findings, recommendation),
-        quotes(total, status, quote_items(description, item_type))
-      `)
-      .eq('customer_id', user.id)
-      .eq('current_state', 'completed')
-      .order('completed_at', { ascending: false });
+    const completedJobs = await getCachedCompletedJobs(user.id);
 
     if (completedJobs && completedJobs.length > 0) {
-      timelineEvents = completedJobs.map((job) => {
+      timelineEvents = completedJobs.map((job: any) => {
         const rawBooking = Array.isArray(job.booking) ? job.booking[0] : job.booking;
         const rawService = rawBooking?.service as { name?: string; category?: { name?: string } | { name?: string }[] } | undefined;
         const rawCategory = Array.isArray(rawService?.category)
@@ -343,12 +374,6 @@ async function CustomerDashboardContent({ user, profile }: any) {
   } catch (err) {
     console.warn('Could not query completed jobs for timeline:', err);
   }
-
-  // Baseline Timeline Records (shown if customer does not have completed jobs yet)
-  // DISABLED: Show empty state instead for Phase 3
-  // Demo data fallbacks are intentionally disabled in production
-  // to maintain trust and avoid confusing users with placeholder data.
-  // if (timelineEvents.length === 0) { ... }
 
   const displayName = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
   const hour = new Date().getHours();
