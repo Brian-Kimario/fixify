@@ -189,7 +189,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
       </div>
 
       {/* Horizontal State Rail (Anime.js animated) */}
-      <div className="relative z-10 my-7 pt-2">
+      <div className="relative z-10 my-7 pt-2 pointer-events-none">
         <div className="relative">
           {/* Base Track */}
           <div className="absolute left-[3%] right-[3%] top-3 h-[3px] bg-white/10 rounded-full" />
@@ -202,7 +202,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
           />
 
           {/* Rail Steps */}
-          <div className="relative flex justify-between">
+          <div className="relative flex justify-between pointer-events-none">
             {RAIL_STEPS.map((step, idx) => {
               const isPast = idx < activeIndex;
               const isCurrent = idx === activeIndex;

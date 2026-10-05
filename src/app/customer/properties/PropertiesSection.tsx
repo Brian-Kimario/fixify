@@ -277,15 +277,11 @@ export function PropertiesSection({
                 });
                 const address = addresses.find((a) => a.id === data.address_id);
                 if (address) {
-                  setProperties([
-                    {
-                      ...newProperty,
-                      address: Array.isArray(newProperty.address)
-                        ? newProperty.address
-                        : address,
-                    },
-                    ...properties,
-                  ]);
+                  const propertyWithAddress: typeof properties[0] = {
+                    ...newProperty,
+                    address,
+                  } as any;
+                  setProperties([propertyWithAddress, ...properties]);
                 }
               }
               setShowPropertyModal(false);

@@ -21,11 +21,6 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-200">
-      {/* TEST BANNER - VERIFY THIS IS SHOWING */}
-      <div className="p-4 bg-red-100 border-4 border-red-500 rounded-lg">
-        <p className="font-bold text-red-700 text-lg">🔴 KIRO CHANGES ARE LIVE - IF YOU SEE THIS, THE CHANGES WORKED!</p>
-      </div>
-
       {/* Back Navigation */}
       <Link
         href="/customer"

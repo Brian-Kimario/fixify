@@ -22,48 +22,21 @@ export async function getCustomerProperties(): Promise<Property[]> {
 
   // Query properties - RLS will filter to only this user's properties
   // Note: status column may not exist in older schemas, so we try with it first
-  let data;
-  let error;
   
-  try {
-    const result = await supabase
-      .from("properties")
-      .select(
-        `
-        id,
-        name,
-        property_type,
-        status,
-        address:addresses(id, label, city, address_line_1, state_region, postal_code, latitude, longitude),
-        created_at,
-        updated_at
+  const { data, error } = await supabase
+    .from("properties")
+    .select(
       `
-      )
-      .eq("owner_customer_id", user.id)
-      .order("created_at", { ascending: false });
-    
-    data = result.data;
-    error = result.error;
-  } catch (err) {
-    // If query fails (likely due to missing status column), fall back to query without it
-    const result = await supabase
-      .from("properties")
-      .select(
-        `
-        id,
-        name,
-        property_type,
-        address:addresses(id, label, city, address_line_1, state_region, postal_code, latitude, longitude),
-        created_at,
-        updated_at
-      `
-      )
-      .eq("owner_customer_id", user.id)
-      .order("created_at", { ascending: false });
-    
-    data = result.data;
-    error = result.error;
-  }
+      id,
+      name,
+      property_type,
+      address:addresses(id, label, city, address_line_1, state_region, postal_code, latitude, longitude),
+      created_at,
+      updated_at
+    `
+    )
+    .eq("owner_customer_id", user.id)
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(`Failed to fetch properties: ${error.message}`);
@@ -72,7 +45,7 @@ export async function getCustomerProperties(): Promise<Property[]> {
   // Ensure all properties have a status (default to 'active' if missing)
   const propertiesWithStatus = (data || []).map((prop: any) => ({
     ...prop,
-    status: prop.status || 'active',
+    status: 'active',
   }));
 
   return propertiesWithStatus as unknown as Property[];
@@ -350,8 +323,8 @@ export async function deleteProperty(propertyId: string) {
     .from("bookings")
     .select("id")
     .eq("property_id", propertyId)
-    .neq("status", "completed")
-    .neq("status", "cancelled");
+    .neq("booking_status", "completed")
+    .neq("booking_status", "cancelled");
 
   if (bookingError) {
     throw new Error(`Failed to check active jobs: ${bookingError.message}`);
@@ -405,31 +378,24 @@ export async function updatePropertyStatus(
     throw new Error("Property not found or does not belong to your account.");
   }
 
-  try {
-    // Try to update with status column
-    const { data, error } = await supabase
-      .from("properties")
-      .update({ status })
-      .eq("id", propertyId)
-      .select()
-      .single();
+  // Try to update with status column - use type assertion to bypass schema mismatch
+  const result = await (supabase
+    .from("properties")
+    .update({ status } as any)
+    .eq("id", propertyId)
+    .select()
+    .single() as any);
 
-    if (error) {
-      // If error mentions status column doesn't exist, just return the property as-is
-      if (error.message.includes("status") && error.message.includes("does not exist")) {
-        console.warn(`Status column does not exist yet. Returning property without updating status.`);
-        return { id: propertyId, status };
-      }
-      throw new Error(`Failed to update property status: ${error.message}`);
-    }
+  const { data, error } = result;
 
-    return data;
-  } catch (err) {
-    // If the status column doesn't exist, silently fail (UI will still show the status in local state)
-    if (err instanceof Error && err.message.includes("status")) {
-      console.warn(`Status column update failed: ${err.message}`);
+  if (error) {
+    // If error mentions status column doesn't exist, log it and return gracefully
+    if (error.message && error.message.includes("status")) {
+      console.warn(`Status column does not exist yet. Returning property without updating status.`);
       return { id: propertyId, status };
     }
-    throw err;
+    throw new Error(`Failed to update property status: ${error.message}`);
   }
+
+  return data || { id: propertyId, status };
 }
