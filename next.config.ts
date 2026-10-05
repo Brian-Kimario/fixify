@@ -23,7 +23,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'manuscdn.com',
+        hostname: 'files.manuscdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.manuscdn.com',
       },
     ],
   },
