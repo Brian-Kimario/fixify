@@ -1,10 +1,15 @@
+import type { Metadata } from 'next';
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { SignOutMenu } from '@/components/shared/SignOutMenu';
 import { Symbol } from '@/components/brand/Symbol';
 
-export const metadata = {
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
   title: 'Professional Dashboard — Fixify',
   description: 'Manage your professional profile, jobs, bids, and earnings',
 };

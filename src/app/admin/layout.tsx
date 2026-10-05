@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
@@ -5,7 +6,11 @@ import Link from 'next/link';
 import { SignOutMenu } from '@/components/shared/SignOutMenu';
 import { Symbol } from '@/components/brand/Symbol';
 
-export const metadata = {
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
   title: 'Admin Console — Fixify',
   description: 'Fixify operations and admin panel',
 };

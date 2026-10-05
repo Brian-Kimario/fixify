@@ -1,10 +1,15 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SignOutMenu } from "@/components/shared/SignOutMenu";
 import { Symbol } from "@/components/brand/Symbol";
 
-export const metadata = {
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
   title: "Dashboard — Fixify",
   description: "Request jobs, track professionals, manage your properties",
 };
