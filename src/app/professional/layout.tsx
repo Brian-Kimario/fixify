@@ -57,7 +57,7 @@ export default async function ProLayout({ children }: ProLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="pb-20 md:pb-0 px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto">
+      <main id="main-content" className="pb-20 md:pb-0 px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto">
         {children}
       </main>
 

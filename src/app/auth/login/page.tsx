@@ -82,7 +82,7 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="page">
+    <main id="main-content" className="page">
       {/* Left Visual */}
       <section className="visual" aria-label="Fixify introduction">
         <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1800&q=88" alt="Warm contemporary home interior" loading="eager" />
@@ -186,7 +186,7 @@ function LoginFormContent() {
       </section>
 
       <style jsx>{`
-        .page {
+        main {
           min-height: 100dvh;
           width: 100%;
           display: grid;
@@ -643,7 +643,7 @@ function LoginFormContent() {
           }
         }
       `}</style>
-    </div>
+    </main>
   );
 }
 

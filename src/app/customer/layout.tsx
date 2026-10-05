@@ -63,7 +63,7 @@ export default async function CustomerLayout({ children }: CustomerLayoutProps) 
       </header>
 
       {/* Main Content */}
-      <main className="pb-20 md:pb-0">
+      <main id="main-content" className="pb-20 md:pb-0">
         {children}
       </main>
 

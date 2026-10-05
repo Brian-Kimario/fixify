@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="page">
+    <main id="main-content" className="page">
       <section className="visual" aria-label="Fixify home maintenance introduction">
         <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
         <div className="visual-grid" aria-hidden="true" />
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
       </section>
 
       <style jsx>{`
-        .page { min-height: 100dvh; width: 100%; display: grid; grid-template-columns: minmax(0,.92fr) minmax(420px,1.08fr); }
+        main { min-height: 100dvh; width: 100%; display: grid; grid-template-columns: minmax(0,.92fr) minmax(420px,1.08fr); }
         .visual { position: relative; min-height: 100vh; padding: 28px; overflow: hidden; background: var(--color-ink); }
         .visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.88) contrast(1.06) brightness(.78); }
         .visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,rgba(8,23,20,.22),rgba(8,23,20,.82)),linear-gradient(90deg,rgba(8,23,20,.30),rgba(8,23,20,.08) 70%); z-index: 1; }
@@ -144,6 +144,6 @@ export default function ForgotPasswordPage() {
         @media (max-width:520px) { .form-side { padding: 28px 18px; } .auth-brand { margin-bottom: 30px; } .form-wrap h2 { font-size: 38px; } }
         @media (prefers-reduced-motion:reduce) { .submit,.input { transition: none; } .spinner { animation: none; } }
       `}</style>
-    </div>
+    </main>
   );
 }

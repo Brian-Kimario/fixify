@@ -142,7 +142,7 @@ function ResetPasswordContent() {
   // Loading state while checking session
   if (sessionValid === null) {
     return (
-      <div className="page">
+      <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
           <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
           <div className="visual-grid" aria-hidden="true" />
@@ -168,14 +168,14 @@ function ResetPasswordContent() {
           @media (max-width:900px) { .page { grid-template-columns: 1fr; } .visual { display: none; } .form-side { min-height: 100vh; padding: 36px 24px; } }
           .spinner { color: var(--color-teal); }
         `}</style>
-      </div>
+      </main>
     );
   }
 
   // Session invalid state
   if (!sessionValid) {
     return (
-      <div className="page">
+      <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
           <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
           <div className="visual-grid" aria-hidden="true" />
@@ -215,14 +215,14 @@ function ResetPasswordContent() {
           .back-link { align-items: center; color: var(--color-teal); display: inline-flex; gap: 7px; font-size: 13px; font-weight: 700; text-decoration: none; margin-top: 30px; }
           @media (max-width:900px) { .page { grid-template-columns: 1fr; } .visual { display: none; } .form-side { min-height: 100vh; padding: 36px 24px; } .auth-brand { display: flex; font-size: 24px; gap: 10px; margin: 0 0 42px; } .auth-brand .brand-mark { width: 38px; height: 38px; } }
         `}</style>
-      </div>
+      </main>
     );
   }
 
   // Success state
   if (success) {
     return (
-      <div className="page">
+      <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
           <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
           <div className="visual-grid" aria-hidden="true" />
@@ -261,13 +261,13 @@ function ResetPasswordContent() {
           .sub { color: var(--color-ink-3); margin: 11px 0 0; font-size: 15px; line-height: 1.6; }
           @media (max-width:900px) { .page { grid-template-columns: 1fr; } .visual { display: none; } .form-side { min-height: 100vh; padding: 36px 24px; } .auth-brand { display: flex; font-size: 24px; gap: 10px; margin: 0 0 42px; } .auth-brand .brand-mark { width: 38px; height: 38px; } }
         `}</style>
-      </div>
+      </main>
     );
   }
 
   // Main form state
   return (
-    <div className="page">
+    <main id="main-content" className="page">
       <section className="visual" aria-label="Fixify home maintenance introduction">
         <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
         <div className="visual-grid" aria-hidden="true" />
@@ -405,14 +405,14 @@ function ResetPasswordContent() {
           .spinner { animation: none; } 
         }
       `}</style>
-    </div>
+    </main>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="page">
+      <main id="main-content" className="page">
         <section className="visual" aria-label="Fixify home maintenance introduction">
           <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" alt="Calm bedroom interior" loading="eager" />
           <div className="visual-grid" aria-hidden="true" />
@@ -437,7 +437,7 @@ export default function ResetPasswordPage() {
           .form-wrap { width: min(100%,460px); }
           .spinner { color: var(--color-teal); }
         `}</style>
-      </div>
+      </main>
     }>
       <ResetPasswordContent />
     </Suspense>

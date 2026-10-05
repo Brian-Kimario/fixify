@@ -166,7 +166,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
       </header>
 
       {/* ── Main content ───────────────────────────────────────────── */}
-      <main className="pb-20 md:pb-0">{children}</main>
+      <main id="main-content" className="pb-20 md:pb-0">{children}</main>
 
       {/* ── Mobile bottom nav ──────────────────────────────────────── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFEFA] border-t border-[#D9DED8] flex items-center justify-around h-20">

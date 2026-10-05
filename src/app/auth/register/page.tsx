@@ -95,7 +95,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="page">
+    <main id="main-content" className="page">
       {/* Left Visual */}
       <section className="visual" aria-label="Fixify invitation">
         <img src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1800&q=88" alt="Professional services in a home environment" loading="eager" />
@@ -216,7 +216,7 @@ export default function RegisterPage() {
       </section>
 
       <style jsx>{`
-        .page {
+        main {
           min-height: 100dvh;
           width: 100%;
           display: grid;
@@ -582,7 +582,7 @@ export default function RegisterPage() {
         }
 
         @media (max-width: 900px) {
-          .page {
+          main {
             grid-template-columns: 1fr;
           }
 
@@ -640,6 +640,6 @@ export default function RegisterPage() {
           }
         }
       `}</style>
-    </div>
+    </main>
   );
 }
