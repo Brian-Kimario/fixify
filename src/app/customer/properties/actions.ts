@@ -28,7 +28,8 @@ export async function getCustomerProperties(): Promise<Property[]> {
       id,
       name,
       property_type,
-      address:addresses(id, label, city, address_line_1, latitude, longitude),
+      status,
+      address:addresses(id, label, city, address_line_1, state_region, postal_code, latitude, longitude),
       created_at,
       updated_at
     `
@@ -59,7 +60,7 @@ export async function getCustomerAddresses(): Promise<Address[]> {
 
   const { data, error } = await supabase
     .from("addresses")
-    .select("id, label, city, address_line_1, latitude, longitude, created_at")
+    .select("id, label, city, address_line_1, state_region, postal_code, latitude, longitude, created_at")
     .eq("customer_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -338,4 +339,48 @@ export async function deleteProperty(propertyId: string) {
   }
 
   return { success: true };
+}
+
+/**
+ * Update property status for the customer
+ * Requires ownership verification
+ */
+export async function updatePropertyStatus(
+  propertyId: string,
+  status: 'active' | 'inactive' | 'maintenance'
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  // Verify ownership before updating (RLS will also enforce this)
+  const { data: property, error: fetchError } = await supabase
+    .from("properties")
+    .select("id, owner_customer_id")
+    .eq("id", propertyId)
+    .eq("owner_customer_id", user.id)
+    .single();
+
+  if (fetchError || !property) {
+    throw new Error("Property not found or does not belong to your account.");
+  }
+
+  const { data, error } = await supabase
+    .from("properties")
+    .update({ status })
+    .eq("id", propertyId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update property status: ${error.message}`);
+  }
+
+  return data;
 }

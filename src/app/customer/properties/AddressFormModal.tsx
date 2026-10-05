@@ -32,6 +32,21 @@ export function AddressFormModal({
   });
   const [error, setError] = useState<string | null>(null);
 
+  // Reset form state when modal closes
+  const handleClose = () => {
+    setFormData({
+      label: '',
+      address_line_1: '',
+      city: '',
+      state_region: '',
+      postal_code: '',
+      latitude: '',
+      longitude: '',
+    });
+    setError(null);
+    onClose();
+  };
+
   const isEditMode = !!initialData;
   const isFormValid =
     formData.label.trim() && formData.address_line_1.trim() && formData.city.trim();
@@ -65,16 +80,7 @@ export function AddressFormModal({
       };
 
       await onSubmit(submitData);
-      setFormData({
-        label: '',
-        address_line_1: '',
-        city: '',
-        state_region: '',
-        postal_code: '',
-        latitude: '',
-        longitude: '',
-      });
-      onClose();
+      handleClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);
@@ -84,7 +90,7 @@ export function AddressFormModal({
   return (
     <SimpleModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={isEditMode ? 'Edit Address' : 'Add Address'}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -207,7 +213,7 @@ export function AddressFormModal({
         <div className="flex gap-3 pt-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isLoading}
             className="flex-1 rounded-lg border border-[#D9DED8] px-4 py-2.5 text-sm font-bold text-[#176B5B] hover:bg-[#F1EEE5] disabled:opacity-50"
           >

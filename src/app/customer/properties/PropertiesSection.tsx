@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ConfirmationModal } from '@/components/ui/Modal';
 import { PropertyFormModal } from './PropertyFormModal';
-import { deleteProperty } from './actions';
+import { deleteProperty, updatePropertyStatus } from './actions';
 import type { Property, Address } from './types';
 
 interface PropertiesSectionProps {
@@ -24,9 +24,6 @@ export function PropertiesSection({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [statusToggle, setStatusToggle] = useState<Record<string, boolean>>(
-    Object.fromEntries(properties.map((p) => [p.id, true]))
-  );
 
   const handleAddProperty = () => {
     setPropertyToEdit(null);
@@ -72,19 +69,20 @@ export function PropertiesSection({
     router.push(`/customer/bookings?property_id=${propertyId}`);
   };
 
-  const handleStatusToggle = (propertyId: string) => {
-    setStatusToggle((prev) => ({
-      ...prev,
-      [propertyId]: !prev[propertyId],
-    }));
-  };
-
-  const handlePropertySubmit = async (
-    data: Partial<Property> & { address_id: string }
-  ) => {
-    // This will be called by PropertyFormModal - but we need to handle the actual submission
-    // The modal will handle the API call and we'll receive the result here
-    // For now, this is a placeholder - the modal component handles the server action
+  const handleStatusChange = (propertyId: string, newStatus: 'active' | 'inactive' | 'maintenance') => {
+    startTransition(async () => {
+      try {
+        await updatePropertyStatus(propertyId, newStatus);
+        setProperties(
+          properties.map((p) =>
+            p.id === propertyId ? { ...p, status: newStatus } : p
+          )
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to update status';
+        setError(msg);
+      }
+    });
   };
 
   return (
@@ -145,7 +143,7 @@ export function PropertiesSection({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {properties.map((property) => {
-              const isActive = statusToggle[property.id] !== false;
+              const currentStatus = property.status || 'active';
               const address = Array.isArray(property.address)
                 ? property.address[0]
                 : property.address;
@@ -162,16 +160,22 @@ export function PropertiesSection({
                         {property.property_type}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleStatusToggle(property.id)}
-                      className={`px-2.5 py-1 text-xs font-bold rounded-full flex-shrink-0 transition ${
-                        isActive
-                          ? 'bg-[#E2EEE9] text-[#176B5B]'
-                          : 'bg-[#F3E1DA] text-[#A9523D]'
-                      }`}
+                    <select
+                      value={currentStatus}
+                      onChange={(e) => handleStatusChange(property.id, e.target.value as 'active' | 'inactive' | 'maintenance')}
+                      disabled={isPending}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-lg flex-shrink-0 transition border ${
+                        currentStatus === 'active'
+                          ? 'bg-[#E2EEE9] text-[#176B5B] border-[#B8D9D3]'
+                          : currentStatus === 'inactive'
+                          ? 'bg-[#F3E1DA] text-[#A9523D] border-[#DFC0B7]'
+                          : 'bg-[#FFF3E0] text-[#E65100] border-[#FFE0B2]'
+                      } disabled:opacity-50`}
                     >
-                      {isActive ? 'Active' : 'Inactive'}
-                    </button>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="maintenance">Maintenance</option>
+                    </select>
                   </div>
 
                   {address && (
@@ -265,7 +269,12 @@ export function PropertiesSection({
                 );
               } else {
                 // Add mode
-                const newProperty = await createProperty(data as any);
+                const newProperty = await createProperty({
+                  name: data.name,
+                  property_type: data.property_type,
+                  address_id: data.address_id,
+                  notes: data.notes,
+                });
                 const address = addresses.find((a) => a.id === data.address_id);
                 if (address) {
                   setProperties([
@@ -273,7 +282,7 @@ export function PropertiesSection({
                       ...newProperty,
                       address: Array.isArray(newProperty.address)
                         ? newProperty.address
-                        : [address],
+                        : address,
                     },
                     ...properties,
                   ]);

@@ -3,6 +3,8 @@ export interface Address {
   label: string;
   city: string;
   address_line_1: string;
+  state_region?: string;
+  postal_code?: string;
   latitude?: number | null;
   longitude?: number | null;
 }
@@ -12,6 +14,8 @@ export interface Property {
   name: string;
   property_type: string;
   address: Address;
+  notes?: string;
+  status?: 'active' | 'inactive' | 'maintenance';
   created_at?: string;
   updated_at?: string;
 }
