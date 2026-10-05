@@ -1,13 +1,15 @@
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Suspense } from 'react';
-import { CustomerDashboardClient } from '@/components/customer/CustomerDashboardClient';
+import { Suspense, lazy } from 'react';
 import { SkeletonDashboard } from '@/components/ui/SkeletonDashboard';
 import type { ActiveJobData } from '@/components/customer/ActiveJobPanel';
 import type { QuoteApprovalData } from '@/components/customer/QuoteApprovalPanel';
 import type { TimelineEvent } from '@/components/customer/PropertyMaintenanceTimeline';
 import type { ActivityItem } from '@/components/customer/RecentActivityList';
+
+// Dynamic import for heavy dashboard component (code-splitting)
+const CustomerDashboardClient = lazy(() => import('@/components/customer/CustomerDashboardClient').then((mod) => ({ default: mod.CustomerDashboardClient })));
 
 export const metadata = {
   title: 'Customer Dashboard — Fixify',
