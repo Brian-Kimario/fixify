@@ -53,8 +53,8 @@ export default async function ProLayout({ children }: ProLayoutProps) {
           {/* Desktop Navigation */}
           <TopNavLinks items={NAV_ITEMS} />
 
-          {/* Profile Section (Desktop only) */}
-          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+          {/* Account menu */}
+          <div className="flex items-center gap-3 flex-shrink-0">
             <SignOutMenu 
               user={user} 
               displayName={displayName}

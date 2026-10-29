@@ -257,7 +257,7 @@ export default function AdminJobsClient({ initialJobs, total, initialSelectedId 
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="text-[#18211F] font-medium truncate max-w-[130px]">
-                        {job.customer_name ?? '—'}
+                        {job.customer_name || job.customer_email?.split('@')[0] || '—'}
                       </div>
                       {job.customer_email && (
                         <div className="text-[11px] text-[#7C8681] truncate max-w-[130px]">
@@ -332,7 +332,7 @@ export default function AdminJobsClient({ initialJobs, total, initialSelectedId 
                 <div className="grid grid-cols-2 gap-2 text-xs text-[#5A6661]">
                   <div>
                     <span className="text-[#7C8681]">Customer: </span>
-                    {job.customer_name ?? '—'}
+                    {job.customer_name || job.customer_email?.split('@')[0] || '—'}
                   </div>
                   <div>
                     <span className="text-[#7C8681]">Pro: </span>
