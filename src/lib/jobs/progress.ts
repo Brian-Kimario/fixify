@@ -42,6 +42,14 @@ function metadataString(event: CaseEvent, key: string): string | null {
 
 const ASSIGNMENT_KINDS = new Set(['assigned', 'reassigned', 'offered']);
 
+/** job_media.kind, as a phrase: "a before photo". */
+const MEDIA_KIND_PHRASE: Record<string, string> = {
+  before: 'a before photo',
+  after: 'an after photo',
+  part: 'a photo of a part',
+  receipt: 'a receipt',
+};
+
 /* ── Timeline ─────────────────────────────────────────────────────────────── */
 
 export interface TimelineEntry {
@@ -85,6 +93,14 @@ export function describeEvent(
       return event.fromState === 'quote_pending'
         ? { title: 'Work resumed', tone: 'ochre' }
         : { title: 'Work started', tone: 'ochre' };
+    case 'eta_shared':
+      return { title: customer ? 'Professional shared an arrival time' : 'You shared an arrival time', tone: 'teal' };
+    case 'running_late':
+      return { title: customer ? 'Professional is running late' : 'You said you are running late', tone: 'ochre' };
+    case 'media_added': {
+      const phrase = MEDIA_KIND_PHRASE[metadataString(event, 'kind') ?? ''] ?? 'a file';
+      return { title: customer ? `Professional added ${phrase}` : `You added ${phrase}`, tone: 'neutral' };
+    }
     case 'inspection_submitted':
       return { title: customer ? 'Inspection notes added' : 'You added inspection notes', tone: 'neutral' };
     case 'quote_submitted':

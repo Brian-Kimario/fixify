@@ -5,7 +5,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, parseInput, type ActionResult } from "@/lib/actions/result";
 import {
+  ARRIVAL_WINDOWS,
+  JOB_MEDIA_TYPES,
+  addJobMediaSchema,
   createQuoteSchema,
+  jobMediaUploadSchema,
+  reportEtaSchema,
+  type AddJobMediaInput,
+  type JobMediaUploadInput,
+  type ReportEtaInput,
   declineJobSchema,
   inspectionSchema,
   jobIdSchema,
@@ -825,4 +833,113 @@ export async function createQuoteAction(
   revalidatePath(`/professional/jobs/${input.jobId}`);
   revalidatePath('/professional', 'layout');
   return ok({ quoteId: data });
+}
+
+/**
+ * Share or update the arrival window. report_job_eta checks the caller is the job's professional
+ * and the job is before arrival, stores the window on the job and records the timeline event.
+ */
+export async function reportEtaAction(payload: ReportEtaInput): Promise<ActionResult> {
+  const parsed = parseInput(reportEtaSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+  const window = ARRIVAL_WINDOWS.find((w) => w.id === input.windowId);
+  if (!window) return fail('invalid_input', 'Choose when you expect to arrive.');
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Not authenticated');
+
+  const { error } = await supabase.rpc('report_job_eta', {
+    p_job_id: input.jobId,
+    p_earliest_minutes: window.earliest,
+    p_latest_minutes: window.latest,
+    p_running_late: input.runningLate,
+  });
+  if (error) {
+    if (error.code === 'P0002') return fail('not_found', 'Job not found or not assigned to you');
+    // 22023 messages are written in report_job_eta for the professional to read.
+    if (error.code === '22023') return fail('rejected', error.message);
+    console.error('report_job_eta error:', error.message);
+    return fail('failed', 'Could not share your arrival time. Please try again.');
+  }
+
+  revalidatePath(`/professional/jobs/${input.jobId}`);
+  return ok();
+}
+
+/** States in which the job-media upload policy and add_job_media accept files. */
+const MEDIA_OPEN_STATES: ReadonlySet<string> = new Set(['arrived', 'in_progress', 'quote_pending', 'completed']);
+
+/**
+ * Sign an upload into job-media for this job's professional. Auth cookies are httpOnly, so the
+ * browser client has no session; the URL is signed here with the user's own client (storage
+ * RLS applies, and the object is owned by the caller) and the browser uploads to it directly.
+ */
+export async function createJobMediaUploadAction(
+  payload: JobMediaUploadInput
+): Promise<ActionResult<{ path: string; token: string }>> {
+  const parsed = parseInput(jobMediaUploadSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+  const ext = JOB_MEDIA_TYPES[input.contentType];
+  if (!ext) return fail('invalid_input', 'Use a JPG, PNG or WebP photo, or a PDF.');
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Not authenticated');
+
+  const { data: job, error: jobError } = await supabase
+    .from('jobs')
+    .select('professional_id, current_state')
+    .eq('id', input.jobId)
+    .maybeSingle();
+  if (jobError) {
+    console.error('createJobMediaUpload job lookup error:', jobError.message);
+    return fail('failed', 'Could not start the upload. Please try again.');
+  }
+  if (!job || job.professional_id !== user.id) return fail('not_found', 'Job not found or not assigned to you');
+  if (!MEDIA_OPEN_STATES.has(job.current_state)) {
+    return fail('rejected', 'Photos can be added once you arrive and until the job is closed.');
+  }
+
+  const path = `${input.jobId}/${crypto.randomUUID()}.${ext}`;
+  const { data, error } = await supabase.storage.from('job-media').createSignedUploadUrl(path);
+  if (error || !data) {
+    console.error('createSignedUploadUrl error:', error?.message);
+    return fail('failed', 'Could not start the upload. Please try again.');
+  }
+  return ok({ path: data.path, token: data.token });
+}
+
+/**
+ * Attach a file the professional already uploaded to the job-media bucket. add_job_media checks
+ * the object exists under this job and belongs to the caller before recording it.
+ */
+export async function addJobMediaAction(
+  payload: AddJobMediaInput
+): Promise<ActionResult<{ mediaId: string }>> {
+  const parsed = parseInput(addJobMediaSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Not authenticated');
+
+  const { data, error } = await supabase.rpc('add_job_media', {
+    p_job_id: input.jobId,
+    p_kind: input.kind,
+    p_storage_path: input.storagePath,
+  });
+  if (error) {
+    if (error.code === 'P0002') return fail('not_found', 'Job not found or not assigned to you');
+    // 22023 messages are written in add_job_media for the professional to read.
+    if (error.code === '22023') return fail('rejected', error.message);
+    console.error('add_job_media error:', error.message);
+    return fail('failed', 'Could not attach the file. Please try again.');
+  }
+
+  revalidatePath(`/professional/jobs/${input.jobId}`);
+  return ok({ mediaId: data });
 }

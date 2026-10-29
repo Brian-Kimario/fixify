@@ -14,11 +14,15 @@ import {
   FactList,
   IncompleteNotice,
   InspectionList,
+  MediaGallery,
   QuoteSummary,
+  arrivalWindowText,
 } from '@/components/case/CaseFile';
 import { StateTransitionButtons } from '@/components/professional/StateTransitionButtons';
 import { RequestCardActions } from '@/components/professional/RequestCardActions';
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
+import { ArrivalWindowForm } from '@/components/professional/ArrivalWindowForm';
+import { JobMediaUploader } from '@/components/professional/JobMediaUploader';
 
 export const metadata: Metadata = {
   title: 'Job — Feasy Professional',
@@ -28,6 +32,10 @@ export const metadata: Metadata = {
 const ACTIONABLE: ReadonlySet<string> = new Set(['accepted', 'on_the_way', 'arrived', 'in_progress']);
 /** Inspection notes and quotes are written on site, before the work is finished. */
 const ON_SITE: ReadonlySet<string> = new Set(['arrived', 'in_progress']);
+/** Before arrival: an arrival window or a late notice can be sent (report_job_eta). */
+const TRAVELLING: ReadonlySet<string> = new Set(['accepted', 'on_the_way']);
+/** States in which add_job_media and the job-media upload policy accept files. */
+const MEDIA_OPEN: ReadonlySet<string> = new Set(['arrived', 'in_progress', 'quote_pending', 'completed']);
 
 const IDLE_COPY: Record<string, string> = {
   quote_pending: 'Waiting for the customer to approve your quote.',
@@ -104,9 +112,35 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                 <p className="text-sm text-ink-3">{paidCopy ?? IDLE_COPY[job.state] ?? 'No actions available.'}</p>
               )}
             </div>
+            {TRAVELLING.has(job.state) && (
+              <div className="mt-5 border-t border-line pt-4">
+                {kase.eta && (
+                  <p className="mb-3 text-sm text-ink-2">
+                    You told the customer: <span className="font-semibold text-ink">{arrivalWindowText(kase.eta)}</span>
+                  </p>
+                )}
+                <ArrivalWindowForm jobId={job.id} state={job.state} hasWindow={kase.eta != null} />
+              </div>
+            )}
           </Panel>
 
           {ON_SITE.has(job.state) && <JobInspectionAndQuote jobId={job.id} currentState={job.state} />}
+
+          {(MEDIA_OPEN.has(job.state) || kase.media.length > 0) && (
+            <CaseCard title="Photos and receipts">
+              {MEDIA_OPEN.has(job.state) && (
+                <p className="mb-3 text-sm text-ink-3">
+                  The customer can see everything you add here.
+                </p>
+              )}
+              {kase.media.length > 0 && <MediaGallery media={kase.media} />}
+              {MEDIA_OPEN.has(job.state) && (
+                <div className={kase.media.length > 0 ? 'mt-4' : ''}>
+                  <JobMediaUploader jobId={job.id} />
+                </div>
+              )}
+            </CaseCard>
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <CaseCard title="Customer">

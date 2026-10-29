@@ -103,6 +103,19 @@ describe('describeEvent', () => {
     expect(describeEvent(resumed, 'customer', CUSTOMER, parties)?.title).toBe('Work resumed');
   });
 
+  it('describes arrival updates and attached files from each side', () => {
+    const late = event({ eventType: 'running_late', fromState: 'on_the_way', toState: 'on_the_way' });
+    expect(describeEvent(late, 'customer', CUSTOMER, parties)).toEqual({ title: 'Professional is running late', tone: 'ochre' });
+    expect(describeEvent(late, 'professional', PRO, parties)?.title).toBe('You said you are running late');
+    const eta = event({ eventType: 'eta_shared', fromState: 'on_the_way', toState: 'on_the_way' });
+    expect(describeEvent(eta, 'customer', CUSTOMER, parties)?.title).toBe('Professional shared an arrival time');
+    const photo = event({ eventType: 'media_added', toState: 'in_progress', metadata: { kind: 'after', media_id: 'm1' } });
+    expect(describeEvent(photo, 'customer', CUSTOMER, parties)?.title).toBe('Professional added an after photo');
+    expect(describeEvent(photo, 'professional', PRO, parties)?.title).toBe('You added an after photo');
+    const odd = event({ eventType: 'media_added', toState: 'in_progress', metadata: { kind: 'selfie' } });
+    expect(describeEvent(odd, 'customer', CUSTOMER, parties)?.title).toBe('Professional added a file');
+  });
+
   it('ignores event types it does not know', () => {
     expect(describeEvent(event({ eventType: 'internal_note', toState: 'x' }), 'customer', CUSTOMER, parties)).toBeNull();
   });

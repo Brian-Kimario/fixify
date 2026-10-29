@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import { Check, CircleAlert } from 'lucide-react';
+import { Check, CircleAlert, FileText } from 'lucide-react';
 import type { JobStateTone } from '@/lib/jobs/states';
 import type { CaseRole, ProgressStep, TimelineEntry } from '@/lib/jobs/progress';
-import type { CaseInspection, CaseQuote } from '@/lib/services/job-case';
-import { formatSlot } from '@/lib/shell/rules';
+import type { CaseInspection, CaseMedia, CaseQuote } from '@/lib/services/job-case';
+import { formatSlot, formatTime } from '@/lib/shell/rules';
+import { JOB_MEDIA_KIND_LABEL, type JobMediaKind } from '@/validators';
 import { formatCurrency } from '@/lib/currency';
 import { Panel, StatusPill } from '@/components/shell/primitives';
 
@@ -219,4 +220,53 @@ export function FactList({ facts }: { facts: { label: string; value: ReactNode }
       ))}
     </dl>
   );
+}
+
+function mediaLabel(kind: string): string {
+  return JOB_MEDIA_KIND_LABEL[kind as JobMediaKind] ?? 'File';
+}
+
+/** Photos and receipts attached to the job, opened in a new tab through short-lived links. */
+export function MediaGallery({ media }: { media: CaseMedia[] }) {
+  return (
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {media.map((item) => {
+        const label = mediaLabel(item.kind);
+        return (
+          <li key={item.id} className="min-w-0">
+            {item.url ? (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block overflow-hidden rounded-xl border border-line bg-porcelain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+              >
+                {item.isPdf ? (
+                  <span className="flex aspect-square flex-col items-center justify-center gap-1 text-ink-3">
+                    <FileText className="h-8 w-8" aria-hidden="true" />
+                    <span className="text-xs">PDF</span>
+                  </span>
+                ) : (
+                  // Signed, expiring URLs from private storage; not worth routing through the image optimiser.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.url} alt={`${label} photo`} loading="lazy" className="aspect-square w-full object-cover" />
+                )}
+              </a>
+            ) : (
+              <span className="flex aspect-square items-center justify-center rounded-xl border border-line bg-porcelain px-2 text-center text-xs text-ink-4">
+                Could not load
+              </span>
+            )}
+            <p className="mt-1 text-xs font-medium text-ink-2">{label}</p>
+            {item.createdAt && <p className="text-xs text-ink-4">{formatSlot(item.createdAt)}</p>}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** "Between 3:10 pm and 3:40 pm": the professional's own estimate. */
+export function arrivalWindowText(eta: { earliest: string; latest: string }): string {
+  return `Between ${formatTime(eta.earliest) ?? '—'} and ${formatTime(eta.latest) ?? '—'}`;
 }

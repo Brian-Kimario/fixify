@@ -41,6 +41,18 @@ export interface CaseInspection {
   createdAt: string;
 }
 
+export interface CaseMedia {
+  id: string;
+  kind: string;
+  createdAt: string;
+  isPdf: boolean;
+  /** Short-lived signed URL; null when it could not be signed. */
+  url: string | null;
+}
+
+/** Signed media links last an hour; the page is re-rendered on every visit. */
+const MEDIA_URL_SECONDS = 3600;
+
 export interface CaseRecords {
   progress: ProgressStep[];
   timeline: TimelineEntry[];
@@ -48,7 +60,13 @@ export interface CaseRecords {
   quotes: CaseQuote[];
   /** Newest first. */
   inspections: CaseInspection[];
+  /** Oldest first. */
+  media: CaseMedia[];
   paidAt: string | null;
+  /** The professional's stated arrival window, shown only before they arrive. */
+  eta: { earliest: string; latest: string } | null;
+  /** When the professional last said they are running late, while that still matters. */
+  lateReportedAt: string | null;
   /** True when part of the history could not be read; the page says so instead of showing less. */
   incomplete: boolean;
 }
@@ -65,10 +83,15 @@ interface JobRow {
   started_at: string | null;
   completed_at: string | null;
   cancelled_at: string | null;
+  eta_earliest: string | null;
+  eta_latest: string | null;
 }
 
 const JOB_COLUMNS = `id, current_state, customer_id, professional_id, created_at, accepted_at,
-  on_the_way_at, arrived_at, started_at, completed_at, cancelled_at`;
+  on_the_way_at, arrived_at, started_at, completed_at, cancelled_at, eta_earliest, eta_latest`;
+
+/** States in which an arrival window or a late notice still means something. */
+const BEFORE_ARRIVAL: ReadonlySet<string> = new Set(['accepted', 'on_the_way']);
 
 function asRecord(value: Json | null): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
@@ -89,10 +112,11 @@ async function loadRecords(
   let events: CaseEvent[] = [];
   let quotes: CaseQuote[] = [];
   let inspections: CaseInspection[] = [];
+  let media: CaseMedia[] = [];
   let paidAt: string | null = null;
 
   if (job) {
-    const [eventsRes, quotesRes, inspectionsRes, paidRes] = await Promise.all([
+    const [eventsRes, quotesRes, inspectionsRes, paidRes, mediaRes] = await Promise.all([
       supabase
         .from('job_events')
         .select('id, from_state, to_state, actor_user_id, event_type, metadata, created_at')
@@ -112,6 +136,11 @@ async function loadRecords(
         .eq('job_id', job.id)
         .order('created_at', { ascending: false }),
       supabase.rpc('job_paid_at', { p_job_id: job.id }),
+      supabase
+        .from('job_media')
+        .select('id, kind, storage_path, created_at')
+        .eq('job_id', job.id)
+        .order('created_at', { ascending: true }),
     ]);
 
     for (const [name, res] of [
@@ -119,6 +148,7 @@ async function loadRecords(
       ['quotes', quotesRes],
       ['inspections', inspectionsRes],
       ['paid_at', paidRes],
+      ['media', mediaRes],
     ] as const) {
       if (res.error) {
         console.error(`job case ${name}:`, res.error.message);
@@ -168,7 +198,30 @@ async function loadRecords(
       createdAt: i.created_at ?? '',
     }));
     paidAt = paidRes.data ?? null;
+
+    const mediaRows = mediaRes.data ?? [];
+    const urls = new Map<string, string>();
+    if (mediaRows.length > 0) {
+      const { data: signed, error: signError } = await supabase.storage
+        .from('job-media')
+        .createSignedUrls(mediaRows.map((m) => m.storage_path), MEDIA_URL_SECONDS);
+      if (signError) {
+        console.error('job case media urls:', signError.message);
+        incomplete = true;
+      }
+      for (const s of signed ?? []) if (s.path && s.signedUrl && !s.error) urls.set(s.path, s.signedUrl);
+    }
+    media = mediaRows.map((m) => ({
+      id: m.id,
+      kind: m.kind,
+      createdAt: m.created_at,
+      isPdf: m.storage_path.toLowerCase().endsWith('.pdf'),
+      url: urls.get(m.storage_path) ?? null,
+    }));
   }
+
+  const beforeArrival = job != null && BEFORE_ARRIVAL.has(job.current_state);
+  const lastLate = beforeArrival ? [...events].reverse().find((e) => e.eventType === 'running_late') : undefined;
 
   const parties: CaseParties = {
     customerId: job?.customer_id ?? input.viewerId,
@@ -210,7 +263,11 @@ async function loadRecords(
     }),
     quotes,
     inspections,
+    media,
     paidAt,
+    eta:
+      beforeArrival && job.eta_earliest && job.eta_latest ? { earliest: job.eta_earliest, latest: job.eta_latest } : null,
+    lateReportedAt: lastLate?.createdAt ?? null,
     incomplete,
   };
 }

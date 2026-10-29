@@ -389,6 +389,48 @@ export type Database = {
           },
         ]
       }
+      job_media: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          kind: string
+          storage_path: string
+          uploader_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          kind: string
+          storage_path: string
+          uploader_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          kind?: string
+          storage_path?: string
+          uploader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_media_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_media_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           accepted_at: string | null
@@ -400,6 +442,8 @@ export type Database = {
           created_at: string | null
           current_state: string
           customer_id: string
+          eta_earliest: string | null
+          eta_latest: string | null
           id: string
           offer_expires_at: string | null
           on_the_way_at: string | null
@@ -418,6 +462,8 @@ export type Database = {
           created_at?: string | null
           current_state?: string
           customer_id: string
+          eta_earliest?: string | null
+          eta_latest?: string | null
           id?: string
           offer_expires_at?: string | null
           on_the_way_at?: string | null
@@ -436,6 +482,8 @@ export type Database = {
           created_at?: string | null
           current_state?: string
           customer_id?: string
+          eta_earliest?: string | null
+          eta_latest?: string | null
           id?: string
           offer_expires_at?: string | null
           on_the_way_at?: string | null
@@ -1713,6 +1761,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      add_job_media: {
+        Args: { p_job_id: string; p_kind: string; p_storage_path: string }
+        Returns: string
+      }
       assign_booking: { Args: { p_booking_id: string }; Returns: Json }
       create_booking: {
         Args: {
@@ -1774,6 +1826,15 @@ export type Database = {
       job_paid_at: { Args: { p_job_id: string }; Returns: string }
       job_payment_amount: { Args: { p_job_id: string }; Returns: number }
       process_assignment_queue: { Args: never; Returns: Json }
+      report_job_eta: {
+        Args: {
+          p_earliest_minutes: number
+          p_job_id: string
+          p_latest_minutes: number
+          p_running_late?: boolean
+        }
+        Returns: undefined
+      }
       respond_to_quote: {
         Args: { p_decision: string; p_quote_id: string; p_reason?: string }
         Returns: boolean

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CircleCheck, PartyPopper, SearchX } from 'lucide-react';
+import { ArrowLeft, CircleCheck, Clock, PartyPopper, SearchX } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { getCustomerCase } from '@/lib/services/job-case';
 import { toPanelQuote } from '@/lib/quotes/panel';
@@ -15,7 +15,9 @@ import {
   FactList,
   IncompleteNotice,
   InspectionList,
+  MediaGallery,
   QuoteSummary,
+  arrivalWindowText,
 } from '@/components/case/CaseFile';
 import { ProfessionalCard } from '@/components/customer/ProfessionalCard';
 import { QuoteReviewButton } from '@/components/customer/QuoteReviewButton';
@@ -70,7 +72,8 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
   const showProfessional =
     professional != null && jobState !== 'cancelled' && (isOpen ? missing !== 'overdue' : booking.status === 'completed');
   const pricingNote = PRICING_MODEL_NOTE[booking.pricingModel];
-  const hasActivity = kase.quotes.length > 0 || kase.inspections.length > 0;
+  const hasActivity = kase.quotes.length > 0 || kase.inspections.length > 0 || kase.media.length > 0;
+  const proName = professional?.displayName ?? 'Your professional';
 
   return (
     <PageContainer className="pb-24">
@@ -192,6 +195,29 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
             </Panel>
           )}
 
+          {(kase.eta || kase.lateReportedAt) && (
+            <Panel className={`p-5 ${kase.lateReportedAt ? 'border-ochre/30 bg-ochre-soft' : 'border-teal/30'}`}>
+              <div className="flex items-start gap-3">
+                <Clock className={`mt-0.5 h-5 w-5 shrink-0 ${kase.lateReportedAt ? 'text-ochre' : 'text-teal'}`} aria-hidden="true" />
+                <div className="text-sm">
+                  {kase.lateReportedAt && (
+                    <p className="font-semibold text-ink">
+                      {proName} said they are running late ({formatSlot(kase.lateReportedAt)}).
+                    </p>
+                  )}
+                  {kase.eta && (
+                    <p className={kase.lateReportedAt ? 'mt-1 text-ink-2' : 'font-semibold text-ink'}>
+                      Expected arrival: {arrivalWindowText(kase.eta)}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-ink-3">
+                    This is the professional&apos;s own estimate. Feasy does not track live location.
+                  </p>
+                </div>
+              </div>
+            </Panel>
+          )}
+
           {showProfessional && professional && (
             <ProfessionalCard
               professional={professional}
@@ -254,6 +280,11 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
               {kase.inspections.length > 0 && (
                 <CaseCard title="Inspection notes">
                   <InspectionList inspections={kase.inspections} />
+                </CaseCard>
+              )}
+              {kase.media.length > 0 && (
+                <CaseCard title="Photos and receipts">
+                  <MediaGallery media={kase.media} />
                 </CaseCard>
               )}
               {kase.quotes.length > 0 && (
