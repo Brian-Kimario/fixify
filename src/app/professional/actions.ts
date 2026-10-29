@@ -531,7 +531,6 @@ export async function updateAvailabilityStatus(isAvailable: boolean) {
   }
 
   // Call DB function to update availability with business rule validation
-  // @ts-ignore - New RPC function not yet in generated types
   const { error: rpcError } = await supabase.rpc('update_professional_availability', {
     p_professional_id: user.id,
     p_is_available: isAvailable,

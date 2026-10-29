@@ -1335,6 +1335,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      update_professional_availability: {
+        Args: { p_professional_id: string; p_is_available: boolean }
+        Returns: boolean
+      }
       transition_job_state: {
         Args: {
           p_actor_user_id: string
