@@ -8,7 +8,7 @@
 'use server';
 
 import { signOut as performSignOut } from '@/lib/auth/signout';
-import { redirect } from 'next/navigation';
+import { redirect, unstable_rethrow } from 'next/navigation';
 
 /**
  * Server action to handle sign-out
@@ -32,6 +32,7 @@ export async function signOutAction(options?: {
     // The redirect ensures user cannot access protected routes
     redirect(result.redirectPath);
   } catch (error) {
+    unstable_rethrow(error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[SignOutAction] Unexpected error:', errorMessage);
 
@@ -62,6 +63,7 @@ export async function signOutAllDevicesAction(reason?: string): Promise<{ succes
 
     redirect(result.redirectPath);
   } catch (error) {
+    unstable_rethrow(error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[SignOutAllDevicesAction] Unexpected error:', errorMessage);
 
@@ -101,6 +103,7 @@ export async function emergencySignOutAction(suspiciousActivity?: string): Promi
 
     redirect(result.redirectPath);
   } catch (error) {
+    unstable_rethrow(error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[EmergencySignOut] Unexpected error:', errorMessage);
 

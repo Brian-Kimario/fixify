@@ -2,7 +2,7 @@ import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { Card, Button } from '@/components/ui';
 import { MobileSignOutButton } from '@/components/shared/MobileSignOutButton';
 import Link from 'next/link';
-import { formatCurrency } from '@/lib/currency';
+import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
   title: 'Professional Profile - Feasy',
@@ -11,6 +11,35 @@ export const metadata = {
 export default async function ProfessionalProfilePage() {
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
+
+  const supabase = await createClient();
+  const { data: proProfile } = user
+    ? await supabase
+        .from('professional_profiles')
+        .select('display_name, bio, years_experience, rating_average, completed_jobs_count, verification_status')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    : { data: null };
+
+  const { data: skillRows } = user
+    ? await supabase
+        .from('professional_skills')
+        .select('id, category:service_categories(name)')
+        .eq('professional_id', user.id)
+    : { data: null };
+
+  const skills = Array.from(
+    new Set(
+      (skillRows ?? [])
+        .map((r) => (Array.isArray(r.category) ? r.category[0]?.name : r.category?.name))
+        .filter((n): n is string => Boolean(n))
+    )
+  );
+
+  const completedJobs = proProfile?.completed_jobs_count ?? 0;
+  const rating = Number(proProfile?.rating_average ?? 0);
+  const isVerified = proProfile?.verification_status === 'verified';
+  const bio = proProfile?.bio;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -23,9 +52,12 @@ export default async function ProfessionalProfilePage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h1 className="font-display font-bold text-3xl text-ink mb-2">
-                    {profile?.full_name || 'Your Profile'}
+                    {proProfile?.display_name || profile?.full_name || 'Your Profile'}
                   </h1>
-                  <p className="text-line">Professional Service Provider</p>
+                  <p className="text-line">
+                    {isVerified ? 'Verified professional' : 'Verification pending'}
+                    {proProfile?.years_experience ? ` · ${proProfile.years_experience} yrs experience` : ''}
+                  </p>
                 </div>
                 <Link href="/professional/profile/edit">
                   <Button variant="secondary" size="sm">
@@ -41,8 +73,8 @@ export default async function ProfessionalProfilePage() {
             <div className="space-y-4">
               <h2 className="font-display font-bold text-xl text-ink">About</h2>
               <p className="text-line leading-relaxed">
-                {profile?.bio ||
-                  'Add a professional bio to help customers understand your experience and expertise. This helps increase bid acceptance rates.'}
+                {bio ||
+                  'Add a short bio so customers know your experience before you arrive.'}
               </p>
             </div>
           </Card>
@@ -53,57 +85,21 @@ export default async function ProfessionalProfilePage() {
               <h2 className="font-display font-bold text-xl text-ink">Skills</h2>
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-block px-3 py-1 bg-teal-soft text-teal rounded-lg text-sm font-medium">
-                    Plumbing
-                  </span>
-                  <span className="inline-block px-3 py-1 bg-teal-soft text-teal rounded-lg text-sm font-medium">
-                    Repairs
-                  </span>
-                  <span className="inline-block px-3 py-1 bg-teal-soft text-teal rounded-lg text-sm font-medium">
-                    Maintenance
-                  </span>
-                  <button className="inline-block px-3 py-1 bg-line/10 text-line hover:bg-line/20 rounded-lg text-sm font-medium transition-colors">
-                    + Add Skills
-                  </button>
+                  {skills.length === 0 && (
+                    <p className="text-line text-sm">No skills added yet.</p>
+                  )}
+                  {skills.map((name) => (
+                    <span
+                      key={name}
+                      className="inline-block px-3 py-1 bg-teal-soft text-teal rounded-lg text-sm font-medium"
+                    >
+                      {name}
+                    </span>
+                  ))}
                 </div>
                 <p className="text-line text-sm">
-                  Add skills to help customers find you for their specific needs
+                  The skills you add decide which jobs are assigned to you.
                 </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Experience Section */}
-          <Card>
-            <div className="space-y-4">
-              <h2 className="font-display font-bold text-xl text-ink">Experience</h2>
-              <div className="space-y-4">
-                {/* Placeholder experience item */}
-                <div className="pb-4 border-b border-line last:border-b-0 last:pb-0">
-                  <p className="text-ink font-medium">Handyman & Plumber</p>
-                  <p className="text-line text-sm">Self-employed • 5+ years</p>
-                  <p className="text-line text-sm mt-2">
-                    Experienced in residential repairs and maintenance services
-                  </p>
-                </div>
-              </div>
-              <button className="text-teal hover:text-teal-deep text-sm font-medium">
-                + Add Experience
-              </button>
-            </div>
-          </Card>
-
-          {/* Certifications Section */}
-          <Card>
-            <div className="space-y-4">
-              <h2 className="font-display font-bold text-xl text-ink">Certifications</h2>
-              <div className="space-y-3">
-                <p className="text-line text-sm">
-                  No certifications added yet. Add relevant credentials to boost your credibility.
-                </p>
-                <button className="text-teal hover:text-teal-deep text-sm font-medium">
-                  + Add Certification
-                </button>
               </div>
             </div>
           </Card>
@@ -118,24 +114,23 @@ export default async function ProfessionalProfilePage() {
               <div className="space-y-3">
                 <div>
                   <p className="text-line text-sm">Rating</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <span className="text-teal">★★★★★</span>
-                    <span className="text-ink font-medium">4.8</span>
-                  </div>
-                  <p className="text-line text-xs mt-1">Based on 12 reviews</p>
+                  {completedJobs > 0 && rating > 0 ? (
+                    <p className="text-ink font-bold text-xl mt-1">{rating.toFixed(1)} ★</p>
+                  ) : (
+                    <p className="text-line text-sm mt-1">No ratings yet</p>
+                  )}
                 </div>
                 <div className="border-t border-line pt-3">
                   <p className="text-line text-sm">Jobs Completed</p>
-                  <p className="text-ink font-bold text-xl mt-1">12</p>
+                  <p className="text-ink font-bold text-xl mt-1">{completedJobs}</p>
                 </div>
-                <div className="border-t border-line pt-3">
-                  <p className="text-line text-sm">Response Rate</p>
-                  <p className="text-ink font-bold text-xl mt-1">95%</p>
-                </div>
-                <div className="border-t border-line pt-3">
-                  <p className="text-line text-sm">Total Earnings</p>
-                  <p className="text-teal font-bold text-xl mt-1">{formatCurrency(9450)}</p>
-                </div>
+                <p className="text-line text-xs border-t border-line pt-3">
+                  Earnings are on the{' '}
+                  <Link href="/professional/earnings" className="text-teal hover:text-teal-deep">
+                    Earnings page
+                  </Link>
+                  .
+                </p>
               </div>
             </div>
           </Card>
@@ -151,7 +146,7 @@ export default async function ProfessionalProfilePage() {
                 </div>
                 <div className="border-t border-line pt-3">
                   <p className="text-line text-sm">Phone</p>
-                  <p className="text-ink text-sm">Not set</p>
+                  <p className="text-ink text-sm">{profile?.phone || 'Not set'}</p>
                 </div>
               </div>
               <Link href="/professional/profile/edit">
@@ -163,17 +158,22 @@ export default async function ProfessionalProfilePage() {
           </Card>
 
           {/* Verify Profile */}
-          <Card className="bg-teal-soft border-teal/30">
-            <div className="space-y-3">
-              <h3 className="font-display font-bold text-lg text-ink">Verify Your Profile</h3>
-              <p className="text-line text-sm">
-                Get a verified badge by completing background checks and ID verification.
-              </p>
-              <button className="text-teal hover:text-teal-deep text-sm font-medium">
-                Start Verification
-              </button>
-            </div>
-          </Card>
+          {!isVerified && (
+            <Card className="bg-teal-soft border-teal/30">
+              <div className="space-y-3">
+                <h3 className="font-display font-bold text-lg text-ink">Verify Your Profile</h3>
+                <p className="text-line text-sm">
+                  You need to be verified before you can accept jobs.
+                </p>
+                <Link
+                  href="/professional/onboarding"
+                  className="text-teal hover:text-teal-deep text-sm font-medium"
+                >
+                  Continue verification
+                </Link>
+              </div>
+            </Card>
+          )}
 
           {/* Sign Out — visible on mobile since the header SignOutMenu is desktop-only */}
           <div className="md:hidden">

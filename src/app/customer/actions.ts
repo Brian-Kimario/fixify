@@ -183,9 +183,8 @@ export async function submitProblemIntakeAction(payload: {
       .single();
 
     if (error) {
-      console.warn('Could not persist to service_requests (table might require property):', error.message);
-      // Return success gracefully so customer flow continues smoothly
-      return { success: true, requestId: `draft-${Date.now()}` };
+      console.error('submitProblemIntakeAction insert failed:', error.message);
+      return { success: false, error: 'We could not save your request. Please try again.' };
     }
 
     revalidatePath('/customer');
@@ -193,7 +192,7 @@ export async function submitProblemIntakeAction(payload: {
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error during problem intake';
     console.error('submitProblemIntakeAction error:', errorMsg);
-    return { success: true, requestId: `client-draft-${Date.now()}` };
+    return { success: false, error: 'Something went wrong while saving your request. Please try again.' };
   }
 }
 

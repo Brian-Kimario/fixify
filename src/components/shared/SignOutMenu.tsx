@@ -179,7 +179,7 @@ export function SignOutMenu({ user, displayName, initials, role }: SignOutMenuPr
               <svg className="w-4 h-4 text-[#5A6661]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              My Repairs
+              My Bookings
             </Link>
 
             <Link

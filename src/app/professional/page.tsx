@@ -7,6 +7,7 @@ import { AvailabilityToggle } from '@/components/professional/AvailabilityToggle
 import { RequestCardActions } from '@/components/professional/RequestCardActions';
 import { ActiveJobProgressRail } from '@/components/professional/ActiveJobProgressRail';
 import Link from 'next/link';
+import { getGreeting } from '@/lib/greeting';
 
 export const metadata = { title: 'Professional Dashboard — Feasy' };
 
@@ -79,7 +80,7 @@ async function ProfessionalDashboardContent() {
           PROFESSIONAL · TODAY
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-3">
-          Good morning, {displayName.split(' ')[0]}
+          {getGreeting()}, {displayName.split(' ')[0]}
         </h1>
         <p className="text-[#5A6661] max-w-2xl">
           Requests, route, active work and earnings in one operational workspace.

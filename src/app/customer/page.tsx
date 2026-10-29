@@ -2,7 +2,7 @@ import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { unstable_cache } from 'next/cache';
+import { getGreeting } from '@/lib/greeting';
 import { SkeletonDashboard } from '@/components/ui/SkeletonDashboard';
 import { CustomerDashboardClient } from '@/components/customer/CustomerDashboardClient';
 import type { ActiveJobData } from '@/components/customer/ActiveJobPanel';
@@ -296,11 +296,10 @@ async function CustomerDashboardContent({ user, profile }: any) {
   }
 
   // Query 5: Fetch Completed Jobs for Property Maintenance History
-  // This query uses unstable_cache for 10-minute TTL since it's historical data
-  const getCachedCompletedJobs = unstable_cache(
-    async (userId: string) => {
-      const supabaseForCache = await createClient();
-      const { data: completedJobs } = await supabaseForCache
+  // Not wrapped in unstable_cache: it is user-scoped (RLS via request cookies), which
+  // cannot be read inside a cached function.
+  const getCompletedJobs = async (userId: string) => {
+      const { data: completedJobs } = await supabase
         .from('jobs')
         .select(`
           id,
@@ -325,15 +324,12 @@ async function CustomerDashboardContent({ user, profile }: any) {
         .order('completed_at', { ascending: false });
 
       return completedJobs || [];
-    },
-    ['customer-timeline'],
-    { revalidate: 600 } // 10-minute TTL
-  );
+  };
 
   let timelineEvents: TimelineEvent[] = [];
 
   try {
-    const completedJobs = await getCachedCompletedJobs(user.id);
+    const completedJobs = await getCompletedJobs(user.id);
 
     if (completedJobs && completedJobs.length > 0) {
       timelineEvents = completedJobs.map((job: any) => {
@@ -391,8 +387,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
   }
 
   const displayName = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greeting = getGreeting();
 
   // Determine if dashboard should show empty state
   // Empty if: no properties AND no active job
