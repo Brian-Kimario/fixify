@@ -198,3 +198,25 @@ Code that depends on the missing objects and is therefore broken today:
   quote keeps its stored ₹75 fee; the customer UI reads `taxes_or_fees` from the row, so it
   stays accurate for that row.
 - `createBookingAction` accepts `selectedOptions` and `notes` but never stores them. Phase 2.
+
+## E. Phase 0 migrations and decisions
+
+- `20261030_001` payments `currency` default → `'INR'`.
+- `20261030_002` `booking_reference_seq`; `bookings.booking_reference` defaults to `FS-000001`…
+  `createBookingAction` no longer generates references with `Date.now()`/`Math.random()`.
+- `20261030_003` drops `jobs_update_professional_own` and `bookings_update_professional_own`, and
+  adds `guard_professional_profile_protected_columns` (BEFORE INSERT/UPDATE): outside admin,
+  service role or a null `auth.uid()`, inserts are forced to `pending`/0/0 and updates that
+  change `verification_status`, `rating_average` or `completed_jobs_count` raise 42501.
+  Rollback test: `supabase/tests/20261030_003_professional_profile_guard.sql` (5/5 pass).
+- **Availability toggle decision: direct update, not an RPC.** With the guard trigger in place,
+  `professional_profiles_update_own` can only change harmless columns, so
+  `updateAvailabilityStatus` updates `is_available` directly and returns `ActionResult`. Going
+  online requires `verification_status = 'verified'`, matching the accept rule in
+  `transition_job_state()`.
+- **Open: customers can insert any booking amount.** `bookings_insert_customer` only checks
+  `customer_id = auth.uid()`, so a customer can insert a booking from the browser with any
+  `quoted_or_base_amount`, `professional_id` or `booking_status`. `createUPIIntentPayment`
+  charges `quoted_or_base_amount` when there is no approved quote. Fix by moving booking creation
+  into a SECURITY DEFINER `create_booking` RPC that reads the price from `services`, and dropping
+  the insert policy. Not done in Phase 0 (outside the approved plan); needs owner sign-off.

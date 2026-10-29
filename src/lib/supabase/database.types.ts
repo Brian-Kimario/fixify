@@ -1,7 +1,3 @@
-// AUTO-GENERATED — do not edit manually.
-// Regenerate with: pnpm supabase gen types typescript --project-id <project-id> > src/lib/supabase/database.types.ts
-// or via the Kiro MCP tool: generate_typescript_types
-
 export type Json =
   | string
   | number
@@ -14,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -104,6 +100,48 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_assignment_attempts: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          outcome: string
+          professional_id: string
+          reason: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          outcome: string
+          professional_id: string
+          reason?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          outcome?: string
+          professional_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_assignment_attempts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_assignment_attempts_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_reference: string
@@ -122,7 +160,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          booking_reference: string
+          booking_reference?: string
           booking_status?: string
           created_at?: string | null
           customer_id: string
@@ -428,6 +466,57 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_logs: {
+        Row: {
+          channel_attempted: string | null
+          created_at: string | null
+          customer_id: string
+          id: string
+          job_id: string | null
+          notification_type: string
+          sent_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel_attempted?: string | null
+          created_at?: string | null
+          customer_id: string
+          id?: string
+          job_id?: string | null
+          notification_type: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel_attempted?: string | null
+          created_at?: string | null
+          customer_id?: string
+          id?: string
+          job_id?: string | null
+          notification_type?: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -1335,8 +1424,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      update_professional_availability: {
-        Args: { p_professional_id: string; p_is_available: boolean }
+      _assign_booking_internal: {
+        Args: { p_actor: string; p_booking_id: string }
+        Returns: string
+      }
+      _pick_professional: { Args: { p_booking_id: string }; Returns: string }
+      _release_offer: {
+        Args: {
+          p_actor: string
+          p_job_id: string
+          p_outcome: string
+          p_reason: string
+        }
+        Returns: boolean
+      }
+      assign_booking: { Args: { p_booking_id: string }; Returns: Json }
+      decline_job: {
+        Args: { p_job_id: string; p_reason?: string }
+        Returns: Json
+      }
+      get_job_customer_contact: {
+        Args: { p_job_id: string }
+        Returns: {
+          access_notes: string
+          address_line_1: string
+          address_line_2: string
+          area: string
+          city: string
+          full_name: string
+          phone: string
+          postal_code: string
+        }[]
+      }
+      process_assignment_queue: { Args: never; Returns: Json }
+      respond_to_quote: {
+        Args: { p_decision: string; p_quote_id: string; p_reason?: string }
         Returns: boolean
       }
       transition_job_state: {
@@ -1347,35 +1469,6 @@ export type Database = {
           p_new_state: string
         }
         Returns: boolean
-      }
-      assign_booking: {
-        Args: { p_booking_id: string }
-        Returns: Json
-      }
-      decline_job: {
-        Args: { p_job_id: string; p_reason?: string | null }
-        Returns: Json
-      }
-      respond_to_quote: {
-        Args: { p_quote_id: string; p_decision: string; p_reason?: string | null }
-        Returns: boolean
-      }
-      get_job_customer_contact: {
-        Args: { p_job_id: string }
-        Returns: {
-          full_name: string | null
-          phone: string | null
-          address_line_1: string
-          address_line_2: string | null
-          area: string | null
-          city: string
-          postal_code: string | null
-          access_notes: string | null
-        }[]
-      }
-      process_assignment_queue: {
-        Args: Record<string, never>
-        Returns: Json
       }
     }
     Enums: {

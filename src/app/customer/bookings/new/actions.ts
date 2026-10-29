@@ -15,14 +15,6 @@ export interface CreateBookingOutput {
   matched: boolean;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function generateBookingReference(): string {
-  const now = Date.now();
-  const rand = Math.floor(Math.random() * 90000) + 10000;
-  return `BK-${now}-${rand}`;
-}
-
 // ── Server action ─────────────────────────────────────────────────────────────
 
 /**
@@ -96,13 +88,10 @@ export async function createBookingAction(
         ? service.inspection_fee
         : null; // quote_after_inspection — amount determined post-inspection
 
-  // ── Create booking ──────────────────────────────────────────────────────────
-  const bookingReference = generateBookingReference();
-
+  // ── Create booking (booking_reference defaults from booking_reference_seq) ──────────────────────────────────────────────────────────────────
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
     .insert({
-      booking_reference: bookingReference,
       customer_id: user.id,
       property_id: property.id,
       service_id: service.id,
@@ -111,7 +100,7 @@ export async function createBookingAction(
       quoted_or_base_amount: authoritative_amount,
       booking_status: 'pending',
     })
-    .select('id')
+    .select('id, booking_reference')
     .single();
 
   if (bookingError || !booking) {
@@ -135,7 +124,7 @@ export async function createBookingAction(
   // Client will handle navigation after showing success state
   return ok({
     bookingId: booking.id,
-    bookingReference,
+    bookingReference: booking.booking_reference,
     matched,
   });
 }

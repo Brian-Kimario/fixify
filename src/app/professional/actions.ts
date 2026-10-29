@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { fail, ok, parseInput, type ActionResult } from "@/lib/actions/result";
 import {
   createQuoteSchema,
@@ -523,47 +524,51 @@ export async function getProfessionalAvailability(): Promise<Availability[]> {
 }
 
 /**
- * Update professional availability status (online/offline)
- * 
- * Security:
- * - RLS ensures only own profile can be updated
- * - Enforces business rule: must be verified before setting is_available=true
- * - Uses state machine function to apply validation
+ * Update professional availability status (online/offline).
+ *
+ * A direct update rather than an RPC: RLS limits the row to the caller, and the
+ * professional_profiles guard trigger (20261030_003) blocks changes to verification status,
+ * rating and job count, so is_available is the only meaningful column this can change.
+ * Going online requires a verified profile, matching transition_job_state(), which only lets
+ * verified professionals accept jobs.
  */
-export async function updateAvailabilityStatus(isAvailable: boolean) {
-  const supabase = await createClient();
+export async function updateAvailabilityStatus(
+  isAvailable: boolean
+): Promise<ActionResult<{ isAvailable: boolean }>> {
+  const parsed = parseInput(z.boolean(), isAvailable);
+  if (parsed.success === false) return parsed;
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return fail("unauthenticated", "Not authenticated");
 
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  // Call DB function to update availability with business rule validation
-  const { error: rpcError } = await supabase.rpc('update_professional_availability', {
-    p_professional_id: user.id,
-    p_is_available: isAvailable,
-  });
-
-  if (rpcError) {
-    console.error('[Professional Actions] Failed to update availability:', rpcError);
-    throw new Error(`Failed to update availability: ${rpcError.message}`);
-  }
-
-  // Fetch updated profile
-  const { data, error } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("professional_profiles")
-    .select("*")
+    .select("verification_status")
     .eq("user_id", user.id)
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to retrieve updated profile: ${error.message}`);
+    .maybeSingle();
+  if (profileError) {
+    console.error("updateAvailabilityStatus profile fetch error:", profileError.message);
+    return fail("failed", "Could not update your status. Please try again.");
+  }
+  if (!profile) return fail("not_found", "Professional profile not found");
+  if (parsed.data && profile.verification_status !== "verified") {
+    return fail("rejected", "Your profile must be verified before you can go online.");
   }
 
-  return data;
+  const { error } = await supabase
+    .from("professional_profiles")
+    .update({ is_available: parsed.data })
+    .eq("user_id", user.id);
+  if (error) {
+    console.error("updateAvailabilityStatus update error:", error.message);
+    return fail("failed", "Could not update your status. Please try again.");
+  }
+
+  revalidatePath("/professional");
+  return ok({ isAvailable: parsed.data });
 }
 
 /**
