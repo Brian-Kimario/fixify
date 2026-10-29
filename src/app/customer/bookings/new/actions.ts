@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { fail, ok, parseInput, type ActionResult } from '@/lib/actions/result';
+import { fail, ok, parseInput, type ActionFailure, type ActionResult } from '@/lib/actions/result';
 import { createBookingSchema, type CreateBookingInput } from '@/validators';
 
 export type { CreateBookingInput };
@@ -20,11 +20,9 @@ export interface CreateBookingOutput {
 /**
  * createBookingAction
  *
- * Security:
- *  - Validates input with createBookingSchema; expected failures return a typed result
- *  - Fetches service price from DB — never trusts client-submitted price
- *  - Verifies property ownership via RLS + explicit eq check
- *  - All amounts persisted from DB, not from form input
+ * The create_booking RPC does the checks and the insert: it takes the customer from the
+ * session, requires an active service and a property the customer owns, refuses past dates,
+ * and sets the amount from the service row. Customers have no INSERT policy on bookings.
  */
 export async function createBookingAction(
   payload: CreateBookingInput
@@ -33,9 +31,13 @@ export async function createBookingAction(
   if (parsed.success === false) return parsed;
   const input = parsed.data;
 
+  const scheduledDate = new Date(input.scheduledStart);
+  if (isNaN(scheduledDate.getTime()) || scheduledDate <= new Date()) {
+    return fail('invalid_input', 'Please choose a future date and time for your booking.');
+  }
+
   const supabase = await createClient();
 
-  // ── Auth ────────────────────────────────────────────────────────────────────
   const {
     data: { user },
     error: authError,
@@ -45,67 +47,15 @@ export async function createBookingAction(
     return fail('unauthenticated', 'Not authenticated. Please sign in.');
   }
 
-  // ── Validate service (fetch price server-side) ──────────────────────────────
-  const { data: service, error: serviceError } = await supabase
-    .from('services')
-    .select('id, name, pricing_model, base_price, inspection_fee, is_active, category_id')
-    .eq('id', input.serviceId)
-    .eq('is_active', true)
-    .single();
-
-  if (serviceError || !service) {
-    return fail('not_found', 'Service not found or is no longer available.');
-  }
-
-  // ── Validate property ownership ─────────────────────────────────────────────
-  const { data: property, error: propertyError } = await supabase
-    .from('properties')
-    .select('id, name')
-    .eq('id', input.propertyId)
-    .eq('owner_customer_id', user.id)
-    .single();
-
-  if (propertyError || !property) {
-    return fail('not_found', 'Property not found or does not belong to your account.');
-  }
-
-  // ── Validate scheduled date (must be in the future) ─────────────────────────
-  const scheduledDate = new Date(input.scheduledStart);
-  if (isNaN(scheduledDate.getTime()) || scheduledDate <= new Date()) {
-    return fail('invalid_input', 'Please choose a future date and time for your booking.');
-  }
-
-  // ── Derive authoritative price from DB (never from client) ─────────────────
-  const pricingModel = service.pricing_model as
-    | 'fixed'
-    | 'inspection'
-    | 'quote_after_inspection';
-
-  const authoritative_amount: number | null =
-    pricingModel === 'fixed'
-      ? service.base_price
-      : pricingModel === 'inspection'
-        ? service.inspection_fee
-        : null; // quote_after_inspection — amount determined post-inspection
-
-  // ── Create booking (booking_reference defaults from booking_reference_seq) ──────────────────────────────────────────────────────────────────
-  const { data: booking, error: bookingError } = await supabase
-    .from('bookings')
-    .insert({
-      customer_id: user.id,
-      property_id: property.id,
-      service_id: service.id,
-      scheduled_start: scheduledDate.toISOString(),
-      pricing_model: pricingModel,
-      quoted_or_base_amount: authoritative_amount,
-      booking_status: 'pending',
-    })
-    .select('id, booking_reference')
-    .single();
+  const { data: rows, error: bookingError } = await supabase.rpc('create_booking', {
+    p_service_id: input.serviceId,
+    p_property_id: input.propertyId,
+    p_scheduled_start: scheduledDate.toISOString(),
+  });
+  const booking = rows?.[0];
 
   if (bookingError || !booking) {
-    console.error('Booking insert error:', bookingError);
-    return fail('failed', 'We could not create your booking. Please try again.');
+    return createBookingFailure(bookingError);
   }
 
   // ── Offer the job to the best-matching professional ─────────────────────────
@@ -113,7 +63,7 @@ export async function createBookingAction(
   // by the assignment queue (/api/cron/assignment-queue).
   let matched = false;
   const { data: assignment, error: assignError } = await supabase.rpc('assign_booking', {
-    p_booking_id: booking.id,
+    p_booking_id: booking.booking_id,
   });
   if (assignError) {
     console.error('assign_booking error:', assignError.message);
@@ -123,8 +73,24 @@ export async function createBookingAction(
 
   // Client will handle navigation after showing success state
   return ok({
-    bookingId: booking.id,
+    bookingId: booking.booking_id,
     bookingReference: booking.booking_reference,
     matched,
   });
+}
+
+function createBookingFailure(error: { code?: string; message: string } | null): ActionFailure {
+  switch (error?.code) {
+    case 'P0002':
+      // The RPC uses this for both an unavailable service and a property the caller doesn't own.
+      return fail('not_found', 'That service or property is no longer available. Please check and try again.');
+    case '22023':
+      // A past start time (already checked above, so clock skew) or a service with no price.
+      return fail('rejected', 'This service cannot be booked for that time. Please choose another time or service.');
+    case '42501':
+      return fail('rejected', 'Only customer accounts can create bookings.');
+    default:
+      console.error('create_booking error:', error?.message ?? 'no row returned');
+      return fail('failed', 'We could not create your booking. Please try again.');
+  }
 }

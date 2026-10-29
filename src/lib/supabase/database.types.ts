@@ -1469,6 +1469,10 @@ export type Database = {
         Args: { p_actor: string; p_booking_id: string }
         Returns: string
       }
+      _job_payment_amount: {
+        Args: { p_customer: string; p_job_id: string }
+        Returns: Record<string, unknown>
+      }
       _pick_professional: { Args: { p_booking_id: string }; Returns: string }
       _release_offer: {
         Args: {
@@ -1480,6 +1484,25 @@ export type Database = {
         Returns: boolean
       }
       assign_booking: { Args: { p_booking_id: string }; Returns: Json }
+      create_booking: {
+        Args: {
+          p_property_id: string
+          p_scheduled_start: string
+          p_service_id: string
+        }
+        Returns: {
+          booking_id: string
+          booking_reference: string
+        }[]
+      }
+      create_pending_payment: {
+        Args: {
+          p_amount_paise: number
+          p_job_id: string
+          p_provider_reference: string
+        }
+        Returns: string
+      }
       decline_job: {
         Args: { p_job_id: string; p_reason?: string }
         Returns: Json
@@ -1497,6 +1520,7 @@ export type Database = {
           postal_code: string
         }[]
       }
+      job_payment_amount: { Args: { p_job_id: string }; Returns: number }
       process_assignment_queue: { Args: never; Returns: Json }
       respond_to_quote: {
         Args: { p_decision: string; p_quote_id: string; p_reason?: string }

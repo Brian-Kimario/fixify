@@ -1,7 +1,8 @@
 /**
  * Bookings Service
  * 
- * Handles booking creation, retrieval, and management.
+ * Booking retrieval and management. Bookings are created by the create_booking RPC
+ * (see createBookingAction).
  * RLS ensures customers can only see/modify their own bookings.
  */
 
@@ -40,75 +41,6 @@ export interface BookingWithDetails extends Booking {
     display_name: string
     rating_average: number
   } | null
-}
-
-/**
- * Generate a unique booking reference
- */
-function generateBookingReference(): string {
-  const timestamp = Date.now()
-  const random = Math.floor(Math.random() * 10000)
-  return `BK-${timestamp}-${random}`
-}
-
-/**
- * Create a new booking
- */
-export async function createBooking(
-  propertyId: string,
-  serviceId: string,
-  scheduledStart: string,
-  pricingModel: Booking['pricing_model'],
-  quotedOrBaseAmount: number | null = null,
-  serviceRequestId?: string
-): Promise<Booking> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    throw new Error('Not authenticated')
-  }
-
-  // Verify the property belongs to the customer (RLS will handle this)
-  const { data: propertyData, error: propertyError } = await supabase
-    .from('properties')
-    .select('id')
-    .eq('id', propertyId)
-    .eq('owner_customer_id', user.id)
-    .single()
-
-  if (propertyError || !propertyData) {
-    throw new Error('Property not found or does not belong to you')
-  }
-
-  const bookingReference = generateBookingReference()
-
-  const { data, error } = await supabase
-    .from('bookings')
-    .insert({
-      booking_reference: bookingReference,
-      customer_id: user.id,
-      property_id: propertyId,
-      service_id: serviceId,
-      service_request_id: serviceRequestId || null,
-      scheduled_start: scheduledStart,
-      pricing_model: pricingModel,
-      quoted_or_base_amount: quotedOrBaseAmount,
-      booking_status: 'pending',
-    })
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Error creating booking:', error)
-    throw new Error(`Failed to create booking: ${error.message}`)
-  }
-
-  return data as Booking
 }
 
 /**

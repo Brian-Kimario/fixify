@@ -214,12 +214,8 @@ Code that depends on the missing objects and is therefore broken today:
   `updateAvailabilityStatus` updates `is_available` directly and returns `ActionResult`. Going
   online requires `verification_status = 'verified'`, matching the accept rule in
   `transition_job_state()`.
-- **Open: customers can insert any booking amount.** `bookings_insert_customer` only checks
-  `customer_id = auth.uid()`, so a customer can insert a booking from the browser with any
-  `quoted_or_base_amount`, `professional_id` or `booking_status`. `createUPIIntentPayment`
-  charges `quoted_or_base_amount` when there is no approved quote. Fix by moving booking creation
-  into a SECURITY DEFINER `create_booking` RPC that reads the price from `services`, and dropping
-  the insert policy. Not done in Phase 0 (outside the approved plan); needs owner sign-off.
+- **Fixed (H): customers could insert any booking amount.** `bookings_insert_customer` only
+  checked `customer_id = auth.uid()`. See section H.
 
 ## F. Payments (Phase 0 step 6)
 
@@ -243,12 +239,8 @@ Code that depends on the missing objects and is therefore broken today:
 - Verified: SQL rollback test `supabase/tests/20261030_004_payment_status_transition.sql`
   (13/13), route unit tests (11), and a signed `payment.captured` sent twice to the dev server
   against a throwaway payment row (200 `applied`, then 200 `already_processed`; deleted after).
-- **Open: customers cannot create a payment.** `payments` has only a SELECT policy, so the
-  `payments` insert in `createUPIIntentPayment` (user-scoped client) is refused by RLS. The
-  checkout fails before Razorpay is ever involved. Fix with a SECURITY DEFINER
-  `create_pending_payment(p_job_id, p_order_id)` that checks the caller owns the completed job
-  and computes the amount in SQL (approved quote, else booking amount). Ties into the booking
-  amount hole in section E; needs owner sign-off.
+- **Fixed (H): customers could not create a payment.** `payments` has only a SELECT policy, so
+  the user-scoped insert in `createUPIIntentPayment` was refused by RLS. See section H.
 - **Open: wrong columns elsewhere, found by typing the admin client.** Typing
   `createAdminClient()` with `Database` reports `src/app/admin/actions.ts` selecting
   `bookings.status` (lines 292, 316, 373, 404; the column does not exist) and
@@ -266,3 +258,31 @@ Code that depends on the missing objects and is therefore broken today:
 - `transitionJobState` in `src/app/professional/actions.ts`: no callers; state changes go
   through `StateTransitionButtons` and the typed actions.
 - Availability toggle: see section E (direct update guarded by the 20261030_003 trigger).
+
+## H. Insert holes closed (Phase 0 follow-up)
+
+- `20261030_005` drops `bookings_insert_customer` and adds `create_booking(service, property,
+  scheduled_start)` (SECURITY DEFINER, EXECUTE for authenticated and service_role). It takes the
+  customer from `auth.uid()`, requires a `customer` profile, an active service and a property the
+  caller owns, refuses a start time that is not in the future, and sets
+  `quoted_or_base_amount` from the service: `fixed` → `base_price`, `inspection` →
+  `inspection_fee`, `quote_after_inspection` → NULL. A priced model with no price on the service
+  is refused. Status is always `pending` and `professional_id` is left NULL.
+- `20261030_006` adds `job_payment_amount(job)` (paise) and
+  `create_pending_payment(job, provider_reference, paise)`, both SECURITY DEFINER and backed by
+  a private `_job_payment_amount` (no EXECUTE for clients). The caller must own the job and the
+  job must be `completed`. Amount: latest approved quote with `total > 0`, else the booking's
+  `quoted_or_base_amount > 0`, else refused. `create_pending_payment` locks the job row,
+  recomputes the amount and refuses a mismatch with the Razorpay order (22023), refuses a second
+  pending or paid payment (23505), and stores `booking_id`, `quote_id`, `amount`, `currency 'INR'`
+  and `status 'pending'` itself. A `failed` payment can be retried with a new order.
+- No INSERT policy was added to `payments`; the paise argument is compared, never stored.
+- `createBookingAction` and `createUPIIntentPayment` call the RPCs and map error codes to typed
+  results. Removed `createBooking()` from `src/lib/services/bookings.ts` (no callers; it inserted
+  directly with a client-made reference).
+- Verified: SQL rollback tests `supabase/tests/20261030_005_create_booking_rpc.sql` (11/11) and
+  `supabase/tests/20261030_006_create_pending_payment.sql` (15/15); live payments still 0 rows.
+  Unit tests for both actions (8 + 5). Not verified end to end: no booking or checkout was
+  submitted from the browser, to avoid writing live rows and offering a job to a professional.
+- Side effect: each run of the 005 test advances `booking_reference_seq` (sequences are not
+  rolled back), leaving gaps in booking references.
