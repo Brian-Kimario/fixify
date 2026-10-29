@@ -51,12 +51,13 @@ export default async function CustomerLayout({ children }: CustomerLayoutProps) 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
             <Link href="/customer" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Dashboard</Link>
+            <Link href="/customer/bookings" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Bookings</Link>
             <Link href="/customer/properties" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Properties</Link>
             <Link href="/customer/support" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Support</Link>
           </nav>
 
-          {/* Profile Section (Desktop only) */}
-          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+          {/* Account menu (all breakpoints) */}
+          <div className="flex items-center gap-3 flex-shrink-0">
             <SignOutMenu 
               user={user} 
               displayName={displayName}

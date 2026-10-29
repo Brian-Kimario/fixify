@@ -93,6 +93,15 @@ export function SignOutMenu({ user, displayName, initials, role }: SignOutMenuPr
     role === 'professional' ? '/professional/profile' :
     '/customer/profile';
 
+  const menuLinks =
+    role === 'customer' || !role
+      ? [
+          { label: 'Profile', href: '/customer/profile' },
+          { label: 'My bookings', href: '/customer/bookings' },
+          { label: 'Settings', href: '/customer/settings' },
+        ]
+      : [{ label: 'Profile', href: profileHref }];
+
   return (
     <>
       {/* ── Trigger button ───────────────────────────────────────── */}
@@ -128,7 +137,7 @@ export function SignOutMenu({ user, displayName, initials, role }: SignOutMenuPr
           ref={menuRef}
           role="menu"
           style={{ ...dropdownStyle, zIndex: 9999 }}
-          className="w-80 bg-white rounded-xl border border-[#E0E0E0] shadow-xl"
+          className="w-[min(20rem,calc(100vw-1.5rem))] bg-white rounded-xl border border-[#E0E0E0] shadow-xl"
         >
           {/* Error banner */}
           {error && (
@@ -157,43 +166,17 @@ export function SignOutMenu({ user, displayName, initials, role }: SignOutMenuPr
 
           {/* Links */}
           <div className="py-2">
-            <Link
-              href="/customer/profile"
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#18211F] hover:bg-[#F7F4EC] transition-colors"
-              onClick={closeMenu}
-              role="menuitem"
-            >
-              <svg className="w-4 h-4 text-[#5A6661]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Profile
-            </Link>
-
-            <Link
-              href="/customer/bookings"
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#18211F] hover:bg-[#F7F4EC] transition-colors"
-              onClick={closeMenu}
-              role="menuitem"
-            >
-              <svg className="w-4 h-4 text-[#5A6661]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              My Bookings
-            </Link>
-
-            <Link
-              href="/customer/settings"
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#18211F] hover:bg-[#F7F4EC] transition-colors"
-              onClick={closeMenu}
-              role="menuitem"
-            >
-              <svg className="w-4 h-4 text-[#5A6661]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24" />
-              </svg>
-              Settings
-            </Link>
+            {menuLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#18211F] hover:bg-[#F7F4EC] transition-colors"
+                onClick={closeMenu}
+                role="menuitem"
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
 
           {/* Sign-out actions */}

@@ -9,7 +9,6 @@ import {
   HelpCircle, 
   ExternalLink,
   ChevronRight,
-  Bell,
   Sparkles
 } from 'lucide-react';
 import { 
@@ -75,54 +74,29 @@ export function CustomerDashboardClient({
 
   return (
     <div className="min-h-screen bg-[#F7F4EC] text-[#18211F]">
-      {/* ── Fixed/Sticky Top Navigation Bar ── */}
-      <header className="sticky top-0 z-30 bg-[#F7F4EC]/90 backdrop-blur-md border-b border-[#D9DED8]/80">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="min-w-0 flex-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7C8681] block">
-              YOUR RESIDENTIAL RECORD
-            </span>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#18211F] mt-0.5 truncate">
-              {greeting}, {displayName}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Quick Property Switcher or Indicator */}
-            {primaryProperty && (
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D9DED8] bg-[#FFFEFA] text-xs font-semibold text-[#18211F]">
-                <Building2 className="w-3.5 h-3.5 text-[#176B5B]" />
-                <span>{primaryProperty.name}</span>
-              </div>
-            )}
-
-            {/* Notification Bell */}
-            <button
-              type="button"
-              className="w-10 h-10 rounded-xl border border-[#D9DED8] bg-[#FFFEFA] text-[#5A6661] hover:text-[#18211F] hover:border-[#BCD4CC] flex items-center justify-center relative transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B5B] focus-visible:ring-offset-2"
-              aria-label="View notifications"
-            >
-              <Bell className="w-4 h-4" />
-              {pendingQuote && (
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#9B6A1E] ring-2 ring-[#FFFEFA]" />
-              )}
-            </button>
-
-            {/* User Initials Avatar */}
-            <Link
-              href="/customer/profile"
-              className="w-10 h-10 rounded-xl bg-[#18211F] text-white flex items-center justify-center text-xs font-bold shadow-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#176B5B] focus-visible:ring-offset-2"
-              title="Open profile"
-              aria-label="View your profile"
-            >
-              {displayName.slice(0, 2).toUpperCase()}
-            </Link>
-          </div>
+      {/* ── Page heading (global navigation and account menu live in the layout) ── */}
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7C8681] block">
+            YOUR RESIDENTIAL RECORD
+          </span>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#18211F] mt-0.5 truncate">
+            {greeting}, {displayName}
+          </h1>
         </div>
-      </header>
+        {primaryProperty && (
+          <Link
+            href="/customer/properties"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D9DED8] bg-[#FFFEFA] text-xs font-semibold text-[#18211F] hover:border-[#BCD4CC] transition"
+          >
+            <Building2 className="w-3.5 h-3.5 text-[#176B5B]" />
+            <span>{primaryProperty.name}</span>
+          </Link>
+        )}
+      </div>
 
       {/* ── Main Dashboard Surface ── */}
-      <main id="main-content" className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <main id="main-content" className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         
         {/* State management: Show empty state when appropriate */}
         {isEmpty && <EmptyState />}
