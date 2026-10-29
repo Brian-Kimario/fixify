@@ -116,8 +116,12 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                     <User className="h-5 w-5 text-teal" aria-hidden="true" />
                   </span>
                   <div className="min-w-0">
-                    <p className="font-semibold text-ink">{contact.full_name ?? 'Customer'}</p>
-                    {contact.phone && (
+                    {contact.full_name ? (
+                      <p className="font-semibold text-ink">{contact.full_name}</p>
+                    ) : (
+                      <p className="text-sm text-ink-3">No name on file</p>
+                    )}
+                    {contact.phone ? (
                       <a
                         href={`tel:${contact.phone}`}
                         className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-teal hover:underline"
@@ -125,6 +129,8 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                         <Phone className="h-4 w-4" aria-hidden="true" />
                         {contact.phone}
                       </a>
+                    ) : (
+                      <p className="mt-1 text-sm text-ink-3">No phone number on file</p>
                     )}
                   </div>
                 </div>
@@ -162,8 +168,13 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                 ...(payBasis
                   ? [
                       {
-                        label: payBasis.label,
-                        value: payBasis.detail,
+                        label: 'Pricing',
+                        value: (
+                          <>
+                            {payBasis.label}
+                            <span className="block text-xs text-ink-3">{payBasis.detail}</span>
+                          </>
+                        ),
                       },
                     ]
                   : []),
