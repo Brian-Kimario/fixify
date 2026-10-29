@@ -49,8 +49,8 @@ export function ProfessionalCard({ professional, awaitingAcceptance, phone }: Pr
 
           {awaitingAcceptance && (
             <p className="mt-1 text-sm text-ink-3">
-              Waiting for {professional.displayName} to accept. If they decline, we offer it to the next
-              available professional.
+              Waiting for {professional.displayName} to accept. If they decline or don’t answer in time,
+              we offer it to the next available professional.
             </p>
           )}
 

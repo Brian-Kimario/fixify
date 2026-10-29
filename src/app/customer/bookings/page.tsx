@@ -179,7 +179,7 @@ export default async function BookingsPage({
 
 function BookingCard({ booking, showProperty }: { booking: CustomerBooking; showProperty: boolean }) {
   const state = booking.job?.state ?? null;
-  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: state, unmatchedSince: booking.unmatchedSince });
+  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: state, unmatchedSince: booking.unmatchedSince, startPassed: booking.startPassed });
   const copy = state && isJobState(state) ? STATE_META[state].customerCopy : null;
   const slot = formatSlot(booking.scheduledStart);
   const live = booking.tab === 'active' && state !== null;

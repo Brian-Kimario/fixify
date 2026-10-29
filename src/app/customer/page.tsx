@@ -297,7 +297,7 @@ function InboxCard({ item }: { item: CustomerInboxItem }) {
 
 function ActiveJobCard({ booking }: { booking: CustomerBooking }) {
   const state = booking.job?.state ?? null;
-  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: state, unmatchedSince: booking.unmatchedSince });
+  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: state, unmatchedSince: booking.unmatchedSince, startPassed: booking.startPassed });
   const copy = state && isJobState(state) ? STATE_META[state].customerCopy : null;
   const slot = formatSlot(booking.scheduledStart);
 
@@ -352,7 +352,7 @@ function ActiveJobCard({ booking }: { booking: CustomerBooking }) {
 }
 
 function BookingRow({ booking }: { booking: CustomerBooking }) {
-  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null, unmatchedSince: booking.unmatchedSince });
+  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null, unmatchedSince: booking.unmatchedSince, startPassed: booking.startPassed });
   const slot = formatSlot(booking.scheduledStart);
   return (
     <Link
@@ -374,7 +374,7 @@ const dayFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', timeZone: '
 const monthFormat = new Intl.DateTimeFormat('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
 
 function UpcomingRow({ booking, past = false }: { booking: CustomerBooking; past?: boolean }) {
-  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null, unmatchedSince: booking.unmatchedSince });
+  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null, unmatchedSince: booking.unmatchedSince, startPassed: booking.startPassed });
   const date = booking.scheduledStart ? new Date(booking.scheduledStart) : null;
   const slot = formatSlot(booking.scheduledStart);
   return (

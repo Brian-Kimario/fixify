@@ -165,19 +165,38 @@ const BOOKING_STATUS_DISPLAY: Record<string, { label: string; tone: JobStateTone
 };
 
 /**
- * Status shown on a booking card: "No professional yet" while the matcher has found nobody
- * (bookings.unmatched_since), else the job's state once there is a job, else the booking's
+ * Why an open booking has no professional, or null if it isn't waiting on one:
+ *  - overdue: the start time passed with no professional confirmed. The matcher stops
+ *    offering a visit once it has started, so nobody will be found for this slot.
+ *  - unmatched: the matcher found nobody eligible yet (bookings.unmatched_since).
+ */
+export function missingProfessional(input: {
+  bookingStatus: string | null;
+  jobState: string | null;
+  unmatchedSince?: string | null;
+  startPassed?: boolean;
+}): 'overdue' | 'unmatched' | null {
+  const open = input.bookingStatus !== 'cancelled' && input.bookingStatus !== 'completed';
+  if (!open || (input.jobState && input.jobState !== 'assigned')) return null;
+  if (input.startPassed) return 'overdue';
+  if (input.unmatchedSince) return 'unmatched';
+  return null;
+}
+
+/**
+ * Status shown for a booking: why there is no professional when there isn't one (see
+ * `missingProfessional`), else the job's state once there is a job, else the booking's
  * own status.
  */
 export function bookingStatusDisplay(input: {
   bookingStatus: string | null;
   jobState: string | null;
   unmatchedSince?: string | null;
+  startPassed?: boolean;
 }): { label: string; tone: JobStateTone } {
-  const open = input.bookingStatus !== 'cancelled' && input.bookingStatus !== 'completed';
-  if (input.unmatchedSince && open && (!input.jobState || input.jobState === 'assigned')) {
-    return { label: 'No professional yet', tone: 'ochre' };
-  }
+  const missing = missingProfessional(input);
+  if (missing === 'overdue') return { label: 'No professional assigned', tone: 'ochre' };
+  if (missing === 'unmatched') return { label: 'No professional yet', tone: 'ochre' };
   if (input.jobState && isJobState(input.jobState)) {
     const meta = STATE_META[input.jobState];
     return { label: meta.label, tone: meta.tone };

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   responseTimeLabel,
   bookingStatusDisplay,
+  missingProfessional,
   bookingTab,
   formatCountdown,
   initialsOf,
@@ -232,5 +233,31 @@ describe('responseTimeLabel', () => {
     expect(responseTimeLabel(30)).toBe('Typically responds in under a minute');
     expect(responseTimeLabel(12 * 60 + 10)).toBe('Typically responds in 12 min');
     expect(responseTimeLabel(2 * 3600 + 100)).toBe('Typically responds in 2 hr');
+  });
+});
+
+describe('missingProfessional', () => {
+  it('is overdue once the start passes with no accepted job', () => {
+    expect(missingProfessional({ bookingStatus: 'pending', jobState: null, startPassed: true })).toBe('overdue');
+    expect(missingProfessional({ bookingStatus: 'pending', jobState: 'assigned', startPassed: true })).toBe('overdue');
+  });
+
+  it('prefers overdue to unmatched', () => {
+    expect(
+      missingProfessional({ bookingStatus: 'pending', jobState: 'assigned', unmatchedSince: '2026-10-30T10:00:00Z', startPassed: true }),
+    ).toBe('overdue');
+  });
+
+  it('is null once a professional accepted, or the booking is closed', () => {
+    expect(missingProfessional({ bookingStatus: 'pending', jobState: 'in_progress', startPassed: true })).toBeNull();
+    expect(missingProfessional({ bookingStatus: 'cancelled', jobState: null, startPassed: true })).toBeNull();
+    expect(missingProfessional({ bookingStatus: 'pending', jobState: null })).toBeNull();
+  });
+
+  it('labels an overdue booking', () => {
+    expect(bookingStatusDisplay({ bookingStatus: 'pending', jobState: null, startPassed: true })).toEqual({
+      label: 'No professional assigned',
+      tone: 'ochre',
+    });
   });
 });

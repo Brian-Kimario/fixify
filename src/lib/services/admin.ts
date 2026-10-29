@@ -15,6 +15,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
+import { missingProfessional } from '@/lib/shell/rules';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared types
@@ -1017,26 +1018,34 @@ export interface UnmatchedBooking {
   id: string;
   reference: string;
   scheduledStart: string;
-  unmatchedSince: string;
+  /** overdue: start passed with no professional confirmed; unmatched: nobody eligible yet. */
+  reason: 'overdue' | 'unmatched';
+  unmatchedSince: string | null;
   serviceName: string;
   city: string | null;
   /** Offers that were declined or expired (booking_assignment_attempts). */
   attempts: number;
 }
 
+const jobStateSchema = z.object({ current_state: z.string() });
+
 const unmatchedRowSchema = z.object({
   id: z.string(),
   booking_reference: z.string(),
+  booking_status: z.string(),
   scheduled_start: z.string(),
-  unmatched_since: z.string(),
+  unmatched_since: z.string().nullable(),
   service: z.object({ name: z.string() }).nullable(),
   property: z.object({ address: z.object({ city: z.string().nullable() }).nullable() }).nullable(),
+  // jobs.booking_id is unique, but PostgREST may still return the embed as a list.
+  job: z.union([jobStateSchema, z.array(jobStateSchema)]).nullable(),
   attempts: z.array(z.object({ count: z.number() })),
 });
 
 /**
- * Open bookings the matcher found nobody for, oldest first. Admins have no RLS read on
- * bookings, so this uses the service-role client after the role check.
+ * Open bookings with no confirmed professional: the matcher found nobody (unmatched_since),
+ * or the start time passed first. Oldest start first. Admins have no RLS read on bookings,
+ * so this uses the service-role client after the role check.
  */
 export async function getUnmatchedBookings(): Promise<{ data: UnmatchedBooking[]; error: string | null }> {
   const auth = await requireAdmin();
@@ -1046,14 +1055,15 @@ export async function getUnmatchedBookings(): Promise<{ data: UnmatchedBooking[]
   const { data, error } = await admin
     .from('bookings')
     .select(
-      `id, booking_reference, scheduled_start, unmatched_since,
+      `id, booking_reference, booking_status, scheduled_start, unmatched_since,
        service:services!bookings_service_id_fkey ( name ),
        property:properties!bookings_property_id_fkey ( address:addresses ( city ) ),
+       job:jobs!jobs_booking_id_fkey ( current_state ),
        attempts:booking_assignment_attempts ( count )`,
     )
-    .not('unmatched_since', 'is', null)
+    .or(`unmatched_since.not.is.null,scheduled_start.lt.${new Date().toISOString()}`)
     .not('booking_status', 'in', '("cancelled","completed")')
-    .order('unmatched_since', { ascending: true })
+    .order('scheduled_start', { ascending: true })
     .limit(200);
 
   if (error) {
@@ -1067,16 +1077,68 @@ export async function getUnmatchedBookings(): Promise<{ data: UnmatchedBooking[]
     return { data: [], error: 'Could not read unmatched bookings.' };
   }
 
+  const now = new Date();
   return {
-    data: parsed.data.map((row) => ({
-      id: row.id,
-      reference: row.booking_reference,
-      scheduledStart: row.scheduled_start,
-      unmatchedSince: row.unmatched_since,
-      serviceName: row.service?.name ?? 'Service',
-      city: row.property?.address?.city ?? null,
-      attempts: row.attempts[0]?.count ?? 0,
-    })),
+    data: parsed.data.flatMap((row) => {
+      const job = Array.isArray(row.job) ? row.job[0] : row.job;
+      const reason = missingProfessional({
+        bookingStatus: row.booking_status,
+        jobState: job?.current_state ?? null,
+        unmatchedSince: row.unmatched_since,
+        startPassed: new Date(row.scheduled_start) < now,
+      });
+      if (!reason) return [];
+      return [
+        {
+          id: row.id,
+          reference: row.booking_reference,
+          scheduledStart: row.scheduled_start,
+          reason,
+          unmatchedSince: row.unmatched_since,
+          serviceName: row.service?.name ?? 'Service',
+          city: row.property?.address?.city ?? null,
+          attempts: row.attempts[0]?.count ?? 0,
+        },
+      ];
+    }),
     error: null,
+  };
+}
+
+export interface AssignmentQueueStatus {
+  scheduled: boolean;
+  lastRunAt: string | null;
+  lastStatus: string | null;
+  failures24h: number;
+}
+
+const queueStatusSchema = z.object({
+  scheduled: z.boolean(),
+  last_run_at: z.string().nullable(),
+  last_status: z.string().nullable(),
+  failures_24h: z.number(),
+});
+
+/** Health of the pg_cron job that runs process_assignment_queue, from cron.job_run_details. */
+export async function getAssignmentQueueStatus(): Promise<AssignmentQueueStatus | null> {
+  const auth = await requireAdmin();
+  if ('error' in auth) return null;
+
+  const admin = await createAdminClient();
+  const { data, error } = await admin.rpc('get_assignment_queue_status');
+  if (error) {
+    console.error('getAssignmentQueueStatus:', error.message);
+    return null;
+  }
+  const parsed = queueStatusSchema.safeParse(data);
+  if (!parsed.success) {
+    console.error('getAssignmentQueueStatus: unexpected shape', parsed.error.issues[0]?.message);
+    return null;
+  }
+  return {
+    scheduled: parsed.data.scheduled,
+    lastRunAt: parsed.data.last_run_at,
+    lastStatus: parsed.data.last_status,
+    failures24h: parsed.data.failures_24h,
   };
 }

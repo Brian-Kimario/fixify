@@ -7,6 +7,7 @@ import {
   isOfferOpen,
   isPaymentDue,
   isQuoteAwaitingCustomer,
+  missingProfessional,
   type BookingTab,
 } from '@/lib/shell/rules';
 
@@ -44,6 +45,8 @@ export interface CustomerBooking {
     completedAt: string | null;
   } | null;
   tab: BookingTab;
+  /** The scheduled start is in the past. */
+  startPassed: boolean;
   paymentDue: boolean;
   /** Quote the customer can approve or decline now, if any. */
   pendingQuote: { id: string; total: number } | null;
@@ -124,6 +127,7 @@ export const getCustomerShell = cache(async (userId: string): Promise<CustomerSh
         { bookingStatus: row.booking_status, jobState, scheduledStart: row.scheduled_start },
         now,
       ),
+      startPassed: row.scheduled_start != null && new Date(row.scheduled_start) < now,
       paymentDue: isPaymentDue({ jobState, paymentStatuses, amount: row.quoted_or_base_amount }),
       pendingQuote: awaiting ? { id: awaiting.id, total: Number(awaiting.total) } : null,
     };
@@ -131,13 +135,19 @@ export const getCustomerShell = cache(async (userId: string): Promise<CustomerSh
 
   const inbox: CustomerInboxItem[] = [];
   for (const b of bookings) {
-    if (b.unmatchedSince && b.tab !== 'past' && (!b.job || b.job.state === 'assigned')) {
+    const missing = missingProfessional({
+      bookingStatus: b.bookingStatus,
+      jobState: b.job?.state ?? null,
+      unmatchedSince: b.unmatchedSince,
+      startPassed: b.startPassed,
+    });
+    if (missing) {
       inbox.push({
         kind: 'unmatched',
         id: `unmatched-${b.id}`,
         bookingId: b.id,
         href: `/customer/bookings/${b.id}`,
-        title: 'No professional available yet',
+        title: missing === 'overdue' ? 'No professional was assigned' : 'No professional available yet',
         detail: `${b.serviceName} · ${b.reference}`,
         amount: null,
       });

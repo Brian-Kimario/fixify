@@ -7,7 +7,7 @@ import { UPIIntentCheckout } from '@/components/customer/UPIIntentCheckout';
 import { ProfessionalCard } from '@/components/customer/ProfessionalCard';
 import { getBookingProfessional } from '@/lib/services/matching';
 import { StatusPill } from '@/components/shell/primitives';
-import { bookingStatusDisplay } from '@/lib/shell/rules';
+import { bookingStatusDisplay, missingProfessional } from '@/lib/shell/rules';
 
 export const metadata = {
   title: 'Booking Confirmed — Feasy',
@@ -90,8 +90,14 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
   const isOpen = booking.booking_status !== 'cancelled' && booking.booking_status !== 'completed';
   // The matcher only offers bookings whose start is still ahead, so don't promise matching after it.
   const startPassed = new Date(booking.scheduled_start) < new Date();
-  const unmatched =
-    isOpen && booking.unmatched_since != null && (!jobRow || jobRow.current_state === 'assigned') && !professional;
+  const missing = missingProfessional({
+    bookingStatus: booking.booking_status,
+    jobState: jobRow?.current_state ?? null,
+    unmatchedSince: booking.unmatched_since,
+    startPassed,
+  });
+  // An offer still open at the start is about to expire unanswered, so it counts as overdue.
+  const unmatched = missing === 'overdue' || (missing === 'unmatched' && !professional);
 
   const intakeOptions = Array.isArray(booking.intake_options)
     ? booking.intake_options.flatMap((entry) => {
@@ -123,6 +129,7 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
     bookingStatus: booking.booking_status,
     jobState: jobRow?.current_state ?? null,
     unmatchedSince: booking.unmatched_since,
+    startPassed,
   });
 
   const formattedDate = new Date(booking.scheduled_start).toLocaleString('en-IN', {
@@ -269,7 +276,7 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
           )}
 
           {/* Professional */}
-          {professional && isOpen && (
+          {professional && isOpen && missing !== 'overdue' && (
             <ProfessionalCard professional={professional} awaitingAcceptance={awaitingAcceptance} phone={phone} />
           )}
           {professional && !isOpen && booking.booking_status === 'completed' && (
@@ -282,17 +289,30 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
               <div className="flex items-start gap-3">
                 <SearchX className="mt-0.5 h-5 w-5 shrink-0 text-ochre" aria-hidden="true" />
                 <div>
-                  <p className="font-bold text-ink">No professional available yet</p>
-                  <p className="mt-1 text-sm text-ink-2">
-                    None of our verified professionals for this service can take this time slot right now.
-                    Your booking stays open and our team can see it. You can also book a different time.
-                  </p>
+                  {missing === 'overdue' ? (
+                    <>
+                      <p className="font-bold text-ink">No professional was assigned</p>
+                      <p className="mt-1 text-sm text-ink-2">
+                        The start time passed before a professional confirmed this visit. Our team can see
+                        this booking. You can book a new time.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-bold text-ink">No professional available yet</p>
+                      <p className="mt-1 text-sm text-ink-2">
+                        None of our verified professionals for this service can take this time slot right now.
+                        We keep trying until the start time, and our team can see it. You can also book a
+                        different time.
+                      </p>
+                    </>
+                  )}
                   {service && property && (
                     <Link
                       href={`/customer/bookings/new?service=${service.id}&propertyId=${property.id}`}
                       className="mt-3 inline-flex items-center rounded-lg bg-teal px-4 py-2 text-sm font-bold text-paper hover:bg-teal-deep"
                     >
-                      Book another time
+                      {missing === 'overdue' ? 'Book a new time' : 'Book another time'}
                     </Link>
                   )}
                 </div>

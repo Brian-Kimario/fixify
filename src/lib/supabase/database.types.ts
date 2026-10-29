@@ -1740,6 +1740,7 @@ export type Database = {
         Args: { p_job_id: string; p_note?: string; p_reason_code: string }
         Returns: Json
       }
+      get_assignment_queue_status: { Args: never; Returns: Json }
       get_booking_professional: {
         Args: { p_booking_id: string }
         Returns: Json

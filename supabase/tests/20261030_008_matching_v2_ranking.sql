@@ -204,6 +204,38 @@ INSERT INTO _results
 SELECT 'empty pool is logged once', count(*) FILTER (WHERE d.kind = 'unmatched') = 1
 FROM _booking b, public.matching_decisions d WHERE d.booking_id = b.id;
 
+-- ── 9. Start time limits offers (20261030_011) ──────────────────────────────
+UPDATE public.professional_profiles pp SET is_available = true FROM _fixture f WHERE pp.user_id IN (f.pro_a, f.pro_b);
+DELETE FROM public.booking_assignment_attempts att USING _booking b WHERE att.booking_id = b.id;
+-- Ten minutes out, inside the 30-minute offer window.
+UPDATE public.bookings bk SET scheduled_start = date_trunc('second', now()) + interval '10 minutes'
+FROM _booking b WHERE bk.id = b.id;
+SELECT public._offer_next(b.id, f.customer_id) FROM _booking b, _fixture f;
+
+INSERT INTO _results
+SELECT 'offer never stays open past the start', j.professional_id IS NOT NULL
+  AND j.offer_expires_at = bk.scheduled_start AND bk.unmatched_since IS NULL
+FROM _booking b JOIN public.bookings bk ON bk.id = b.id JOIN public.jobs j ON j.booking_id = b.id;
+
+UPDATE public.bookings bk SET scheduled_start = now() - interval '1 minute' FROM _booking b WHERE bk.id = b.id;
+UPDATE public.jobs j SET offer_expires_at = now() - interval '1 second' FROM _booking b WHERE j.booking_id = b.id;
+CREATE TEMP TABLE _queue ON COMMIT DROP AS SELECT public.process_assignment_queue() AS run;
+
+INSERT INTO _results
+SELECT 'queue run reports no failures', (q.run->>'failed')::int = 0 AND (q.run->>'expired_offers')::int >= 1
+FROM _queue q;
+
+INSERT INTO _results
+SELECT 'expired offer past the start is not re-offered', j.professional_id IS NULL
+  AND j.current_state = 'assigned' AND bk.unmatched_since IS NOT NULL
+FROM _booking b JOIN public.bookings bk ON bk.id = b.id JOIN public.jobs j ON j.booking_id = b.id;
+
+INSERT INTO _results
+-- now() is fixed inside this transaction, so match on the reason rather than ordering by time.
+SELECT 'start-passed unmatched is logged with its reason',
+  count(*) FILTER (WHERE d.inputs->>'reason' = 'start time passed') = 1
+FROM _booking b JOIN public.matching_decisions d ON d.booking_id = b.id AND d.kind = 'unmatched';
+
 SELECT check_name, pass FROM _results;
 
 ROLLBACK;
