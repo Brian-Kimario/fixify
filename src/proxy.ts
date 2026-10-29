@@ -184,7 +184,10 @@ export async function proxy(request: NextRequest) {
   if (isProtectedRoute && !user) {
     console.warn(`[Security] Unauthenticated attempt to access ${pathname} from IP ${ip}`);
     const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("role", protectedRoutes[pathname.split('/').slice(0, 2).join('/')] || "customer");
+    const requiredRole = protectedRoutes[pathname.split('/').slice(0, 2).join('/')] || "customer";
+    loginUrl.searchParams.set("role", requiredRole);
+    // The login page opens on the matching door: professionals for /professional, customers otherwise.
+    loginUrl.searchParams.set("as", requiredRole === "professional" ? "professional" : "customer");
     loginUrl.searchParams.set("next", pathname);
     return redirectWithSession(`${loginUrl.pathname}${loginUrl.search}`);
   }

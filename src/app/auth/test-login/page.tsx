@@ -11,11 +11,11 @@ export default function TestLoginPage() {
     setLoading(true);
     try {
       // signInWithEmail now calls redirect() server-side — it always throws NEXT_REDIRECT on success.
-      await signInWithEmail(email, "Test@123456");
-      // Should never reach here
+      const failure = await signInWithEmail(email, "Test@123456");
+      // A return value means sign-in failed; success throws NEXT_REDIRECT.
       setResults((prev) => [
         ...prev,
-        { test: label, passed: false, error: "No redirect thrown — unexpected return" },
+        { test: label, passed: false, error: `Sign-in failed: ${failure.message}` },
       ]);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

@@ -9,54 +9,97 @@ import type { UserRole } from "@/types/auth";
 
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 
+export type SignInAudience = "customer" | "professional";
+
+export type SignInFailureCode =
+  | "invalid_input"
+  | "invalid_credentials"
+  | "email_not_confirmed"
+  | "wrong_audience"
+  | "no_role"
+  | "unknown";
+
+export interface SignInFailure {
+  ok: false;
+  code: SignInFailureCode;
+  message: string;
+  /** Set for `wrong_audience`: the sign-in the account actually belongs to. */
+  actualAudience?: SignInAudience;
+}
+
 /**
  * Sign in with email and password.
  *
  * Uses SSR client so session cookies are set on the server response before the
- * redirect. Calling redirect() inside the Server Action ensures the cookie
- * headers and the 303 redirect are sent in the same HTTP response, so the
- * dashboard layout sees a valid session immediately without requiring a refresh.
+ * redirect. On success this calls redirect(), which throws NEXT_REDIRECT, so a
+ * return value only ever means failure. Failures are returned as typed results
+ * rather than thrown: Next masks thrown server-action messages in production,
+ * which would turn every error into a generic one on the client.
+ *
+ * `audience` is the door the user came in through (customer or professional
+ * sign-in). An account that belongs behind the other door is signed back out
+ * and told where to go. Admin and support accounts pass through either door.
  */
-export async function signInWithEmail(email: string, password: string, next?: string | null) {
+export async function signInWithEmail(
+  email: string,
+  password: string,
+  next?: string | null,
+  audience?: SignInAudience | null,
+): Promise<SignInFailure> {
+  const cleanEmail = typeof email === "string" ? email.toLowerCase().trim() : "";
+  if (!cleanEmail || typeof password !== "string" || !password) {
+    return { ok: false, code: "invalid_input", message: "Enter your email and password." };
+  }
+
   const supabase = await createServerSupabase();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email.toLowerCase().trim(),
-    password,
-  });
+  const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
 
   if (error) {
-    throw new Error(error.message);
+    if (error.message.includes("Email not confirmed")) {
+      return { ok: false, code: "email_not_confirmed", message: "Confirm your email before signing in." };
+    }
+    if (error.message.includes("Invalid login credentials")) {
+      return { ok: false, code: "invalid_credentials", message: "Email or password is incorrect." };
+    }
+    return { ok: false, code: "unknown", message: "We could not sign you in right now. Please try again." };
   }
 
   if (!data.user) {
-    throw new Error("No user returned from authentication");
+    return { ok: false, code: "unknown", message: "We could not sign you in right now. Please try again." };
   }
 
-  // Get the user's role from profiles table
   const role = await getUserRole(data.user.id, supabase);
   const baseRedirectPath = getRedirectPathByRole(role);
-  if (!baseRedirectPath) {
+  if (!role || !baseRedirectPath) {
     await supabase.auth.signOut();
-    throw new Error("Your account does not have a valid Feasy role.");
+    return { ok: false, code: "no_role", message: "Your account does not have a valid Feasy role." };
   }
 
-  // Set session metadata tracking
+  if (audience && (role === "customer" || role === "professional") && role !== audience) {
+    await supabase.auth.signOut();
+    return {
+      ok: false,
+      code: "wrong_audience",
+      actualAudience: role,
+      message:
+        role === "customer"
+          ? "This is a customer account. Use the customer sign-in instead."
+          : "This is a professional account. Use the professional sign-in instead.",
+    };
+  }
+
   try {
-    if (role) {
-      const metadata = await createSessionMetadata(data.user.id, role);
-      await setSessionMetadataCookie(metadata);
-    }
+    const metadata = await createSessionMetadata(data.user.id, role);
+    await setSessionMetadataCookie(metadata);
   } catch (err) {
     console.warn("Session metadata tracking warning:", err);
   }
 
-  // Validate and resolve the next parameter
   const redirectPath = validateNextParam(next, role, baseRedirectPath);
 
-  // redirect() throws a NEXT_REDIRECT internally — this is intentional.
-  // It ensures cookies + redirect are sent in a single HTTP response so the
-  // target page (dashboard layout) always sees the valid session immediately.
+  // redirect() throws NEXT_REDIRECT so cookies and the redirect are sent in a
+  // single response and the target layout sees the session immediately.
   redirect(redirectPath);
 }
 
