@@ -196,9 +196,12 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
           )}
 
           {(kase.eta || kase.lateReportedAt) && (
-            <Panel className={`p-5 ${kase.lateReportedAt ? 'border-ochre/30 bg-ochre-soft' : 'border-teal/30'}`}>
+            <Panel className={`p-5 ${kase.lateReportedAt || kase.eta?.passed ? 'border-ochre/30 bg-ochre-soft' : 'border-teal/30'}`}>
               <div className="flex items-start gap-3">
-                <Clock className={`mt-0.5 h-5 w-5 shrink-0 ${kase.lateReportedAt ? 'text-ochre' : 'text-teal'}`} aria-hidden="true" />
+                <Clock
+                  className={`mt-0.5 h-5 w-5 shrink-0 ${kase.lateReportedAt || kase.eta?.passed ? 'text-ochre' : 'text-teal'}`}
+                  aria-hidden="true"
+                />
                 <div className="text-sm">
                   {kase.lateReportedAt && (
                     <p className="font-semibold text-ink">
@@ -206,9 +209,19 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
                     </p>
                   )}
                   {kase.eta && (
-                    <p className={kase.lateReportedAt ? 'mt-1 text-ink-2' : 'font-semibold text-ink'}>
-                      Expected arrival: {arrivalWindowText(kase.eta)}
-                    </p>
+                    <>
+                      <p className={kase.lateReportedAt ? 'mt-1 text-ink-2' : 'font-semibold text-ink'}>
+                        {kase.lateReportedAt ? 'New expected arrival' : 'Expected arrival'}: {arrivalWindowText(kase.eta)}
+                      </p>
+                      {kase.eta.sharedAt && !kase.lateReportedAt && (
+                        <p className="mt-0.5 text-xs text-ink-3">Shared {formatSlot(kase.eta.sharedAt)}</p>
+                      )}
+                      {kase.eta.passed && (
+                        <p className="mt-1 text-ink-2">
+                          This window has passed and {proName} has not marked arrival yet.
+                        </p>
+                      )}
+                    </>
                   )}
                   <p className="mt-1 text-xs text-ink-3">
                     This is the professional&apos;s own estimate. Feasy does not track live location.

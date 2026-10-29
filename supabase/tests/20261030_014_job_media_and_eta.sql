@@ -111,8 +111,9 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims',
   json_build_object('sub', professional_id::text, 'role', 'authenticated')::text, true) FROM _fixture;
 SET LOCAL ROLE authenticated;
-INSERT INTO storage.objects (bucket_id, name, owner_id)
-SELECT 'job-media', job_id::text || '/' || file_id::text || '.jpg', professional_id::text FROM _fixture;
+INSERT INTO storage.objects (bucket_id, name, owner_id, metadata)
+SELECT 'job-media', job_id::text || '/' || file_id::text || '.jpg', professional_id::text,
+  '{"mimetype": "image/jpeg"}'::jsonb FROM _fixture;
 INSERT INTO _results VALUES ('storage: the job''s professional can upload on site', true);
 
 DO $$

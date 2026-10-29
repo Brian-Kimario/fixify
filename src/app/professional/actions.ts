@@ -9,9 +9,11 @@ import {
   JOB_MEDIA_TYPES,
   addJobMediaSchema,
   createQuoteSchema,
+  discardJobMediaUploadSchema,
   jobMediaUploadSchema,
   reportEtaSchema,
   type AddJobMediaInput,
+  type DiscardJobMediaUploadInput,
   type JobMediaUploadInput,
   type ReportEtaInput,
   declineJobSchema,
@@ -910,6 +912,30 @@ export async function createJobMediaUploadAction(
     return fail('failed', 'Could not start the upload. Please try again.');
   }
   return ok({ path: data.path, token: data.token });
+}
+
+/**
+ * Remove a file the professional uploaded but could not attach, so it does not linger in the
+ * bucket. The storage DELETE policy only matches the uploader's own unattached files, so attached
+ * evidence cannot be removed this way. Anything this misses is left for the job-media sweep.
+ */
+export async function discardJobMediaUploadAction(
+  payload: DiscardJobMediaUploadInput
+): Promise<ActionResult> {
+  const parsed = parseInput(discardJobMediaUploadSchema, payload);
+  if (parsed.success === false) return parsed;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Not authenticated');
+
+  const { data, error } = await supabase.storage.from('job-media').remove([parsed.data.storagePath]);
+  if (error) {
+    console.error('discardJobMediaUpload error:', error.message);
+    return fail('failed', 'Could not remove the upload.');
+  }
+  if (!data || data.length === 0) return fail('not_found', 'Upload not found or already attached');
+  return ok();
 }
 
 /**

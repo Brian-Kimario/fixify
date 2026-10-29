@@ -1825,6 +1825,10 @@ export type Database = {
       }
       job_paid_at: { Args: { p_job_id: string }; Returns: string }
       job_payment_amount: { Args: { p_job_id: string }; Returns: number }
+      list_orphan_job_media: {
+        Args: { p_older_than?: string }
+        Returns: string[]
+      }
       process_assignment_queue: { Args: never; Returns: Json }
       report_job_eta: {
         Args: {

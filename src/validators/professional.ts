@@ -111,3 +111,17 @@ export const jobMediaUploadSchema = z.object({
     .refine((t) => t in JOB_MEDIA_TYPES, { message: 'Use a JPG, PNG or WebP photo, or a PDF.' }),
 });
 export type JobMediaUploadInput = z.input<typeof jobMediaUploadSchema>;
+
+/** Remove an upload that could not be attached. Storage RLS only allows it while unattached. */
+export const discardJobMediaUploadSchema = z
+  .object({
+    jobId: uuid,
+    storagePath: z
+      .string()
+      .regex(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp|pdf)$/i, 'Invalid file path.'),
+  })
+  .refine((v) => v.storagePath.toLowerCase().startsWith(`${v.jobId.toLowerCase()}/`), {
+    path: ['storagePath'],
+    message: 'The file does not belong to this job.',
+  });
+export type DiscardJobMediaUploadInput = z.input<typeof discardJobMediaUploadSchema>;

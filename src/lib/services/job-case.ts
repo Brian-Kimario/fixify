@@ -53,6 +53,15 @@ export interface CaseMedia {
 /** Signed media links last an hour; the page is re-rendered on every visit. */
 const MEDIA_URL_SECONDS = 3600;
 
+export interface CaseEta {
+  earliest: string;
+  latest: string;
+  /** When the window was sent (the latest eta_shared or running_late event). */
+  sharedAt: string | null;
+  /** The window's end is behind us and the professional has not marked arrival. */
+  passed: boolean;
+}
+
 export interface CaseRecords {
   progress: ProgressStep[];
   timeline: TimelineEntry[];
@@ -64,7 +73,7 @@ export interface CaseRecords {
   media: CaseMedia[];
   paidAt: string | null;
   /** The professional's stated arrival window, shown only before they arrive. */
-  eta: { earliest: string; latest: string } | null;
+  eta: CaseEta | null;
   /** When the professional last said they are running late, while that still matters. */
   lateReportedAt: string | null;
   /** True when part of the history could not be read; the page says so instead of showing less. */
@@ -222,6 +231,18 @@ async function loadRecords(
 
   const beforeArrival = job != null && BEFORE_ARRIVAL.has(job.current_state);
   const lastLate = beforeArrival ? [...events].reverse().find((e) => e.eventType === 'running_late') : undefined;
+  const lastWindow = beforeArrival
+    ? [...events].reverse().find((e) => e.eventType === 'running_late' || e.eventType === 'eta_shared')
+    : undefined;
+  const eta: CaseEta | null =
+    beforeArrival && job.eta_earliest && job.eta_latest
+      ? {
+          earliest: job.eta_earliest,
+          latest: job.eta_latest,
+          sharedAt: lastWindow?.createdAt ?? null,
+          passed: new Date(job.eta_latest).getTime() < Date.now(),
+        }
+      : null;
 
   const parties: CaseParties = {
     customerId: job?.customer_id ?? input.viewerId,
@@ -265,8 +286,7 @@ async function loadRecords(
     inspections,
     media,
     paidAt,
-    eta:
-      beforeArrival && job.eta_earliest && job.eta_latest ? { earliest: job.eta_earliest, latest: job.eta_latest } : null,
+    eta,
     lateReportedAt: lastLate?.createdAt ?? null,
     incomplete,
   };

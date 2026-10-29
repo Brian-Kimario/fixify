@@ -9,6 +9,12 @@ import { defineConfig, devices } from '@playwright/test'
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+// Specs that sign in skip without E2E_TEST_PASSWORD. In CI or a release check, set
+// E2E_REQUIRED=1 so a missing password fails the run instead of passing on skips.
+if (process.env.E2E_REQUIRED === '1' && !process.env.E2E_TEST_PASSWORD) {
+  throw new Error('E2E_REQUIRED=1 but E2E_TEST_PASSWORD is not set')
+}
+
 export default defineConfig({
   testDir: './tests/e2e',
   /* Run tests in files in parallel */

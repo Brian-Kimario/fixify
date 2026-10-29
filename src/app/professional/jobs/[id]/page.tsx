@@ -115,9 +115,14 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
             {TRAVELLING.has(job.state) && (
               <div className="mt-5 border-t border-line pt-4">
                 {kase.eta && (
-                  <p className="mb-3 text-sm text-ink-2">
-                    You told the customer: <span className="font-semibold text-ink">{arrivalWindowText(kase.eta)}</span>
-                  </p>
+                  <div className="mb-3 text-sm text-ink-2">
+                    <p>
+                      You told the customer: <span className="font-semibold text-ink">{arrivalWindowText(kase.eta)}</span>
+                    </p>
+                    {kase.eta.passed && (
+                      <p className="mt-1 text-ochre">This window has passed. If you are delayed, send a new one.</p>
+                    )}
+                  </div>
                 )}
                 <ArrivalWindowForm jobId={job.id} state={job.state} hasWindow={kase.eta != null} />
               </div>

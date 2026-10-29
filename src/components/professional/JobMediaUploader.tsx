@@ -4,7 +4,11 @@ import { useId, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { addJobMediaAction, createJobMediaUploadAction } from '@/app/professional/actions';
+import {
+  addJobMediaAction,
+  createJobMediaUploadAction,
+  discardJobMediaUploadAction,
+} from '@/app/professional/actions';
 import {
   JOB_MEDIA_KINDS,
   JOB_MEDIA_KIND_LABEL,
@@ -64,6 +68,8 @@ export function JobMediaUploader({ jobId }: { jobId: string }) {
       }
       const result = await addJobMediaAction({ jobId, kind, storagePath: path });
       if (result.success === false) {
+        // Best effort: an unattached upload is otherwise left for the job-media sweep.
+        await discardJobMediaUploadAction({ jobId, storagePath: path });
         setError(result.error);
         return;
       }
