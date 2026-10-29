@@ -317,6 +317,7 @@ export type Database = {
           current_state: string
           customer_id: string
           id: string
+          offer_expires_at: string | null
           on_the_way_at: string | null
           professional_id: string
           property_id: string
@@ -334,6 +335,7 @@ export type Database = {
           current_state?: string
           customer_id: string
           id?: string
+          offer_expires_at?: string | null
           on_the_way_at?: string | null
           professional_id: string
           property_id: string
@@ -351,6 +353,7 @@ export type Database = {
           current_state?: string
           customer_id?: string
           id?: string
+          offer_expires_at?: string | null
           on_the_way_at?: string | null
           professional_id?: string
           property_id?: string
@@ -1340,6 +1343,35 @@ export type Database = {
           p_new_state: string
         }
         Returns: boolean
+      }
+      assign_booking: {
+        Args: { p_booking_id: string }
+        Returns: Json
+      }
+      decline_job: {
+        Args: { p_job_id: string; p_reason?: string | null }
+        Returns: Json
+      }
+      respond_to_quote: {
+        Args: { p_quote_id: string; p_decision: string; p_reason?: string | null }
+        Returns: boolean
+      }
+      get_job_customer_contact: {
+        Args: { p_job_id: string }
+        Returns: {
+          full_name: string | null
+          phone: string | null
+          address_line_1: string
+          address_line_2: string | null
+          area: string | null
+          city: string
+          postal_code: string | null
+          access_notes: string | null
+        }[]
+      }
+      process_assignment_queue: {
+        Args: Record<string, never>
+        Returns: Json
       }
     }
     Enums: {

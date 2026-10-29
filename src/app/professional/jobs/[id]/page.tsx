@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getJobById } from '@/app/professional/actions';
+import { getJobById, getJobCustomerContact } from '@/app/professional/actions';
 import { JobTimeline } from '@/components/professional/JobTimeline';
 import { StateTransitionButtons } from '@/components/professional/StateTransitionButtons';
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
@@ -58,12 +58,17 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   // Safely extract nested fields
   const serviceName = (job.booking as { service?: { name?: string } })?.service?.name ?? 'Service';
   const categoryName = (job.booking as { service?: { category?: { name?: string } } })?.service?.category?.name ?? '';
-  const customerName = job.customer?.full_name ?? '—';
-  const customerPhone = job.customer?.phone ?? null;
+  // Name, phone and exact address are released by the database only after acceptance.
+  const contact = await getJobCustomerContact(job.id);
+  const customerName = contact?.full_name ?? job.customer?.full_name ?? 'Customer';
+  const customerPhone = contact?.phone ?? null;
   const propertyName = job.property?.name ?? '—';
-  const addressLine = (job.property as { address?: { address_line_1?: string } })?.address?.address_line_1 ?? '';
   const city = (job.property as { address?: { city?: string } })?.address?.city ?? '';
-  const fullAddress = [addressLine, city].filter(Boolean).join(', ');
+  const fullAddress = contact
+    ? [contact.address_line_1, contact.address_line_2, contact.area, contact.city, contact.postal_code]
+        .filter(Boolean)
+        .join(', ')
+    : [city].filter(Boolean).join(', ');
   const scheduledStart = (job.booking as { scheduled_start?: string })?.scheduled_start ?? null;
 
   return (
@@ -170,6 +175,14 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                   <p className="font-semibold text-[#18211F]">{propertyName}</p>
                   {fullAddress && (
                     <p className="text-sm text-[#5A6661]">{fullAddress}</p>
+                  )}
+                  {!contact && (
+                    <p className="text-xs text-[#7C8681] mt-1">
+                      Full address and phone are shared once you accept.
+                    </p>
+                  )}
+                  {contact?.access_notes && (
+                    <p className="text-xs text-[#7C8681] mt-1">Access: {contact.access_notes}</p>
                   )}
                 </div>
               </div>

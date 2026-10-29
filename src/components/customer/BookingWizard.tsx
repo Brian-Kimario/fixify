@@ -200,7 +200,7 @@ export function BookingWizard({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showSuccessState, setShowSuccessState] = useState(false);
-  const [successData, setSuccessData] = useState<{ bookingId?: string } | null>(null);
+  const [successData, setSuccessData] = useState<{ bookingId?: string; matched?: boolean } | null>(null);
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const currentCategory = categories.find((c) => c.id === selectedCategoryId);
@@ -610,7 +610,7 @@ export function BookingWizard({
                     notes: notes.trim() || undefined,
                   });
                   // Show success state with booking ID
-                  setSuccessData({ bookingId: result.bookingId });
+                  setSuccessData({ bookingId: result.bookingId, matched: result.matched });
                   setShowSuccessState(true);
                 } catch (err: unknown) {
                   const msg =
@@ -642,8 +642,11 @@ export function BookingWizard({
   if (showSuccessState && successData?.bookingId) {
     return (
       <SuccessState
-        title="Request submitted"
-        description="Your request is now waiting for professional review. You'll be notified when a professional shows interest."
+        title={successData.matched ? 'Booking sent to a professional' : 'Booking received'}
+        description={
+          successData.matched
+            ? "We've offered your job to a nearby professional. If they can't take it, we'll move it to the next one automatically."
+            : "We're finding a professional for your time slot. We'll keep trying, and your booking page shows the latest status."}
         action={{
           label: 'View request',
           onClick: () => router.push(`/customer/bookings/${successData.bookingId}`),

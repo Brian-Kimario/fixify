@@ -190,7 +190,7 @@ export async function getServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
  */
 export async function transitionJobState(
   jobId: string,
-  newState: "accepted" | "declined" | "on_the_way" | "arrived" | "in_progress" | "completed" | "closed"
+  newState: "accepted" | "on_the_way" | "arrived" | "in_progress" | "completed" | "closed"
 ) {
   const supabase = await createClient();
 
@@ -700,6 +700,69 @@ export async function acceptRequest(jobId: string): Promise<{
     const message = err instanceof Error ? err.message : "Unknown error";
     return { success: false, error: message };
   }
+}
+
+/**
+ * Decline an assigned job. The offer moves to the next eligible professional,
+ * or the booking returns to "finding a professional" if there is none.
+ */
+export async function declineJobAction(
+  jobId: string,
+  reason?: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Not authenticated" };
+  }
+  if (!jobId) {
+    return { success: false, error: "Invalid job" };
+  }
+
+  const { error } = await supabase.rpc("decline_job", {
+    p_job_id: jobId,
+    p_reason: reason?.trim().slice(0, 500) || null,
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/professional");
+  return { success: true };
+}
+
+export interface JobCustomerContact {
+  full_name: string | null;
+  phone: string | null;
+  address_line_1: string;
+  address_line_2: string | null;
+  area: string | null;
+  city: string;
+  postal_code: string | null;
+  access_notes: string | null;
+}
+
+/**
+ * Customer name, phone and full address. The database releases these only to the
+ * assigned professional once the job has been accepted.
+ */
+export async function getJobCustomerContact(
+  jobId: string
+): Promise<JobCustomerContact | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_job_customer_contact", {
+    p_job_id: jobId,
+  });
+  if (error) {
+    console.error("getJobCustomerContact error:", error.message);
+    return null;
+  }
+  const rows = (data ?? []) as JobCustomerContact[];
+  return rows[0] ?? null;
 }
 
 /**

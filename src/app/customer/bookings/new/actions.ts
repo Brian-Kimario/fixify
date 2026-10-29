@@ -19,6 +19,8 @@ export interface CreateBookingInput {
 export interface CreateBookingOutput {
   bookingId: string;
   bookingReference: string;
+  /** True when a professional has already been offered the job. */
+  matched: boolean;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -121,10 +123,23 @@ export async function createBookingAction(
     throw new Error(`Failed to create booking: ${bookingError?.message ?? 'Unknown error'}`);
   }
 
-  // ── Return booking data instead of redirecting ────────────────────────────────
+  // ── Offer the job to the best-matching professional ─────────────────────────
+  // A failure here must not fail the booking: unmatched bookings are retried
+  // by the assignment queue (/api/cron/assignment-queue).
+  let matched = false;
+  const { data: assignment, error: assignError } = await supabase.rpc('assign_booking', {
+    p_booking_id: booking.id,
+  });
+  if (assignError) {
+    console.error('assign_booking error:', assignError.message);
+  } else {
+    matched = Boolean((assignment as unknown as { matched?: boolean } | null)?.matched);
+  }
+
   // Client will handle navigation after showing success state
   return {
     bookingId: booking.id,
     bookingReference,
+    matched,
   };
 }

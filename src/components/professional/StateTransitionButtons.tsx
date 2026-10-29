@@ -3,13 +3,14 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateJobState } from '@/lib/services/jobs';
+import { declineJobAction } from '@/app/professional/actions';
 import { SuccessState } from '@/components/ui/SuccessState';
 
 // ── Configuration ──────────────────────────────────────────────────────────────
 
 /** States a professional can trigger from any given current state */
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  assigned:      ['accepted', 'cancelled'],
+  assigned:      ['accepted', 'declined'],
   accepted:      ['on_the_way', 'cancelled'],
   on_the_way:    ['arrived', 'cancelled'],
   arrived:       ['in_progress', 'cancelled'],
@@ -27,6 +28,7 @@ const TRANSITION_LABELS: Record<string, string> = {
   in_progress:'Start Work',
   completed:  'Mark Complete',
   cancelled:  'Cancel Job',
+  declined:   'Decline Job',
 };
 
 const TRANSITION_STYLES: Record<string, string> = {
@@ -36,6 +38,7 @@ const TRANSITION_STYLES: Record<string, string> = {
   in_progress: 'bg-[#176B5B] text-white hover:bg-[#0D5144] focus-visible:ring-[#176B5B]',
   completed:   'bg-[#2F7D5B] text-white hover:bg-[#226048] focus-visible:ring-[#2F7D5B]',
   cancelled:   'border border-[#DFC0C0] text-[#9B3535] hover:bg-[#F5E6E6] focus-visible:ring-[#DFC0C0]',
+  declined:    'border border-[#DFC0C0] text-[#9B3535] hover:bg-[#F5E6E6] focus-visible:ring-[#DFC0C0]',
 };
 
 /** States that require an explicit confirmation dialog before proceeding */
@@ -43,7 +46,7 @@ const REQUIRES_CONFIRMATION = new Set(['cancelled', 'declined', 'completed']);
 
 const CONFIRMATION_MESSAGES: Record<string, string> = {
   cancelled: 'Are you sure you want to cancel this job? This cannot be undone.',
-  declined: 'Decline this request? It will be offered to other professionals.',
+  declined: 'Decline this request? It will be offered to another professional.',
   completed: 'Mark this job as complete? Please confirm all work has been finished.',
 };
 
@@ -103,6 +106,17 @@ export function StateTransitionButtons({
 
     startTransition(async () => {
       try {
+        if (targetState === 'declined') {
+          const declined = await declineJobAction(jobId);
+          if (declined.success) {
+            router.push('/professional/jobs');
+            router.refresh();
+          } else {
+            showToast('error', declined.error ?? 'Could not decline this job.');
+          }
+          return;
+        }
+
         const result = await updateJobState(jobId, targetState);
 
         if (result.success) {

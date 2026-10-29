@@ -203,8 +203,9 @@ export async function submitProblemIntakeAction(payload: {
 
 /**
  * Server Action: Respond to Quote (Approve or Decline)
- * Updates the quotes row, then uses transition_job_state() RPC to change job state.
- * This ensures the state machine enforces valid transitions and records audit events.
+ * Delegates to the respond_to_quote() RPC, which updates the quote and moves the job
+ * back to in_progress in one transaction (approve = extra work authorised, decline =
+ * professional continues the original scope).
  */
 export async function respondToQuoteAction(payload: {
   quoteId: string;
@@ -224,55 +225,21 @@ export async function respondToQuoteAction(payload: {
     return { success: false, error: 'Invalid job ID' };
   }
 
-  // Verify the customer owns this job before any mutation
-  const { data: job, error: jobFetchError } = await supabase
-    .from('jobs')
-    .select('id, current_state, customer_id')
-    .eq('id', payload.jobId)
-    .eq('customer_id', user.id)
-    .single();
-
-  if (jobFetchError || !job) {
-    return { success: false, error: 'Job not found or access denied' };
+  if (payload.decision !== 'approved' && payload.decision !== 'declined') {
+    return { success: false, error: 'Invalid decision' };
   }
 
-  if (job.current_state !== 'quote_pending') {
-    return { success: false, error: `Job is in state '${job.current_state}', not 'quote_pending'. Cannot respond to quote.` };
-  }
-
-  const newQuoteStatus = payload.decision === 'approved' ? 'approved' : 'declined';
-  // Approved quote → in_progress; declined quote → back to assigned (awaiting reassign)
-  const newJobState = payload.decision === 'approved' ? 'in_progress' : 'assigned';
-
-  // Update quote status (RLS ensures ownership via job→customer_id)
-  const { error: quoteError } = await supabase
-    .from('quotes')
-    .update({
-      status: newQuoteStatus,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', payload.quoteId);
-
-  if (quoteError) {
-    console.error('respondToQuoteAction — quote update error:', quoteError.message);
-    return { success: false, error: 'Failed to update quote status' };
-  }
-
-  // Use the authoritative state machine RPC instead of direct .update()
-  const { error: rpcError } = await supabase.rpc('transition_job_state', {
-    p_job_id: payload.jobId,
-    p_new_state: newJobState,
-    p_actor_user_id: user.id,
-    p_metadata: {
-      event_type: payload.decision === 'approved' ? 'quote_approved' : 'quote_declined',
-      quote_id: payload.quoteId,
-      reason: payload.reason || null,
-    },
+  // Ownership, quote/job state and expiry are all checked inside the RPC, and the
+  // quote update and job transition commit together or not at all.
+  const { error: rpcError } = await supabase.rpc('respond_to_quote', {
+    p_quote_id: payload.quoteId,
+    p_decision: payload.decision,
+    p_reason: payload.reason ?? null,
   });
 
   if (rpcError) {
-    console.error('respondToQuoteAction — transition_job_state RPC error:', rpcError.message);
-    return { success: false, error: 'Failed to transition job state: ' + rpcError.message };
+    console.error('respondToQuoteAction — respond_to_quote RPC error:', rpcError.message);
+    return { success: false, error: rpcError.message };
   }
 
   revalidatePath('/customer');
