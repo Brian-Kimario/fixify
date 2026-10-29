@@ -17,6 +17,8 @@ const bookingProfessionalSchema = z.object({
   // Null until rating_count reaches matching_config.rating_min_reviews.
   rating_average: z.number().nullable(),
   rating_count: z.number().nullable(),
+  // Only present once the professional has accepted the job.
+  phone: z.string().nullable().optional(),
 });
 
 export interface BookingProfessional {
@@ -28,6 +30,8 @@ export interface BookingProfessional {
   jobsCompleted: number;
   medianResponseSeconds: number | null;
   rating: { average: number; count: number } | null;
+  /** Null until the professional accepts, and again once the work is done. */
+  phone: string | null;
 }
 
 /** The professional offered or assigned to the caller's booking, or null if there is none. */
@@ -58,5 +62,6 @@ export async function getBookingProfessional(bookingId: string): Promise<Booking
       p.rating_average != null && p.rating_count != null
         ? { average: p.rating_average, count: p.rating_count }
         : null,
+    phone: p.phone || null,
   };
 }

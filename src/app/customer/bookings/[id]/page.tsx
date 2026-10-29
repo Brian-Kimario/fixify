@@ -6,25 +6,11 @@ import { SearchX } from 'lucide-react';
 import { UPIIntentCheckout } from '@/components/customer/UPIIntentCheckout';
 import { ProfessionalCard } from '@/components/customer/ProfessionalCard';
 import { getBookingProfessional } from '@/lib/services/matching';
+import { StatusPill } from '@/components/shell/primitives';
+import { bookingStatusDisplay } from '@/lib/shell/rules';
 
 export const metadata = {
   title: 'Booking Confirmed — Feasy',
-};
-
-const BOOKING_STATUS_LABEL: Record<string, string> = {
-  pending:      'Pending',
-  accepted:     'Accepted',
-  in_progress:  'In Progress',
-  completed:    'Completed',
-  cancelled:    'Cancelled',
-};
-
-const BOOKING_STATUS_STYLE: Record<string, string> = {
-  pending:     'bg-[#FFF4E0] text-[#9B6700] border-[#E8D5A3]',
-  accepted:    'bg-[#E2EEE9] text-[#176B5B] border-[#B8D5CB]',
-  in_progress: 'bg-[#FFF4E0] text-[#9B6700] border-[#E8D5A3]',
-  completed:   'bg-[#E3F0E8] text-[#2F7D5B] border-[#C7DCCF]',
-  cancelled:   'bg-[#F5E6E6] text-[#9B3535] border-[#DFC0C0]',
 };
 
 const PRICING_MODEL_NOTE: Record<string, string> = {
@@ -32,9 +18,6 @@ const PRICING_MODEL_NOTE: Record<string, string> = {
   inspection:            'Inspection fee collected on visit. Additional work quoted separately and approved by you.',
   quote_after_inspection:'Professional will visit and provide a quote. No work starts without your approval.',
 };
-
-// The professional's phone is shared only once they have accepted the job.
-const PHONE_VISIBLE_STATES = ['accepted', 'on_the_way', 'arrived', 'in_progress', 'quote_pending'];
 
 interface BookingDetailPageProps {
   params: Promise<{ id: string }>;
@@ -74,10 +57,7 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
       jobs (
         id,
         current_state,
-        payments ( id, status ),
-        professional_profiles (
-          profiles!professional_profiles_user_id_fkey ( phone )
-        )
+        payments ( id, status )
       )
     `)
     .eq('id', id)
@@ -97,7 +77,6 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
     id: string;
     current_state: string;
     payments: { id: string; status: string }[] | null;
-    professional_profiles: { profiles: { phone: string | null } | null } | null;
   };
   const jobs = booking.jobs as unknown as JobRow[] | JobRow | null;
   const jobRow = Array.isArray(jobs) ? jobs[0] : jobs;
@@ -105,8 +84,8 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
   // ── Professional (from matching v2) ───────────────────────────────────────
   const professional = await getBookingProfessional(booking.id);
   const awaitingAcceptance = jobRow?.current_state === 'assigned';
-  const showPhone = jobRow != null && PHONE_VISIBLE_STATES.includes(jobRow.current_state);
-  const phone = showPhone ? jobRow.professional_profiles?.profiles?.phone ?? null : null;
+  // get_booking_professional returns the phone only between acceptance and the end of the work.
+  const phone = professional?.phone ?? null;
 
   const isOpen = booking.booking_status !== 'cancelled' && booking.booking_status !== 'completed';
   // The matcher only offers bookings whose start is still ahead, so don't promise matching after it.
@@ -139,8 +118,12 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
     Number(booking.quoted_or_base_amount) > 0;
 
   // ── Display values ────────────────────────────────────────────────────────
-  const statusLabel = BOOKING_STATUS_LABEL[booking.booking_status] ?? booking.booking_status;
-  const statusStyle = BOOKING_STATUS_STYLE[booking.booking_status] ?? BOOKING_STATUS_STYLE['pending'];
+  // Same status the booking list shows: the job's state once there is one.
+  const status = bookingStatusDisplay({
+    bookingStatus: booking.booking_status,
+    jobState: jobRow?.current_state ?? null,
+    unmatchedSince: booking.unmatched_since,
+  });
 
   const formattedDate = new Date(booking.scheduled_start).toLocaleString('en-IN', {
     weekday: 'long',
@@ -208,9 +191,7 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
             <h1 className="text-2xl font-bold text-[#18211F]">
               {service?.name ?? 'Booking'}
             </h1>
-            <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg border ${statusStyle}`}>
-              {statusLabel}
-            </span>
+            <StatusPill tone={status.tone}>{status.label}</StatusPill>
           </div>
           <p className="text-xs font-mono text-[#7C8681] mt-1">{booking.booking_reference}</p>
         </div>
