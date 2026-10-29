@@ -231,7 +231,8 @@ export async function respondToQuoteAction(
     return fail('rejected', rpcError.message);
   }
 
-  revalidatePath('/customer');
+  // The quote also drives the top-bar bell and the action inbox, so refresh the layout.
+  revalidatePath('/customer', 'layout');
   return ok();
 }
 

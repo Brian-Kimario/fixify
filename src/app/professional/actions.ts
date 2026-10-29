@@ -534,7 +534,7 @@ export async function updateAvailabilityStatus(
     return fail("failed", "Could not update your status. Please try again.");
   }
 
-  revalidatePath("/professional");
+  revalidatePath("/professional", "layout");
   return ok({ isAvailable: parsed.data });
 }
 
@@ -658,7 +658,7 @@ export async function acceptRequest(
     return fail("rejected", `Failed to accept request: ${transitionError.message}`);
   }
 
-  revalidatePath("/professional");
+  revalidatePath("/professional", "layout");
   revalidatePath(`/professional/jobs/${parsed.data}`);
   return ok({ jobId: parsed.data });
 }
@@ -686,7 +686,7 @@ export async function declineJobAction(
   });
   if (error) return fail("rejected", error.message);
 
-  revalidatePath("/professional");
+  revalidatePath("/professional", "layout");
   return ok();
 }
 
@@ -788,7 +788,7 @@ export async function submitInspectionAction(
   }
 
   revalidatePath(`/professional/jobs/${input.jobId}`);
-  revalidatePath('/professional');
+  revalidatePath('/professional', 'layout');
   return ok({ inspectionId: data.id });
 }
 
@@ -871,6 +871,6 @@ export async function createQuoteAction(
   }
 
   revalidatePath(`/professional/jobs/${input.jobId}`);
-  revalidatePath('/professional');
+  revalidatePath('/professional', 'layout');
   return ok({ quoteId: quote.id });
 }
