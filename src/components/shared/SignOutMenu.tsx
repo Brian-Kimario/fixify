@@ -88,19 +88,26 @@ export function SignOutMenu({ user, displayName, initials, role }: SignOutMenuPr
 
   if (!user) return null;
 
-  const profileHref =
-    role === 'admin' ? '/admin' :
-    role === 'professional' ? '/professional/profile' :
-    '/customer/profile';
-
+  // Admin and support accounts are provisioned internally and have no editable
+  // profile, so their menu links to workspace areas instead of a profile page.
   const menuLinks =
-    role === 'customer' || !role
+    role === 'admin'
       ? [
-          { label: 'Profile', href: '/customer/profile' },
-          { label: 'My bookings', href: '/customer/bookings' },
-          { label: 'Settings', href: '/customer/settings' },
+          { label: 'Overview', href: '/admin' },
+          { label: 'Operations', href: '/admin/operations' },
         ]
-      : [{ label: 'Profile', href: profileHref }];
+      : role === 'support'
+        ? [{ label: 'Support queue', href: '/support' }]
+        : role === 'professional'
+          ? [
+              { label: 'Profile', href: '/professional/profile' },
+              { label: 'Earnings', href: '/professional/earnings' },
+            ]
+          : [
+              { label: 'Profile', href: '/customer/profile' },
+              { label: 'My bookings', href: '/customer/bookings' },
+              { label: 'Settings', href: '/customer/settings' },
+            ];
 
   return (
     <>
@@ -157,7 +164,7 @@ export function SignOutMenu({ user, displayName, initials, role }: SignOutMenuPr
                 <p className="text-xs text-[#5A6661] truncate">{user.email}</p>
                 {role && (
                   <p className="text-xs text-[#176B5B] font-medium capitalize mt-0.5">
-                    {role === 'professional' ? 'Professional' : role}
+                    {role === 'professional' ? 'Professional' : role === 'admin' ? 'Administrator' : role}
                   </p>
                 )}
               </div>

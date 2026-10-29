@@ -100,7 +100,7 @@ async function AdminPageContent() {
   const isEmpty = attentionItems.length === 0 && verifQueue.length === 0;
 
   return (
-    <div className="px-4 md:px-6 py-6 md:py-8">
+    <div className="px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto">
       {/* Page header */}
       <div className="mb-8">
         <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-2">

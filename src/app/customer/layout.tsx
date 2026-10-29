@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SignOutMenu } from "@/components/shared/SignOutMenu";
 import { Symbol } from "@/components/brand/Symbol";
+import { TopNavLinks, BottomNavLinks } from '@/components/shared/AppNavLinks';
 
 export const metadata: Metadata = {
   robots: {
@@ -17,6 +18,13 @@ export const metadata: Metadata = {
 interface CustomerLayoutProps {
   children: React.ReactNode;
 }
+
+const NAV_ITEMS = [
+  { href: '/customer', label: 'Dashboard', exact: true, icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg> },
+  { href: '/customer/bookings', label: 'Bookings', icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg> },
+  { href: '/customer/properties', label: 'Properties', icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><path d="m4 10 8-6 8 6v9H4zM9 19v-5h6v5"/></svg> },
+  { href: '/customer/support', label: 'Support', icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><path d="M5 6h14v10H9l-4 4z"/></svg> },
+] as const;
 
 export default async function CustomerLayout({ children }: CustomerLayoutProps) {
   const supabase = await createClient();
@@ -49,12 +57,7 @@ export default async function CustomerLayout({ children }: CustomerLayoutProps) 
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            <Link href="/customer" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Dashboard</Link>
-            <Link href="/customer/bookings" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Bookings</Link>
-            <Link href="/customer/properties" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Properties</Link>
-            <Link href="/customer/support" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Support</Link>
-          </nav>
+          <TopNavLinks items={NAV_ITEMS} />
 
           {/* Account menu (all breakpoints) */}
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -74,26 +77,7 @@ export default async function CustomerLayout({ children }: CustomerLayoutProps) 
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFEFA] border-t border-[#D9DED8] flex items-center justify-around h-20">
-        <Link href="/customer" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>
-          </svg>
-          <span className="text-xs font-semibold">Dashboard</span>
-        </Link>
-        <Link href="/customer/properties" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <path d="m4 10 8-6 8 6v9H4zM9 19v-5h6v5"/>
-          </svg>
-          <span className="text-xs font-semibold">Properties</span>
-        </Link>
-        <Link href="/customer/support" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <path d="M5 6h14v10H9l-4 4z"/>
-          </svg>
-          <span className="text-xs font-semibold">Support</span>
-        </Link>
-      </nav>
+      <BottomNavLinks items={NAV_ITEMS} />
     </div>
   );
 }

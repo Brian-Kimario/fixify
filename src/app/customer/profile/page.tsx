@@ -1,4 +1,4 @@
-import { getCurrentProfile } from '@/lib/auth';
+import { getCurrentProfile, getCurrentUser } from '@/lib/auth';
 import Link from 'next/link';
 
 export const metadata = {
@@ -6,7 +6,9 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const profile = await getCurrentProfile();
+  const [profile, user] = await Promise.all([getCurrentProfile(), getCurrentUser()]);
+  const email = user?.email ?? null;
+  const displayName = profile?.full_name || email?.split('@')[0] || 'Customer';
 
   const memberSinceDate = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', {
@@ -18,20 +20,13 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#F7F4EC]">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#FFFEFA] border-b border-[#D9DED8]">
-        <div className="flex items-center justify-between px-4 md:px-6 py-3.5 h-16">
-          <Link href="/customer" className="inline-flex items-center gap-2 text-sm font-semibold text-[#176B5B] hover:text-[#0D5144]">
-            ← Back to Dashboard
-          </Link>
-          <h1 className="text-xl font-bold text-[#18211F]">Profile</h1>
-          <div className="w-8" /> {/* Spacer for alignment */}
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="px-4 md:px-6 py-8">
+      <main id="main-content" className="px-4 md:px-6 py-8">
         <div className="max-w-3xl mx-auto space-y-6">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7C8681] block">ACCOUNT</span>
+            <h1 className="text-2xl font-bold tracking-tight text-[#18211F] mt-0.5">Your profile</h1>
+          </div>
           
           {/* Profile Header Card */}
           <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-lg p-6 md:p-8">
@@ -42,11 +37,11 @@ export default async function ProfilePage() {
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
-                      alt={profile?.full_name || 'Profile'}
+                      alt={displayName}
                       className="w-full h-full rounded-lg object-cover"
                     />
                   ) : (
-                    <span>{profile?.full_name?.charAt(0).toUpperCase() || 'C'}</span>
+                    <span>{displayName.charAt(0).toUpperCase()}</span>
                   )}
                 </div>
               </div>
@@ -54,12 +49,9 @@ export default async function ProfilePage() {
               {/* Profile Info */}
               <div className="flex-1">
                 <h2 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">
-                  {profile?.full_name || 'Customer'}
+                  {displayName}
                 </h2>
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <span className="text-sm font-medium px-3 py-1 bg-[#F0F0F0] text-[#5A6661] rounded">
-                    ✓ Not Verified
-                  </span>
                   <span className="text-sm text-[#5A6661]">
                     Member since {memberSinceDate}
                   </span>
@@ -90,7 +82,7 @@ export default async function ProfilePage() {
                   Email Address
                 </p>
                 <p className="text-sm font-medium text-[#18211F] mb-1">
-                  {profile?.id ? `customer@${profile.id.substring(0, 8)}...feasy.local` : 'Loading...'}
+                  {email || '—'}
                 </p>
                 <p className="text-xs text-[#5A6661]">Primary contact for updates</p>
               </div>
@@ -150,23 +142,12 @@ export default async function ProfilePage() {
               </div>
 
               {/* Member Since */}
-              <div className="flex items-center justify-between pb-4 border-b border-[#E0E0E0]">
+              <div className="flex items-center justify-between pb-0">
                 <div>
                   <p className="font-medium text-[#18211F]">Member Since</p>
                   <p className="text-xs text-[#5A6661] mt-0.5">Account creation date</p>
                 </div>
                 <p className="font-medium text-[#18211F]">{memberSinceDate}</p>
-              </div>
-
-              {/* Verification Status */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-[#18211F]">Verification Status</p>
-                  <p className="text-xs text-[#5A6661] mt-0.5">Your identity verification</p>
-                </div>
-                <span className="text-sm font-medium px-3 py-1 bg-[#F0F0F0] text-[#5A6661] rounded">
-                  Not Verified
-                </span>
               </div>
             </div>
           </div>
