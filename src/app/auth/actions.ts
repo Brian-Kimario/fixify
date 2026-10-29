@@ -72,12 +72,12 @@ export async function signInWithEmail(
   const role = await getUserRole(data.user.id, supabase);
   const baseRedirectPath = getRedirectPathByRole(role);
   if (!role || !baseRedirectPath) {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     return { ok: false, code: "no_role", message: "Your account does not have a valid Feasy role." };
   }
 
   if (audience && (role === "customer" || role === "professional") && role !== audience) {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     return {
       ok: false,
       code: "wrong_audience",
