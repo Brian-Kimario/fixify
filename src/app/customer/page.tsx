@@ -299,7 +299,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
   // Not wrapped in unstable_cache: it is user-scoped (RLS via request cookies), which
   // cannot be read inside a cached function.
   const getCompletedJobs = async (userId: string) => {
-      const { data: completedJobs } = await supabase
+      const { data: completedJobs, error: completedJobsError } = await supabase
         .from('jobs')
         .select(`
           id,
@@ -323,6 +323,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
         .eq('current_state', 'completed')
         .order('completed_at', { ascending: false });
 
+      if (completedJobsError) throw completedJobsError;
       return completedJobs || [];
   };
 

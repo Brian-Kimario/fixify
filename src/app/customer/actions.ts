@@ -167,7 +167,12 @@ export async function submitProblemIntakeAction(payload: {
       }
     }
 
-    // If still no property exists, we can still record or prepare the intake
+    // service_requests.property_id is NOT NULL. A customer with no property has nothing to
+    // persist yet; the booking wizard collects the property, so let them continue.
+    if (!targetPropertyId) {
+      return { success: true, requestId: null };
+    }
+
     const { data: requestData, error } = await supabase
       .from('service_requests')
       .insert({
