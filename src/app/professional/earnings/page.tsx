@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Earnings Ledger — Feasy Professional',
+  title: 'Job value — Feasy Professional',
 };
 
 export default async function EarningsPage() {
@@ -42,10 +42,10 @@ export default async function EarningsPage() {
           FINANCIAL OPERATIONS
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">
-          Earnings & Settlement Ledger
+          Job value
         </h1>
         <p className="text-[#5A6661] max-w-2xl">
-          Real-time record of all verified work, approved quotes, and completed service payouts.
+          Value of your jobs, from the approved quote or the booking price. This is the job price, not a payout; payouts are not tracked yet.
         </p>
       </div>
 
@@ -85,7 +85,7 @@ export default async function EarningsPage() {
                 {ledger.completedJobsCount}
               </p>
               <p className="text-xs text-[#7C8681] mt-2">
-                Closed with signed completion
+                Completed or closed jobs
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-[#E2EEE9] flex items-center justify-center flex-shrink-0">
@@ -121,7 +121,7 @@ export default async function EarningsPage() {
         </div>
       </div>
 
-      {/* Monthly Breakdown & Quick Payout Status */}
+      {/* Monthly Breakdown & this month's summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Monthly Breakdown (2 cols) */}
@@ -173,41 +173,27 @@ export default async function EarningsPage() {
         <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 shadow-sm space-y-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] block mb-1">
-              CURRENT CYCLE
+              THIS MONTH
             </span>
             <h2 className="text-lg font-bold text-[#18211F]">
-              Settlement Status
+              Work summary
             </h2>
           </div>
 
           <div className="p-3.5 bg-[#E2EEE9]/70 rounded-xl space-y-1">
-            <span className="text-xs font-semibold text-[#176B5B] block">This Month's Completed</span>
+            <span className="text-xs font-semibold text-[#176B5B] block">Completed this month</span>
             <span className="text-2xl font-bold text-[#176B5B]">
               ₹{ledger.thisMonthEarned.toLocaleString('en-IN')}
             </span>
           </div>
 
           <div className="p-3.5 bg-[#F7F4EC] rounded-xl space-y-1">
-            <span className="text-xs font-semibold text-[#5A6661] block">In-Progress / Pending Authorization</span>
+            <span className="text-xs font-semibold text-[#5A6661] block">Started, not yet completed</span>
             <span className="text-xl font-bold text-[#18211F]">
               ₹{ledger.pendingPayouts.toLocaleString('en-IN')}
             </span>
           </div>
 
-          <div className="pt-3 border-t border-[#D9DED8] space-y-2 text-xs text-[#5A6661]">
-            <div className="flex justify-between">
-              <span>Payout Schedule:</span>
-              <span className="font-semibold text-[#18211F]">Weekly (Every Friday)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Platform Fee:</span>
-              <span className="font-semibold text-[#18211F]">Standard 5%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Disbursement:</span>
-              <span className="font-semibold text-[#176B5B]">Direct Bank / UPI</span>
-            </div>
-          </div>
         </div>
 
       </div>
@@ -217,14 +203,14 @@ export default async function EarningsPage() {
         <div className="px-5 md:px-6 py-4 md:py-5 border-b border-[#D9DED8] flex items-center justify-between">
           <div>
             <span className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] block mb-0.5">
-              AUDIT TRAIL
+              LATEST 10
             </span>
             <h2 className="text-lg md:text-xl font-bold text-[#18211F]">
-              Recent Job Transactions
+              Recent jobs
             </h2>
           </div>
           <span className="text-xs text-[#7C8681]">
-            {ledger.recentTransactions.length} RECORDED
+            {ledger.recentTransactions.length} SHOWN
           </span>
         </div>
 
@@ -236,9 +222,9 @@ export default async function EarningsPage() {
                 <line x1="2" y1="10" x2="22" y2="10" />
               </svg>
             </div>
-            <h3 className="text-sm font-bold text-[#18211F] mb-1">No transaction records yet</h3>
+            <h3 className="text-sm font-bold text-[#18211F] mb-1">No jobs yet</h3>
             <p className="text-xs text-[#5A6661] max-w-sm mx-auto">
-              When you accept and complete service visits or submit approved quotes, each transaction will be recorded here with timestamps.
+              Jobs you accept will appear here with their price.
             </p>
           </div>
         ) : (
@@ -273,7 +259,7 @@ export default async function EarningsPage() {
                 <div className="flex items-center gap-4 self-end md:self-auto">
                   <div className="text-right">
                     <span className="text-base md:text-lg font-bold text-[#176B5B]">
-                      +₹{tx.amount.toLocaleString('en-IN')}
+                      ₹{tx.amount.toLocaleString('en-IN')}
                     </span>
                     <span className="block text-[11px] text-[#7C8681]">
                       ID: {tx.id.slice(0, 8)}…

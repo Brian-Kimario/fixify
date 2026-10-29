@@ -338,8 +338,18 @@ export async function getProfessionalEarningsLedger(): Promise<EarningsLedger> {
     console.warn("Error fetching ledger jobs:", error.message);
   }
 
-  const allJobs = jobs || [];
-  const completedJobs = allJobs.filter((j) => j.current_state === 'completed');
+  const allJobs = (jobs || []).filter((j) => j.current_state !== 'cancelled');
+  // closed = completed and paid; both count as finished work
+  const completedJobs = allJobs.filter((j) => j.current_state === 'completed' || j.current_state === 'closed');
+
+  // Agreed price: the approved quote, else the booking's base amount. Gross job value, not a payout.
+  const jobAmount = (job: (typeof allJobs)[number]): number => {
+    const rawBooking = Array.isArray(job.booking) ? job.booking[0] : job.booking;
+    const quotesList = Array.isArray(job.quotes) ? job.quotes : (job.quotes ? [job.quotes] : []);
+    const approvedQuote = quotesList.find((q: { status?: string }) => q.status === 'approved');
+    const pendingQuote = quotesList.find((q: { status?: string }) => q.status === 'pending_customer');
+    return Number(approvedQuote?.total ?? pendingQuote?.total ?? rawBooking?.quoted_or_base_amount ?? 0);
+  };
 
   let totalEarned = 0;
   let thisMonthEarned = 0;
@@ -362,10 +372,7 @@ export async function getProfessionalEarningsLedger(): Promise<EarningsLedger> {
   }
 
   completedJobs.forEach((job) => {
-    const rawBooking = Array.isArray(job.booking) ? job.booking[0] : job.booking;
-    const quotesList = Array.isArray(job.quotes) ? job.quotes : (job.quotes ? [job.quotes] : []);
-    const approvedQuote = quotesList.find((q: { status?: string }) => q.status === 'approved');
-    const amount = Number(approvedQuote?.total ?? rawBooking?.quoted_or_base_amount ?? 0);
+    const amount = jobAmount(job);
 
     totalEarned += amount;
 
@@ -389,14 +396,11 @@ export async function getProfessionalEarningsLedger(): Promise<EarningsLedger> {
     }
   });
 
+  // Value of work started but not yet completed (not money owed by the platform)
   allJobs
-    .filter((j) => ['in_progress', 'quote_pending', 'arrived'].includes(j.current_state))
+    .filter((j) => ['arrived', 'in_progress', 'quote_pending'].includes(j.current_state))
     .forEach((job) => {
-      const rawBooking = Array.isArray(job.booking) ? job.booking[0] : job.booking;
-      const quotesList = Array.isArray(job.quotes) ? job.quotes : (job.quotes ? [job.quotes] : []);
-      const pendingQuote = quotesList.find((q: { status?: string }) => q.status === 'pending_customer');
-      const amount = Number(pendingQuote?.total ?? rawBooking?.quoted_or_base_amount ?? 0);
-      pendingPayouts += amount;
+      pendingPayouts += jobAmount(job);
     });
 
   const maxMonthEarned = Math.max(...Array.from(monthsMap.values()).map((m) => m.earned), 1);
@@ -412,13 +416,11 @@ export async function getProfessionalEarningsLedger(): Promise<EarningsLedger> {
     const rawBooking = Array.isArray(job.booking) ? job.booking[0] : job.booking;
     const serviceName = (rawBooking?.service as { name?: string })?.name || 'Home Maintenance';
     const customer = Array.isArray(job.customer) ? job.customer[0] : job.customer;
-    const quotesList = Array.isArray(job.quotes) ? job.quotes : (job.quotes ? [job.quotes] : []);
-    const quote = quotesList[0];
-    const amount = Number(quote?.total ?? rawBooking?.quoted_or_base_amount ?? 0);
+    const amount = jobAmount(job);
     const dateStr = job.completed_at || job.created_at;
 
-    const status: 'completed' | 'pending' | 'in_progress' = 
-      job.current_state === 'completed'
+    const status: 'completed' | 'pending' | 'in_progress' =
+      job.current_state === 'completed' || job.current_state === 'closed'
         ? 'completed'
         : job.current_state === 'quote_pending'
         ? 'pending'

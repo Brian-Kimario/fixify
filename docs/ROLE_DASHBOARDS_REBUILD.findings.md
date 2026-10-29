@@ -172,3 +172,22 @@ Code that depends on the missing objects and is therefore broken today:
   quotes `approved 1, pending_customer_approval 2`; payments 0.
 - Extensions: `plpgsql, pg_stat_statements, uuid-ossp, pgcrypto, supabase_vault`. No sequences in
   `public`.
+
+## D. Honesty pass (Phase 0, step 3)
+
+- **Customer support page was fake.** The "Submit Support Request" button built a `SUP-<timestamp>`
+  reference client-side and saved nothing, then promised review within 24 hours and tracking by
+  reference. Ticketing is out of scope, so the form and success state were removed. The FAQ
+  claimed a 24-hour cancellation window with fees, delay compensation, AI classification,
+  browsing professionals and 24/7 support; none exist. It now states only current behaviour and
+  points to `support@feasy.com` (the address already used on the terms and refund pages). The
+  emergency number was 911; it is now 112.
+- **Earnings page** showed a 5% platform fee, a payout schedule and disbursement details that
+  nothing in the DB backs, and summed cancelled jobs. It now shows "Job value" (approved quote
+  total, else pending quote, else `quoted_or_base_amount`) and says payouts are not tracked.
+- **Warranty claim (deferred to Phase 1).** `customer/page.tsx:350` and `customer/actions.ts:655`
+  compute "warranty until" as completion + 1 year, and `CustomerDashboardClient`,
+  `PropertyMaintenanceTimeline` and `RecentActivityList` show it. No column or config backs a
+  warranty period (`maintenance_records.warranty_expires_at` exists but is not read). These
+  components are rebuilt in Phase 1; remove the claim there. Marketing copy and
+  `src/lib/data/faq.ts` also mention warranties; out of scope here.
