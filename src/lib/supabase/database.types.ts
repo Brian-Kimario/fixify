@@ -104,26 +104,32 @@ export type Database = {
         Row: {
           booking_id: string
           created_at: string
+          decision_id: string | null
           id: string
           outcome: string
           professional_id: string
           reason: string | null
+          reason_code: string | null
         }
         Insert: {
           booking_id: string
           created_at?: string
+          decision_id?: string | null
           id?: string
           outcome: string
           professional_id: string
           reason?: string | null
+          reason_code?: string | null
         }
         Update: {
           booking_id?: string
           created_at?: string
+          decision_id?: string | null
           id?: string
           outcome?: string
           professional_id?: string
           reason?: string | null
+          reason_code?: string | null
         }
         Relationships: [
           {
@@ -132,6 +138,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_assignment_attempts_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "matching_decisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_assignment_attempts_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
           },
           {
             foreignKeyName: "booking_assignment_attempts_professional_id_fkey"
@@ -149,7 +169,9 @@ export type Database = {
           created_at: string | null
           customer_id: string
           id: string
+          intake_options: Json
           pricing_model: string
+          problem_summary: string | null
           professional_id: string | null
           property_id: string
           quoted_or_base_amount: number | null
@@ -157,7 +179,9 @@ export type Database = {
           scheduled_start: string
           service_id: string
           service_request_id: string | null
+          unmatched_since: string | null
           updated_at: string | null
+          urgency: string
         }
         Insert: {
           booking_reference?: string
@@ -165,7 +189,9 @@ export type Database = {
           created_at?: string | null
           customer_id: string
           id?: string
+          intake_options?: Json
           pricing_model: string
+          problem_summary?: string | null
           professional_id?: string | null
           property_id: string
           quoted_or_base_amount?: number | null
@@ -173,7 +199,9 @@ export type Database = {
           scheduled_start: string
           service_id: string
           service_request_id?: string | null
+          unmatched_since?: string | null
           updated_at?: string | null
+          urgency?: string
         }
         Update: {
           booking_reference?: string
@@ -181,7 +209,9 @@ export type Database = {
           created_at?: string | null
           customer_id?: string
           id?: string
+          intake_options?: Json
           pricing_model?: string
+          problem_summary?: string | null
           professional_id?: string | null
           property_id?: string
           quoted_or_base_amount?: number | null
@@ -189,7 +219,9 @@ export type Database = {
           scheduled_start?: string
           service_id?: string
           service_request_id?: string | null
+          unmatched_since?: string | null
           updated_at?: string | null
+          urgency?: string
         }
         Relationships: [
           {
@@ -198,6 +230,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
           },
           {
             foreignKeyName: "bookings_professional_id_fkey"
@@ -290,6 +329,13 @@ export type Database = {
             foreignKeyName: "inspections_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
+          {
+            foreignKeyName: "inspections_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professional_profiles"
             referencedColumns: ["user_id"]
           },
@@ -357,7 +403,7 @@ export type Database = {
           id: string
           offer_expires_at: string | null
           on_the_way_at: string | null
-          professional_id: string
+          professional_id: string | null
           property_id: string
           started_at: string | null
           updated_at: string | null
@@ -375,7 +421,7 @@ export type Database = {
           id?: string
           offer_expires_at?: string | null
           on_the_way_at?: string | null
-          professional_id: string
+          professional_id?: string | null
           property_id: string
           started_at?: string | null
           updated_at?: string | null
@@ -393,7 +439,7 @@ export type Database = {
           id?: string
           offer_expires_at?: string | null
           on_the_way_at?: string | null
-          professional_id?: string
+          professional_id?: string | null
           property_id?: string
           started_at?: string | null
           updated_at?: string | null
@@ -417,6 +463,13 @@ export type Database = {
             foreignKeyName: "jobs_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
+          {
+            foreignKeyName: "jobs_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professional_profiles"
             referencedColumns: ["user_id"]
           },
@@ -426,6 +479,98 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "properties"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      matching_config: {
+        Row: {
+          description: string
+          key: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          description: string
+          key: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          description?: string
+          key?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      matching_decisions: {
+        Row: {
+          booking_id: string
+          created_at: string
+          distance_km: number | null
+          geo_basis: string | null
+          id: string
+          inputs: Json
+          job_id: string | null
+          kind: string
+          pool_size: number
+          professional_id: string | null
+          score: number | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          distance_km?: number | null
+          geo_basis?: string | null
+          id?: string
+          inputs?: Json
+          job_id?: string | null
+          kind: string
+          pool_size: number
+          professional_id?: string | null
+          score?: number | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          distance_km?: number | null
+          geo_basis?: string | null
+          id?: string
+          inputs?: Json
+          job_id?: string | null
+          kind?: string
+          pool_size?: number
+          professional_id?: string | null
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matching_decisions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matching_decisions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matching_decisions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
+          {
+            foreignKeyName: "matching_decisions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -678,6 +823,13 @@ export type Database = {
             foreignKeyName: "professional_availability_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
+          {
+            foreignKeyName: "professional_availability_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professional_profiles"
             referencedColumns: ["user_id"]
           },
@@ -733,6 +885,8 @@ export type Database = {
       professional_service_areas: {
         Row: {
           area: string | null
+          base_lat: number | null
+          base_lng: number | null
           city: string
           created_at: string | null
           id: string
@@ -743,6 +897,8 @@ export type Database = {
         }
         Insert: {
           area?: string | null
+          base_lat?: number | null
+          base_lng?: number | null
           city: string
           created_at?: string | null
           id?: string
@@ -753,6 +909,8 @@ export type Database = {
         }
         Update: {
           area?: string | null
+          base_lat?: number | null
+          base_lng?: number | null
           city?: string
           created_at?: string | null
           id?: string
@@ -762,6 +920,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "professional_service_areas_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
           {
             foreignKeyName: "professional_service_areas_professional_id_fkey"
             columns: ["professional_id"]
@@ -803,6 +968,13 @@ export type Database = {
           verified?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "professional_skills_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
           {
             foreignKeyName: "professional_skills_professional_id_fkey"
             columns: ["professional_id"]
@@ -915,6 +1087,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "professional_verifications_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
           {
             foreignKeyName: "professional_verifications_professional_id_fkey"
             columns: ["professional_id"]
@@ -1166,6 +1345,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "jobs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
           },
           {
             foreignKeyName: "quotes_professional_id_fkey"
@@ -1462,33 +1648,80 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      professional_metrics: {
+        Row: {
+          acceptance_rate: number | null
+          cancel_rate: number | null
+          completion_rate: number | null
+          jobs_completed: number | null
+          median_response_seconds: number | null
+          offers_accepted: number | null
+          offers_declined: number | null
+          offers_expired: number | null
+          professional_id: string | null
+          rating_average: number | null
+          rating_count: number | null
+          repeat_customer_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_profiles_user_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _assign_booking_internal: {
         Args: { p_actor: string; p_booking_id: string }
         Returns: string
       }
+      _haversine_km: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       _job_payment_amount: {
         Args: { p_customer: string; p_job_id: string }
         Returns: Record<string, unknown>
       }
+      _matching_setting: { Args: { p_key: string }; Returns: number }
+      _offer_next: {
+        Args: { p_actor: string; p_booking_id: string }
+        Returns: string
+      }
       _pick_professional: { Args: { p_booking_id: string }; Returns: string }
+      _rank_professionals: {
+        Args: { p_booking_id: string }
+        Returns: {
+          distance_km: number
+          geo_basis: string
+          inputs: Json
+          professional_id: string
+          score: number
+        }[]
+      }
       _release_offer: {
         Args: {
           p_actor: string
           p_job_id: string
+          p_note: string
           p_outcome: string
-          p_reason: string
+          p_reason_code: string
         }
         Returns: boolean
       }
       assign_booking: { Args: { p_booking_id: string }; Returns: Json }
       create_booking: {
         Args: {
+          p_options?: Json
+          p_problem_summary?: string
           p_property_id: string
           p_scheduled_start: string
           p_service_id: string
+          p_urgency?: string
         }
         Returns: {
           booking_id: string
@@ -1504,7 +1737,11 @@ export type Database = {
         Returns: string
       }
       decline_job: {
-        Args: { p_job_id: string; p_reason?: string }
+        Args: { p_job_id: string; p_note?: string; p_reason_code: string }
+        Returns: Json
+      }
+      get_booking_professional: {
+        Args: { p_booking_id: string }
         Returns: Json
       }
       get_job_customer_contact: {
@@ -1518,6 +1755,15 @@ export type Database = {
           full_name: string
           phone: string
           postal_code: string
+        }[]
+      }
+      get_offer_localities: {
+        Args: { p_job_ids: string[] }
+        Returns: {
+          area: string
+          city: string
+          distance_km: number
+          job_id: string
         }[]
       }
       job_payment_amount: { Args: { p_job_id: string }; Returns: number }
