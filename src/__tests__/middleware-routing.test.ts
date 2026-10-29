@@ -108,9 +108,7 @@ describe('Middleware Routing Logic - Homepage Bug Condition', () => {
       const pathname = '/';
       
       // Simulate middleware check (line 73-75 from middleware.ts)
-      const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-        pathname.startsWith(route)
-      );
+      const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
       
       // CRITICAL: This should be FALSE
       // If it's TRUE, the middleware will redirect unauthenticated users
@@ -139,9 +137,7 @@ describe('Middleware Routing Logic - Homepage Bug Condition', () => {
       const publicRoutes = ['/', '/services', '/how-it-works', '/help', '/professionals'];
       
       publicRoutes.forEach((pathname) => {
-        const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-          pathname.startsWith(route)
-        );
+        const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
         
         expect(isProtectedRoute).toBe(false, `${pathname} should not be protected`);
       });
@@ -197,9 +193,7 @@ describe('Middleware Routing Logic - Homepage Bug Condition', () => {
       // if (isProtectedRoute && !user) {
       //   return redirectWithSession(...)
       // }
-      const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-        pathname.startsWith(route)
-      );
+      const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
       const shouldRedirect = isProtectedRoute && !user;
       
@@ -227,9 +221,7 @@ describe('Middleware Routing Logic - Homepage Bug Condition', () => {
       const isAuthRoute = pathname.startsWith("/auth/login") || pathname.startsWith("/auth/register");
       
       // 2. Check if isProtectedRoute (from line 164-169)
-      const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-        pathname.startsWith(route)
-      );
+      const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
       
       // Neither condition should trigger a redirect
       const shouldRedirectToAuth = user && isAuthRoute; // No - not auth route
@@ -251,14 +243,12 @@ describe('Middleware Routing Logic - Homepage Bug Condition', () => {
         "/support": "support",
       };
 
-      const protectedPaths = ['/customer', '/pro', '/admin', '/support'];
+      const protectedPaths = ['/customer', '/professional', '/admin', '/support'];
       
       protectedPaths.forEach((pathname) => {
         const user = null; // Unauthenticated
         
-        const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-          pathname.startsWith(route)
-        );
+        const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
         const shouldRedirect = isProtectedRoute && !user;
         

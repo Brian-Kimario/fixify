@@ -67,9 +67,7 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
         
         it(`should detect ${path} as a protected route`, () => {
           // Preservation requirement: protected routes must still be detected
-          const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-            path.startsWith(route)
-          );
+          const isProtectedRoute = Object.keys(protectedRoutes).some((route) => path === route || path.startsWith(`${route}/`));
           expect(isProtectedRoute).toBe(true, `${path} should be detected as protected`);
         });
 
@@ -82,9 +80,7 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
           // if (isProtectedRoute && !user) {
           //   return redirectWithSession(loginUrl);
           // }
-          const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-            pathname.startsWith(route)
-          );
+          const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
           
           const shouldRedirect = isProtectedRoute && !user;
           expect(shouldRedirect).toBe(true, 
@@ -130,9 +126,7 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
           ];
 
           subpaths.forEach((subpath) => {
-            const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-              subpath.startsWith(route)
-            );
+            const isProtectedRoute = Object.keys(protectedRoutes).some((route) => subpath === route || subpath.startsWith(`${route}/`));
             expect(isProtectedRoute).toBe(true, 
               `${subpath} should be protected via parent route ${parentPath}`
             );
@@ -345,9 +339,7 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
     
     it('should detect all protected routes correctly', () => {
       protectedPaths.forEach((path) => {
-        const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-          path.startsWith(route)
-        );
+        const isProtectedRoute = Object.keys(protectedRoutes).some((route) => path === route || path.startsWith(`${route}/`));
         expect(isProtectedRoute).toBe(true, `${path} should be detected as protected`);
       });
     });
@@ -355,15 +347,13 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
     it('should detect subpaths of protected routes correctly', () => {
       const subpaths = [
         '/customer/bookings/123',
-        '/pro/jobs/456',
-        '/admin/verification/queue',
+        '/professional/jobs/456',
+        '/admin/professionals/queue',
         '/support/tickets/789',
       ];
 
       subpaths.forEach((subpath) => {
-        const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-          subpath.startsWith(route)
-        );
+        const isProtectedRoute = Object.keys(protectedRoutes).some((route) => subpath === route || subpath.startsWith(`${route}/`));
         expect(isProtectedRoute).toBe(true, `${subpath} should be detected as protected via parent route`);
       });
     });
@@ -377,9 +367,7 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
       ];
 
       publicPaths.forEach((path) => {
-        const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-          path.startsWith(route)
-        );
+        const isProtectedRoute = Object.keys(protectedRoutes).some((route) => path === route || path.startsWith(`${route}/`));
         expect(isProtectedRoute).toBe(false, `${path} should NOT be detected as protected`);
       });
       
@@ -388,18 +376,10 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
     });
 
     it('should NOT have partial matches that cause false positives', () => {
-      // Edge case: "/customer" shouldn't match "/customers" or "/customer-service"
-      // But our implementation uses startsWith(), so "/customer" will match "/customers"
-      // This is acceptable for this middleware, but document it
-      
-      const edge = '/customers'; // Similar but not same
-      const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-        edge.startsWith(route)
-      );
-      // This WILL match because of startsWith("/customer")
-      expect(isProtectedRoute).toBe(true, 
-        'Note: "/customers" matches "/customer" via startsWith - this is expected behavior for this middleware'
-      );
+      // Routes match on a segment boundary: "/customer" must not match "/customers".
+      const edge = '/customers';
+      const isProtectedRoute = Object.keys(protectedRoutes).some((route) => edge === route || edge.startsWith(`${route}/`));
+      expect(isProtectedRoute).toBe(false);
     });
   });
 
@@ -414,9 +394,7 @@ describe('Middleware Preservation: Protected Route Redirects', () => {
     it('should never allow unauthenticated access to protected routes', () => {
       protectedPaths.forEach((path) => {
         const user = null;
-        const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-          path.startsWith(route)
-        );
+        const isProtectedRoute = Object.keys(protectedRoutes).some((route) => path === route || path.startsWith(`${route}/`));
         
         const shouldDenyAccess = isProtectedRoute && !user;
         expect(shouldDenyAccess).toBe(true, 

@@ -83,7 +83,22 @@ describe('Customer Dashboard Modernized Components', () => {
       <QuoteApprovalPanel 
         isOpen={true} 
         onClose={vi.fn()} 
-        quote={null} 
+        quote={{
+          id: 'q1',
+          jobId: 'job-1',
+          referenceNumber: 'FX-4821',
+          serviceTitle: 'Valve Replacement',
+          propertyName: 'Oakwood Residence',
+          proName: 'Dario Venn',
+          reason: 'Corroded shut-off valve found',
+          lineItems: [
+            { id: 'li1', type: 'labour', description: 'Valve replacement', quantity: 1, unitPrice: 1200, total: 1200 },
+          ],
+          subtotal: 1200,
+          partsTotal: 0,
+          platformFee: 0,
+          totalAmount: 1200,
+        }}
       />
     );
     expect(html).toContain('Quote for Additional Work');
@@ -111,7 +126,8 @@ describe('Customer Dashboard Modernized Components', () => {
         recentActivities={[]}
       />
     );
-    expect(html).toContain('Good morning, Alex');
+    // React inserts <!-- --> between adjacent text nodes in server output
+    expect(html.replace(/<!-- -->/g, '')).toContain('Good morning, Alex');
     expect(html).toContain('Something needs fixing?');
     expect(html).toContain('Property Maintenance Timeline');
   });

@@ -78,9 +78,7 @@ describe('middleware - Bug Condition: Homepage Redirect (Code Analysis)', () => 
     // const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
     //   pathname.startsWith(route)
     // );
-    const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-      pathname.startsWith(route)
-    );
+    const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
     
     // Assertion: Homepage should NOT be detected as a protected route
     expect(isProtectedRoute).toBe(false);
@@ -122,9 +120,7 @@ describe('middleware - Bug Condition: Homepage Redirect (Code Analysis)', () => 
     const pathname = '/customer';
     
     // Verify the protected route detection logic
-    const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-      pathname.startsWith(route)
-    );
+    const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
     
     // Assertion: Protected route SHOULD be detected
     expect(isProtectedRoute).toBe(true);
@@ -144,12 +140,10 @@ describe('middleware - Bug Condition: Homepage Redirect (Code Analysis)', () => 
       "/support": "support",
     };
 
-    const pathname = '/pro/onboarding';
+    const pathname = '/professional/onboarding';
     
     // Verify the protected route detection logic
-    const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-      pathname.startsWith(route)
-    );
+    const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
     
     // Assertion: Professional onboarding SHOULD be detected as protected
     expect(isProtectedRoute).toBe(true);
@@ -172,9 +166,7 @@ describe('middleware - Bug Condition: Homepage Redirect (Code Analysis)', () => 
     const pathname = '/admin';
     
     // Verify the protected route detection logic
-    const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-      pathname.startsWith(route)
-    );
+    const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
     
     // Assertion: Admin routes SHOULD be detected as protected
     expect(isProtectedRoute).toBe(true);
@@ -197,9 +189,7 @@ describe('middleware - Bug Condition: Homepage Redirect (Code Analysis)', () => 
     const publicPaths = ['/', '/services', '/how-it-works', '/professionals', '/help', '/contact'];
     
     publicPaths.forEach((pathname) => {
-      const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-        pathname.startsWith(route)
-      );
+      const isProtectedRoute = Object.keys(protectedRoutes).some((route) => pathname === route || pathname.startsWith(`${route}/`));
       
       // Assertion: Public marketing paths should NOT be detected as protected
       expect(isProtectedRoute).toBe(false, `Path ${pathname} should not be protected`);

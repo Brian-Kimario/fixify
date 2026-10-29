@@ -96,13 +96,13 @@ export async function proxy(request: NextRequest) {
   // Routes that don't require verification (professionals can access while pending)
   const onboardingAllowedRoutes = ["/professional/onboarding"];
 
-  const isProtectedRoute = Object.keys(protectedRoutes).some((route) =>
-    pathname.startsWith(route)
-  );
+  // Match on a segment boundary so /professionals or /supporters stay public.
+  const matchesRoute = (route: string) =>
+    pathname === route || pathname.startsWith(`${route}/`);
 
-  const isOnboardingRoute = onboardingAllowedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const isProtectedRoute = Object.keys(protectedRoutes).some(matchesRoute);
+
+  const isOnboardingRoute = onboardingAllowedRoutes.some(matchesRoute);
 
   const isAuthRoute = pathname.startsWith("/auth/login") || pathname.startsWith("/auth/register");
 
