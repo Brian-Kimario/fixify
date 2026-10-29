@@ -2,6 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { fail, ok, parseInput, type ActionResult } from "@/lib/actions/result";
+import {
+  createQuoteSchema,
+  declineJobSchema,
+  inspectionSchema,
+  jobIdSchema,
+  type CreateQuoteInput,
+  type InspectionInput,
+} from "@/validators";
 import type {
   Job,
   ProfessionalProfile,
@@ -634,73 +643,52 @@ export async function fetchEligibleRequests(): Promise<Job[]> {
 }
 
 /**
- * Accept a request (transition from 'assigned' to 'accepted')
- * Enforces ownership and state validation
+ * Accept a request (transition from 'assigned' to 'accepted').
+ * Ownership and the allowed transition are enforced by transition_job_state().
  */
-export async function acceptRequest(jobId: string): Promise<{
-  success: boolean;
-  error?: string;
-  jobId?: string;
-}> {
-  const supabase = await createClient();
+export async function acceptRequest(
+  jobId: string
+): Promise<ActionResult<{ jobId: string }>> {
+  const parsed = parseInput(jobIdSchema, jobId);
+  if (parsed.success === false) return parsed;
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return fail("unauthenticated", "Not authenticated");
 
-  if (!user) {
-    return { success: false, error: "Not authenticated" };
+  const { data: job, error: fetchError } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("id", parsed.data)
+    .eq("professional_id", user.id)
+    .eq("current_state", "assigned")
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error("acceptRequest fetch error:", fetchError.message);
+    return fail("failed", "Could not load this request. Please try again.");
   }
-
-  try {
-    // Verify job exists and is assigned to this professional in 'assigned' state
-    const { data: job, error: fetchError } = await supabase
-      .from("jobs")
-      .select("id, current_state, professional_id")
-      .eq("id", jobId)
-      .eq("professional_id", user.id)
-      .eq("current_state", "assigned")
-      .maybeSingle();
-
-    if (fetchError) {
-      return {
-        success: false,
-        error: `Failed to fetch request: ${fetchError.message}`,
-      };
-    }
-
-    if (!job) {
-      return {
-        success: false,
-        error:
-          "Request not found, already accepted, or you are not assigned to it",
-      };
-    }
-
-    // Transition state from 'assigned' to 'accepted' via RPC
-    const { error: transitionError } = await supabase.rpc(
-      "transition_job_state",
-      {
-        p_job_id: jobId,
-        p_new_state: "accepted",
-        p_actor_user_id: user.id,
-      }
+  if (!job) {
+    return fail(
+      "not_found",
+      "Request not found, already accepted, or you are not assigned to it"
     );
-
-    if (transitionError) {
-      return {
-        success: false,
-        error: `Failed to accept request: ${transitionError.message}`,
-      };
-    }
-
-    revalidatePath("/professional");
-    revalidatePath(`/professional/jobs/${jobId}`);
-    return { success: true, jobId };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return { success: false, error: message };
   }
+
+  const { error: transitionError } = await supabase.rpc("transition_job_state", {
+    p_job_id: parsed.data,
+    p_new_state: "accepted",
+    p_actor_user_id: user.id,
+  });
+  if (transitionError) {
+    return fail("rejected", `Failed to accept request: ${transitionError.message}`);
+  }
+
+  revalidatePath("/professional");
+  revalidatePath(`/professional/jobs/${parsed.data}`);
+  return ok({ jobId: parsed.data });
 }
 
 /**
@@ -710,30 +698,24 @@ export async function acceptRequest(jobId: string): Promise<{
 export async function declineJobAction(
   jobId: string,
   reason?: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<ActionResult> {
+  const parsed = parseInput(declineJobSchema, { jobId, reason });
+  if (parsed.success === false) return parsed;
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: "Not authenticated" };
-  }
-  if (!jobId) {
-    return { success: false, error: "Invalid job" };
-  }
+  if (!user) return fail("unauthenticated", "Not authenticated");
 
   const { error } = await supabase.rpc("decline_job", {
-    p_job_id: jobId,
-    p_reason: reason?.trim().slice(0, 500) || null,
+    p_job_id: parsed.data.jobId,
+    p_reason: parsed.data.reason || null,
   });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
+  if (error) return fail("rejected", error.message);
 
   revalidatePath("/professional");
-  return { success: true };
+  return ok();
 }
 
 export interface JobCustomerContact {
@@ -792,95 +774,87 @@ export async function fetchJobDetail(jobId: string): Promise<{
 /**
  * Submit an on-site inspection report
  */
-export async function submitInspectionAction(payload: {
-  jobId: string;
-  findings: string;
-  recommendation?: string;
-}) {
+export async function submitInspectionAction(
+  payload: InspectionInput
+): Promise<ActionResult<{ inspectionId: string }>> {
+  const parsed = parseInput(inspectionSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Not authenticated');
 
-  if (!user) {
-    return { success: false, error: 'Not authenticated' };
-  }
-
-  // Verify job ownership before attempting insert (defense in depth)
-  // getJobById already filters by professional_id = user.id, so if it returns null, job is not assigned
-  const job = await getJobById(payload.jobId);
-  if (!job) {
-    return { success: false, error: 'Job not found or not assigned to you' };
-  }
+  // getJobById filters by professional_id = user.id, so null means not assigned to this user.
+  const job = await getJobById(input.jobId);
+  if (!job) return fail('not_found', 'Job not found or not assigned to you');
 
   const { data, error } = await supabase
     .from('inspections')
     .insert({
-      job_id: payload.jobId,
+      job_id: input.jobId,
       professional_id: user.id,
-      findings: payload.findings,
-      recommendation: payload.recommendation || null,
+      findings: input.findings,
+      recommendation: input.recommendation || null,
     })
     .select('id')
     .single();
 
-  if (error) {
-    return { success: false, error: error.message };
-  }
+  if (error) return fail('failed', error.message);
 
-  // Record audit event in job_events with actual current state (not hardcoded)
-  await supabase.from('job_events').insert({
-    job_id: payload.jobId,
+  // Audit record only; the job state does not change on inspection.
+  const { error: eventError } = await supabase.from('job_events').insert({
+    job_id: input.jobId,
     from_state: job.current_state,
-    to_state: job.current_state, // State doesn't change until customer approves; inspection is just a record
+    to_state: job.current_state,
     actor_user_id: user.id,
     event_type: 'inspection_submitted',
-    metadata: { findings: payload.findings.slice(0, 100), inspection_id: data.id },
+    metadata: { findings: input.findings.slice(0, 100), inspection_id: data.id },
   });
+  if (eventError) {
+    console.error('submitInspectionAction job_events insert failed:', eventError.message);
+  }
 
-  revalidatePath(`/professional/jobs/${payload.jobId}`);
+  revalidatePath(`/professional/jobs/${input.jobId}`);
   revalidatePath('/professional');
-  return { success: true, inspectionId: data.id };
+  return ok({ inspectionId: data.id });
 }
 
 /**
- * Submit an additional/variable quote for customer approval
+ * Submit an additional/variable quote for customer approval.
+ * No platform fee or tax is added: none is configured (see ROLE_DASHBOARDS_REBUILD §5.1),
+ * so the quote total is the sum of its line items.
  */
-export async function createQuoteAction(payload: {
-  jobId: string;
-  reason: string;
-  lineItems: Array<{
-    itemType: 'labour' | 'material' | 'fee';
-    description: string;
-    quantity: number;
-    unitPrice: number;
-  }>;
-}) {
+export async function createQuoteAction(
+  payload: CreateQuoteInput
+): Promise<ActionResult<{ quoteId: string }>> {
+  const parsed = parseInput(createQuoteSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Not authenticated');
 
-  if (!user) {
-    return { success: false, error: 'Not authenticated' };
-  }
+  // getJobById filters by professional_id = user.id, so null means not assigned to this user.
+  const job = await getJobById(input.jobId);
+  if (!job) return fail('not_found', 'Job not found or not assigned to you');
 
-  // Verify job ownership before attempting mutations (defense in depth)
-  // getJobById already filters by professional_id = user.id, so if it returns null, job is not assigned
-  const job = await getJobById(payload.jobId);
-  if (!job) {
-    return { success: false, error: 'Job not found or not assigned to you' };
-  }
+  const items = input.lineItems.map((item) => ({
+    ...item,
+    lineTotal: Number((item.quantity * item.unitPrice).toFixed(2)),
+  }));
+  const subtotal = Number(items.reduce((acc, i) => acc + i.lineTotal, 0).toFixed(2));
+  const total = subtotal;
 
-  const subtotal = payload.lineItems.reduce((acc, i) => acc + (i.quantity * i.unitPrice), 0);
-  const taxesOrFees = Number((subtotal * 0.05).toFixed(2)); // 5% platform/tax fee
-  const total = Number((subtotal + taxesOrFees).toFixed(2));
-
-  // 1. Insert Quote
   const { data: quote, error: quoteError } = await supabase
     .from('quotes')
     .insert({
-      job_id: payload.jobId,
+      job_id: input.jobId,
       professional_id: user.id,
-      reason: payload.reason,
+      reason: input.reason,
       subtotal,
-      taxes_or_fees: taxesOrFees,
+      taxes_or_fees: 0,
       total,
       status: 'pending_customer',
     })
@@ -888,47 +862,43 @@ export async function createQuoteAction(payload: {
     .single();
 
   if (quoteError || !quote) {
-    return { success: false, error: quoteError?.message || 'Could not create quote' };
+    return fail('failed', quoteError?.message || 'Could not create quote');
   }
 
-  // 2. Insert Quote Items
-  if (payload.lineItems.length > 0) {
-    const itemsToInsert = payload.lineItems.map((item) => ({
+  const { error: itemsError } = await supabase.from('quote_items').insert(
+    items.map((item) => ({
       quote_id: quote.id,
       item_type: item.itemType,
       description: item.description,
       quantity: item.quantity,
       unit_price: item.unitPrice,
-      line_total: Number((item.quantity * item.unitPrice).toFixed(2)),
-    }));
-
-    const { error: itemsError } = await supabase.from('quote_items').insert(itemsToInsert);
-    if (itemsError) {
-      console.warn('Error inserting quote items:', itemsError.message);
-    }
+      line_total: item.lineTotal,
+    }))
+  );
+  if (itemsError) {
+    console.error('createQuoteAction quote_items insert failed:', itemsError.message);
+    return fail('failed', 'Quote created but its line items could not be saved: ' + itemsError.message);
   }
 
-  // 3. Move job to quote_pending via the authoritative state machine RPC.
-  //    This validates the transition, prevents race conditions, and records the audit event.
+  // Move job to quote_pending via the state machine RPC (validates and records the event).
   const { error: rpcError } = await supabase.rpc('transition_job_state', {
-    p_job_id: payload.jobId,
+    p_job_id: input.jobId,
     p_new_state: 'quote_pending',
     p_actor_user_id: user.id,
     p_metadata: {
       event_type: 'quote_submitted',
       quote_id: quote.id,
       total,
-      reason: payload.reason,
+      reason: input.reason,
     },
   });
 
   if (rpcError) {
-    console.error('createQuoteAction — transition_job_state RPC error:', rpcError.message);
-    // Quote was already inserted; return partial success with the error so caller can decide
-    return { success: false, error: 'Quote created but job state transition failed: ' + rpcError.message };
+    console.error('createQuoteAction transition_job_state error:', rpcError.message);
+    return fail('rejected', 'Quote created but job state transition failed: ' + rpcError.message);
   }
 
-  revalidatePath(`/professional/jobs/${payload.jobId}`);
+  revalidatePath(`/professional/jobs/${input.jobId}`);
   revalidatePath('/professional');
-  return { success: true, quoteId: quote.id };
+  return ok({ quoteId: quote.id });
 }

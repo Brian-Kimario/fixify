@@ -39,8 +39,8 @@ export function JobInspectionAndQuote({ jobId, currentState }: JobInspectionAndQ
 
   // Quote math
   const subtotal = lineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
-  const estimatedPlatformFee = Number((subtotal * 0.05).toFixed(2));
-  const estimatedTotal = Number((subtotal + estimatedPlatformFee).toFixed(2));
+  // No fee is added on top of line items; none is configured.
+  const estimatedTotal = Number(subtotal.toFixed(2));
 
   function addLineItem() {
     setLineItems((prev) => [
@@ -81,11 +81,11 @@ export function JobInspectionAndQuote({ jobId, currentState }: JobInspectionAndQ
         recommendation,
       });
 
-      if (res.success) {
+      if (res.success === false) {
+        setErrorMessage(res.error || 'Failed to submit inspection');
+      } else {
         setInspectionSuccess(true);
         router.refresh();
-      } else {
-        setErrorMessage(res.error || 'Failed to submit inspection');
       }
     });
   }
@@ -115,11 +115,11 @@ export function JobInspectionAndQuote({ jobId, currentState }: JobInspectionAndQ
         })),
       });
 
-      if (res.success) {
+      if (res.success === false) {
+        setErrorMessage(res.error || 'Failed to create quote');
+      } else {
         setQuoteSuccess(true);
         router.refresh();
-      } else {
-        setErrorMessage(res.error || 'Failed to create quote');
       }
     });
   }
@@ -313,10 +313,6 @@ export function JobInspectionAndQuote({ jobId, currentState }: JobInspectionAndQ
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
                     <span className="font-semibold text-[#18211F]">₹{subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Platform Fee (5%):</span>
-                    <span>₹{estimatedPlatformFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pt-1 border-t border-[#D9DED8] font-bold text-[#18211F]">
                     <span>Total Authorization Requested:</span>

@@ -108,18 +108,20 @@ export function StateTransitionButtons({
       try {
         if (targetState === 'declined') {
           const declined = await declineJobAction(jobId);
-          if (declined.success) {
+          if (declined.success === false) {
+            showToast('error', declined.error ?? 'Could not decline this job.');
+          } else {
             router.push('/professional/jobs');
             router.refresh();
-          } else {
-            showToast('error', declined.error ?? 'Could not decline this job.');
           }
           return;
         }
 
         const result = await updateJobState(jobId, targetState);
 
-        if (result.success) {
+        if (result.success === false) {
+          showToast('error', ('error' in result ? result.error : 'State transition failed.'));
+        } else {
           const label = TRANSITION_LABELS[targetState] ?? targetState;
           
           // Show success state for job acceptance
@@ -131,8 +133,6 @@ export function StateTransitionButtons({
           
           // For other transitions, show toast
           showToast('success', `✓ ${label} — job updated successfully.`);
-        } else {
-          showToast('error', ('error' in result ? result.error : 'State transition failed.'));
         }
       } catch {
         showToast('error', 'An unexpected error occurred. Please try again.');

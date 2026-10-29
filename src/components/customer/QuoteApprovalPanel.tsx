@@ -185,7 +185,9 @@ export function QuoteApprovalPanel({
           reason: decision === 'declined' ? declineReason : undefined,
         });
 
-        if (res.success) {
+        if (res.success === false) {
+          setStatusMessage({ type: 'error', text: res.error || 'Failed to update quote decision.' });
+        } else {
           if (decision === 'approved') {
             // Show success state for quote approval
             setSuccessData({ jobId: displayQuote.jobId, bookingId: displayQuote.jobId });
@@ -204,8 +206,6 @@ export function QuoteApprovalPanel({
               onClose();
             }, 1200);
           }
-        } else {
-          setStatusMessage({ type: 'error', text: res.error || 'Failed to update quote decision.' });
         }
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : 'An error occurred';

@@ -601,22 +601,19 @@ export function BookingWizard({
               if (!selectedService || !selectedPropertyId || !scheduledStart) return;
               setError(null);
               startTransition(async () => {
-                try {
-                  const result = await createBookingAction({
-                    serviceId: selectedService.id,
-                    propertyId: selectedPropertyId,
-                    scheduledStart: new Date(scheduledStart).toISOString(),
-                    selectedOptions,
-                    notes: notes.trim() || undefined,
-                  });
-                  // Show success state with booking ID
-                  setSuccessData({ bookingId: result.bookingId, matched: result.matched });
-                  setShowSuccessState(true);
-                } catch (err: unknown) {
-                  const msg =
-                    err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-                  setError(msg);
+                const result = await createBookingAction({
+                  serviceId: selectedService.id,
+                  propertyId: selectedPropertyId,
+                  scheduledStart: new Date(scheduledStart).toISOString(),
+                  selectedOptions,
+                  notes: notes.trim() || undefined,
+                });
+                if (result.success === false) {
+                  setError(result.error);
+                  return;
                 }
+                setSuccessData({ bookingId: result.data.bookingId, matched: result.data.matched });
+                setShowSuccessState(true);
               });
             }}
             disabled={isPending}

@@ -5,6 +5,13 @@ import { clearSessionCookies } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { ACTIVE_STATES } from '@/lib/jobs/states';
+import { fail, ok, parseInput, type ActionResult } from '@/lib/actions/result';
+import {
+  problemIntakeSchema,
+  respondToQuoteSchema,
+  type ProblemIntakeInput,
+  type RespondToQuoteInput,
+} from '@/validators';
 
 // OWNERSHIP CHECK: Every fetch action verifies customer_id = auth.getUser().id via RLS policy jobs_select_own
 
@@ -137,114 +144,95 @@ export async function logoutUser() {
 
 /**
  * Server Action: Submit Problem Intake
- * Inserts a new service request record for the customer
+ * Inserts a service_requests row for the customer. `requestId` is null when the customer
+ * has no property yet: service_requests.property_id is NOT NULL, so nothing is saved and
+ * the booking wizard collects the property instead.
  */
-export async function submitProblemIntakeAction(payload: {
-  inputText: string;
-  propertyId?: string;
-  detectedCategory?: string;
-  hasMedia?: boolean;
-}) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+export async function submitProblemIntakeAction(
+  payload: ProblemIntakeInput
+): Promise<ActionResult<{ requestId: string | null }>> {
+  const parsed = parseInput(problemIntakeSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
 
-    if (!user) {
-      return { success: false, error: 'User is not authenticated' };
-    }
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'User is not authenticated');
 
-    let targetPropertyId = payload.propertyId;
+  let targetPropertyId = input.propertyId;
 
-    // If property was not explicitly provided, look up the user's primary property
-    if (!targetPropertyId) {
-      const { data: properties } = await supabase
-        .from('properties')
-        .select('id')
-        .eq('owner_customer_id', user.id)
-        .limit(1);
-
-      if (properties && properties.length > 0) {
-        targetPropertyId = properties[0].id;
-      }
-    }
-
-    // service_requests.property_id is NOT NULL. A customer with no property has nothing to
-    // persist yet; the booking wizard collects the property, so let them continue.
-    if (!targetPropertyId) {
-      return { success: true, requestId: null };
-    }
-
-    const { data: requestData, error } = await supabase
-      .from('service_requests')
-      .insert({
-        customer_id: user.id,
-        property_id: targetPropertyId,
-        input_text: payload.inputText,
-        normalized_summary: payload.inputText.slice(0, 160),
-        intake_source: payload.hasMedia ? 'media' : 'manual',
-        classification_confidence: payload.detectedCategory ? 'high' : 'low',
-        status: 'draft',
-      })
+  if (targetPropertyId) {
+    const { data: owned } = await supabase
+      .from('properties')
       .select('id')
-      .single();
-
-    if (error) {
-      console.error('submitProblemIntakeAction insert failed:', error.message);
-      return { success: false, error: 'We could not save your request. Please try again.' };
-    }
-
-    revalidatePath('/customer');
-    return { success: true, requestId: requestData.id };
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Unknown error during problem intake';
-    console.error('submitProblemIntakeAction error:', errorMsg);
-    return { success: false, error: 'Something went wrong while saving your request. Please try again.' };
+      .eq('id', targetPropertyId)
+      .eq('owner_customer_id', user.id)
+      .maybeSingle();
+    if (!owned) return fail('not_found', 'Property not found');
+  } else {
+    const { data: properties } = await supabase
+      .from('properties')
+      .select('id')
+      .eq('owner_customer_id', user.id)
+      .limit(1);
+    targetPropertyId = properties?.[0]?.id;
   }
+
+  if (!targetPropertyId) return ok({ requestId: null });
+
+  const { data: requestData, error } = await supabase
+    .from('service_requests')
+    .insert({
+      customer_id: user.id,
+      property_id: targetPropertyId,
+      input_text: input.inputText,
+      normalized_summary: input.inputText.slice(0, 160),
+      intake_source: input.hasMedia ? 'media' : 'manual',
+      classification_confidence: input.detectedCategory ? 'high' : 'low',
+      status: 'draft',
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('submitProblemIntakeAction insert failed:', error.message);
+    return fail('failed', 'We could not save your request. Please try again.');
+  }
+
+  revalidatePath('/customer');
+  return ok({ requestId: requestData.id });
 }
 
 /**
  * Server Action: Respond to Quote (Approve or Decline)
- * Delegates to the respond_to_quote() RPC, which updates the quote and moves the job
- * back to in_progress in one transaction (approve = extra work authorised, decline =
- * professional continues the original scope).
+ * Delegates to the respond_to_quote() RPC, which checks ownership, quote/job state and
+ * expiry, updates the quote and moves the job back to in_progress in one transaction
+ * (approve = extra work authorised, decline = professional continues the original scope).
  */
-export async function respondToQuoteAction(payload: {
-  quoteId: string;
-  jobId: string;
-  decision: 'approved' | 'declined';
-  reason?: string;
-}) {
+export async function respondToQuoteAction(
+  payload: RespondToQuoteInput
+): Promise<ActionResult> {
+  const parsed = parseInput(respondToQuoteSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'User not authenticated');
 
-  if (!user) {
-    return { success: false, error: 'User not authenticated' };
-  }
-
-  // Skip non-real job IDs (e.g. sample/demo IDs used in UI previews)
-  if (!payload.jobId || payload.jobId.startsWith('sample')) {
-    return { success: false, error: 'Invalid job ID' };
-  }
-
-  if (payload.decision !== 'approved' && payload.decision !== 'declined') {
-    return { success: false, error: 'Invalid decision' };
-  }
-
-  // Ownership, quote/job state and expiry are all checked inside the RPC, and the
-  // quote update and job transition commit together or not at all.
   const { error: rpcError } = await supabase.rpc('respond_to_quote', {
-    p_quote_id: payload.quoteId,
-    p_decision: payload.decision,
-    p_reason: payload.reason ?? null,
+    p_quote_id: input.quoteId,
+    p_decision: input.decision,
+    p_reason: input.reason ?? null,
   });
 
   if (rpcError) {
-    console.error('respondToQuoteAction — respond_to_quote RPC error:', rpcError.message);
-    return { success: false, error: rpcError.message };
+    console.error('respondToQuoteAction respond_to_quote RPC error:', rpcError.message);
+    return fail('rejected', rpcError.message);
   }
 
   revalidatePath('/customer');
-  return { success: true };
+  return ok();
 }
 
 /**

@@ -191,3 +191,10 @@ Code that depends on the missing objects and is therefore broken today:
   warranty period (`maintenance_records.warranty_expires_at` exists but is not read). These
   components are rebuilt in Phase 1; remove the claim there. Marketing copy and
   `src/lib/data/faq.ts` also mention warranties; out of scope here.
+- **Invented 5% platform fee on quotes.** `createQuoteAction` added `subtotal * 0.05` as
+  `taxes_or_fees` and the customer was charged the resulting `total`; `QuoteForm` and
+  `JobInspectionAndQuote` showed "Platform Fee (5%)". No config backs it (§5 decision 1 is
+  open). New quotes now have `taxes_or_fees = 0` and `total = subtotal`. The one live approved
+  quote keeps its stored ₹75 fee; the customer UI reads `taxes_or_fees` from the row, so it
+  stays accurate for that row.
+- `createBookingAction` accepts `selectedOptions` and `notes` but never stores them. Phase 2.

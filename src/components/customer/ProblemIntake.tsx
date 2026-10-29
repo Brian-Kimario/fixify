@@ -122,7 +122,9 @@ export function ProblemIntake({ properties = [], onSubmitted, className = '' }: 
           hasMedia: photoCount > 0 || videoCount > 0 || voiceSeconds > 0,
         });
 
-        if (res.success) {
+        if (res.success === false) {
+          setStatusMessage({ type: 'error', text: res.error || 'Failed to submit problem.' });
+        } else {
           setStatusMessage({ type: 'success', text: 'Problem logged! Redirecting to expert confirmation...' });
           if (onSubmitted) {
             onSubmitted(description);
@@ -136,8 +138,6 @@ export function ProblemIntake({ properties = [], onSubmitted, className = '' }: 
           setTimeout(() => {
             router.push(`/customer/bookings/new?${params.toString()}`);
           }, 800);
-        } else {
-          setStatusMessage({ type: 'error', text: res.error || 'Failed to submit problem.' });
         }
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : 'An error occurred';

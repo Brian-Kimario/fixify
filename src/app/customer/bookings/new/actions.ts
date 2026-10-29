@@ -1,18 +1,10 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { fail, ok, parseInput, type ActionResult } from '@/lib/actions/result';
+import { createBookingSchema, type CreateBookingInput } from '@/validators';
 
-// ── Input shape ──────────────────────────────────────────────────────────────
-
-export interface CreateBookingInput {
-  serviceId: string;
-  propertyId: string;
-  scheduledStart: string; // ISO-8601
-  /** Selected service option values keyed by option id */
-  selectedOptions?: Record<string, string>;
-  notes?: string;
-}
+export type { CreateBookingInput };
 
 // ── Output shape ────────────────────────────────────────────────────────────
 
@@ -37,14 +29,18 @@ function generateBookingReference(): string {
  * createBookingAction
  *
  * Security:
- *  - Authenticates via Supabase Auth (throws if not logged in)
+ *  - Validates input with createBookingSchema; expected failures return a typed result
  *  - Fetches service price from DB — never trusts client-submitted price
  *  - Verifies property ownership via RLS + explicit eq check
  *  - All amounts persisted from DB, not from form input
  */
 export async function createBookingAction(
-  input: CreateBookingInput
-): Promise<CreateBookingOutput> {
+  payload: CreateBookingInput
+): Promise<ActionResult<CreateBookingOutput>> {
+  const parsed = parseInput(createBookingSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+
   const supabase = await createClient();
 
   // ── Auth ────────────────────────────────────────────────────────────────────
@@ -54,7 +50,7 @@ export async function createBookingAction(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    throw new Error('Not authenticated. Please sign in.');
+    return fail('unauthenticated', 'Not authenticated. Please sign in.');
   }
 
   // ── Validate service (fetch price server-side) ──────────────────────────────
@@ -66,7 +62,7 @@ export async function createBookingAction(
     .single();
 
   if (serviceError || !service) {
-    throw new Error('Service not found or is no longer available.');
+    return fail('not_found', 'Service not found or is no longer available.');
   }
 
   // ── Validate property ownership ─────────────────────────────────────────────
@@ -78,13 +74,13 @@ export async function createBookingAction(
     .single();
 
   if (propertyError || !property) {
-    throw new Error('Property not found or does not belong to your account.');
+    return fail('not_found', 'Property not found or does not belong to your account.');
   }
 
   // ── Validate scheduled date (must be in the future) ─────────────────────────
   const scheduledDate = new Date(input.scheduledStart);
   if (isNaN(scheduledDate.getTime()) || scheduledDate <= new Date()) {
-    throw new Error('Please choose a future date and time for your booking.');
+    return fail('invalid_input', 'Please choose a future date and time for your booking.');
   }
 
   // ── Derive authoritative price from DB (never from client) ─────────────────
@@ -120,7 +116,7 @@ export async function createBookingAction(
 
   if (bookingError || !booking) {
     console.error('Booking insert error:', bookingError);
-    throw new Error(`Failed to create booking: ${bookingError?.message ?? 'Unknown error'}`);
+    return fail('failed', 'We could not create your booking. Please try again.');
   }
 
   // ── Offer the job to the best-matching professional ─────────────────────────
@@ -137,9 +133,9 @@ export async function createBookingAction(
   }
 
   // Client will handle navigation after showing success state
-  return {
+  return ok({
     bookingId: booking.id,
     bookingReference,
     matched,
-  };
+  });
 }

@@ -69,14 +69,14 @@ export function InspectionForm({
         recommendation,
       });
 
-      if (res.success) {
+      if (res.success === false) {
+        setErrorMessage(res.error || 'Failed to submit inspection');
+      } else {
         setSuccessMessage('Inspection findings recorded. Moving to quote phase...');
         router.refresh();
         setTimeout(() => {
           onSuccess?.();
         }, 1000);
-      } else {
-        setErrorMessage(res.error || 'Failed to submit inspection');
       }
     });
   }

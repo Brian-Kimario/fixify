@@ -1,6 +1,6 @@
 /**
- * Data validation schemas
- * Uses a validation library (Zod recommended for type safety)
+ * Zod schemas for server action and API input. Import from `@/validators`.
  */
-
-export {};
+export * from './booking';
+export * from './customer';
+export * from './professional';
