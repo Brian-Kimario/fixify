@@ -196,7 +196,7 @@ export function BookingWizard({
     }
     return properties.length === 1 ? properties[0].id : '';
   });
-  const [notes, setNotes] = useState<string>(initialProblemNotes ?? '');
+  const [problemSummary, setProblemSummary] = useState<string>(initialProblemNotes ?? '');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showSuccessState, setShowSuccessState] = useState(false);
@@ -209,21 +209,12 @@ export function BookingWizard({
     : [];
   const selectedProperty = properties.find((p) => p.id === selectedPropertyId);
 
-  // Compute displayed total with option modifiers
-  const optionModifierTotal = selectedService
-    ? selectedService.options.reduce((sum, opt) => {
-        const val = selectedOptions[opt.id];
-        if (!val) return sum;
-        const ov = opt.values.find((v) => v.value === val);
-        return sum + (ov?.price_modifier ?? 0);
-      }, 0)
-    : 0;
-
+  // create_booking sets the amount from the service row alone; option price_modifier is
+  // not charged, so it is not shown or added here.
   const displayedPrice: string = (() => {
     if (!selectedService) return '';
     if (selectedService.pricing_model === 'fixed' && selectedService.base_price != null) {
-      const total = selectedService.base_price + optionModifierTotal;
-      return `₹${total.toLocaleString('en-IN')}`;
+      return `₹${selectedService.base_price.toLocaleString('en-IN')}`;
     }
     if (selectedService.pricing_model === 'inspection' && selectedService.inspection_fee != null) {
       return `₹${selectedService.inspection_fee.toLocaleString('en-IN')} inspection fee`;
@@ -356,11 +347,6 @@ export function BookingWizard({
                               }`}
                             >
                               {ov.label}
-                              {ov.price_modifier != null && ov.price_modifier !== 0 && (
-                                <span className="ml-1 opacity-75">
-                                  {ov.price_modifier > 0 ? `+₹${ov.price_modifier}` : `-₹${Math.abs(ov.price_modifier)}`}
-                                </span>
-                              )}
                             </button>
                           ))}
                         </div>
@@ -453,21 +439,27 @@ export function BookingWizard({
             )}
           </div>
 
-          {/* Optional notes */}
+          {/* Problem summary: professionals read this before accepting */}
           <div>
-            <label htmlFor="notes" className="block text-xs font-bold uppercase tracking-[0.1em] text-[#5A6661] mb-2">
-              Notes for the professional <span className="text-[#A8B0AA]">(optional)</span>
+            <label htmlFor="problem_summary" className="block text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground mb-2">
+              Describe the problem <span className="font-normal normal-case tracking-normal">(optional)</span>
             </label>
             <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              id="problem_summary"
+              value={problemSummary}
+              onChange={(e) => setProblemSummary(e.target.value)}
               rows={3}
-              maxLength={400}
-              placeholder="E.g. Faucet is in the master bathroom. Gate code is 1234."
-              className="w-full px-3 py-2.5 border border-[#D9DED8] rounded-xl text-sm text-[#18211F] bg-white focus:outline-none focus:border-[#176B5B] focus:ring-1 focus:ring-[#176B5B] resize-none"
+              maxLength={1000}
+              aria-describedby="problem_summary_hint"
+              placeholder="E.g. Kitchen tap drips constantly, worse when the hot water is on."
+              className="w-full px-3 py-2.5 border border-line rounded-xl text-sm text-ink bg-paper focus:outline-none focus:border-teal focus:ring-1 focus:ring-teal resize-none"
             />
-            <p className="text-xs text-[#A8B0AA] mt-1 text-right">{notes.length} / 400</p>
+            <div className="mt-1 flex justify-between gap-3 text-xs text-muted-foreground">
+              <p id="problem_summary_hint">
+                Professionals see this before accepting. Don&apos;t include gate codes or access details.
+              </p>
+              <p className="shrink-0 tabular-nums">{problemSummary.length} / 1000</p>
+            </div>
           </div>
         </div>
 
@@ -564,11 +556,11 @@ export function BookingWizard({
             )}
           </div>
 
-          {/* Notes */}
-          {notes.trim() && (
-            <div className="bg-[#FFFEFA] rounded-xl p-4 border border-[#E8EBE7]">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-1">Notes</p>
-              <p className="text-sm text-[#18211F]">{notes}</p>
+          {/* Problem */}
+          {problemSummary.trim() && (
+            <div className="bg-paper rounded-xl p-4 border border-line">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground mb-1">Problem</p>
+              <p className="text-sm text-ink whitespace-pre-line break-words">{problemSummary}</p>
             </div>
           )}
         </div>
@@ -606,7 +598,7 @@ export function BookingWizard({
                   propertyId: selectedPropertyId,
                   scheduledStart: new Date(scheduledStart).toISOString(),
                   selectedOptions,
-                  notes: notes.trim() || undefined,
+                  problemSummary: problemSummary.trim() || undefined,
                 });
                 if (result.success === false) {
                   setError(result.error);

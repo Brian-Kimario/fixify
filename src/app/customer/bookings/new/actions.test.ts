@@ -41,9 +41,36 @@ describe('createBookingAction', () => {
       p_service_id: payload.serviceId,
       p_property_id: payload.propertyId,
       p_scheduled_start: payload.scheduledStart,
+      p_problem_summary: undefined,
+      p_options: {},
     });
     expect(rpc).toHaveBeenNthCalledWith(2, 'assign_booking', { p_booking_id: 'b-1' });
     expect(from).not.toHaveBeenCalled();
+  });
+
+  it('passes the problem summary and chosen options to the RPC', async () => {
+    const optionId = randomUUID();
+    rpc
+      .mockResolvedValueOnce({ data: [{ booking_id: 'b-1', booking_reference: 'FX-1001' }], error: null })
+      .mockResolvedValueOnce({ data: { matched: true }, error: null });
+
+    await createBookingAction({
+      ...input(),
+      problemSummary: '  Tap drips constantly  ',
+      selectedOptions: { [optionId]: 'kitchen' },
+    });
+
+    expect(rpc).toHaveBeenNthCalledWith(1, 'create_booking', expect.objectContaining({
+      p_problem_summary: 'Tap drips constantly',
+      p_options: { [optionId]: 'kitchen' },
+    }));
+  });
+
+  it('explains a stale option instead of failing generically', async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { code: '22023', message: 'Unknown option for service' } });
+    const result = await createBookingAction(input());
+    expect(result).toMatchObject({ success: false, code: 'rejected' });
+    if (result.success === false) expect(result.error).toMatch(/no longer available/);
   });
 
   it('keeps the booking when assignment fails', async () => {

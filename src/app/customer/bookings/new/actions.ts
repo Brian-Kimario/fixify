@@ -22,7 +22,8 @@ export interface CreateBookingOutput {
  *
  * The create_booking RPC does the checks and the insert: it takes the customer from the
  * session, requires an active service and a property the customer owns, refuses past dates,
- * and sets the amount from the service row. Customers have no INSERT policy on bookings.
+ * checks chosen options against the service, and sets the amount from the service row
+ * (option price modifiers are not applied). Customers have no INSERT policy on bookings.
  */
 export async function createBookingAction(
   payload: CreateBookingInput
@@ -51,6 +52,8 @@ export async function createBookingAction(
     p_service_id: input.serviceId,
     p_property_id: input.propertyId,
     p_scheduled_start: scheduledDate.toISOString(),
+    p_problem_summary: input.problemSummary || undefined,
+    p_options: input.selectedOptions ?? {},
   });
   const booking = rows?.[0];
 
@@ -85,7 +88,11 @@ function createBookingFailure(error: { code?: string; message: string } | null):
       // The RPC uses this for both an unavailable service and a property the caller doesn't own.
       return fail('not_found', 'That service or property is no longer available. Please check and try again.');
     case '22023':
-      // A past start time (already checked above, so clock skew) or a service with no price.
+      // A past start time (already checked above, so clock skew), a service with no price,
+      // an option that is no longer offered, or an urgency that is switched off.
+      if (error.message.includes('option')) {
+        return fail('rejected', 'One of the options you chose is no longer available. Please go back and choose again.');
+      }
       return fail('rejected', 'This service cannot be booked for that time. Please choose another time or service.');
     case '42501':
       return fail('rejected', 'Only customer accounts can create bookings.');
