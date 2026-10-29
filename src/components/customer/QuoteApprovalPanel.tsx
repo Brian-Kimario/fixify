@@ -5,13 +5,9 @@ import { useRouter } from 'next/navigation';
 import { animate } from 'animejs';
 import { 
   X, 
-  ShieldCheck, 
   AlertTriangle, 
   CheckCircle2, 
-  FileCheck, 
-  HelpCircle,
   Wrench,
-  Clock,
   ArrowRight
 } from 'lucide-react';
 import { respondToQuoteAction } from '@/app/customer/actions';
@@ -31,6 +27,8 @@ export interface QuoteLineItem {
 export interface QuoteApprovalData {
   id: string;
   jobId: string;
+  /** The booking the job belongs to; "View booking" links here. */
+  bookingId?: string;
   referenceNumber: string;
   serviceTitle: string;
   propertyName: string;
@@ -41,6 +39,9 @@ export interface QuoteApprovalData {
   lineItems: QuoteLineItem[];
   subtotal: number;
   partsTotal: number;
+  /** quotes.discount; shown only when non-zero. */
+  discount?: number;
+  /** quotes.taxes_or_fees. */
   platformFee: number;
   totalAmount: number;
   expiresInHours?: number;
@@ -102,7 +103,7 @@ export function QuoteApprovalPanel({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isPending, onClose]);
 
-  if (!isOpen && !panelRef.current) return null;
+  if (!isOpen) return null;
 
   // Show success state overlay when quote is approved
   if (showSuccessState && successData?.jobId) {
@@ -115,7 +116,7 @@ export function QuoteApprovalPanel({
             description="Work will begin soon. The professional will contact you with next steps."
             action={{
               label: 'View booking',
-              onClick: () => router.push(`/customer/bookings/${successData.jobId}`),
+              onClick: () => router.push(successData.bookingId ? `/customer/bookings/${successData.bookingId}` : '/customer/bookings'),
             }}
             secondaryAction={{
               label: 'Back to dashboard',
@@ -190,14 +191,14 @@ export function QuoteApprovalPanel({
         } else {
           if (decision === 'approved') {
             // Show success state for quote approval
-            setSuccessData({ jobId: displayQuote.jobId, bookingId: displayQuote.jobId });
+            setSuccessData({ jobId: displayQuote.jobId, bookingId: displayQuote.bookingId });
             setShowSuccessState(true);
             setStatusMessage(null);
           } else {
             // For declined, show inline message and close
             setStatusMessage({
               type: 'success',
-              text: 'Quote declined. Technician will pause extra work.',
+              text: 'Quote declined. The professional will continue the original work.',
             });
             if (onDecisionCompleted) {
               onDecisionCompleted(decision);
@@ -293,7 +294,7 @@ export function QuoteApprovalPanel({
               </p>
               {displayQuote.findings && (
                 <div className="mt-2.5 pt-2.5 border-t border-[#D9DED8]/70 text-[11px] text-[#7C8681]">
-                  <strong className="text-[#18211F]">Preventive Value:</strong> {displayQuote.findings}
+                  <strong className="text-[#18211F]">Findings:</strong> {displayQuote.findings}
                 </div>
               )}
             </div>
@@ -304,7 +305,6 @@ export function QuoteApprovalPanel({
                 <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#7C8681]">
                   ITEMIZED BREAKDOWN
                 </span>
-                <span className="text-xs text-[#7C8681]">Parts & Labor Guaranteed</span>
               </div>
 
               <div className="border border-[#D9DED8] rounded-xl overflow-hidden divide-y divide-[#D9DED8]">
@@ -332,34 +332,31 @@ export function QuoteApprovalPanel({
             {/* Clear Visual Financial Hierarchy */}
             <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-xs text-[#5A6661]">
-                <span>Service Labor</span>
+                <span>Subtotal</span>
                 <span className="font-mono font-medium">{formatCurrency(displayQuote.subtotal)}</span>
               </div>
+              {displayQuote.partsTotal > 0 && (
+                <div className="flex justify-between pl-3 text-[11px] text-[#7C8681]">
+                  <span>Includes parts &amp; materials</span>
+                  <span className="font-mono">{formatCurrency(displayQuote.partsTotal)}</span>
+                </div>
+              )}
+              {(displayQuote.discount ?? 0) > 0 && (
+                <div className="flex justify-between text-xs text-[#5A6661]">
+                  <span>Discount</span>
+                  <span className="font-mono font-medium">−{formatCurrency(displayQuote.discount ?? 0)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-xs text-[#5A6661]">
-                <span>Parts & Materials</span>
-                <span className="font-mono font-medium">{formatCurrency(displayQuote.partsTotal)}</span>
-              </div>
-              <div className="flex justify-between text-xs text-[#5A6661]">
-                <span>Feasy Platform Guarantee & Coverage</span>
+                <span>Taxes or fees</span>
                 <span className="font-mono font-medium">{formatCurrency(displayQuote.platformFee)}</span>
               </div>
               <div className="pt-3 border-t border-[#D9DED8] flex justify-between items-baseline">
-                <div>
-                  <strong className="text-sm text-[#18211F] block">Total Authorization</strong>
-                  <span className="text-[11px] text-[#7C8681]">Billed only upon verified completion</span>
-                </div>
+                <strong className="text-sm text-[#18211F] block">Total</strong>
                 <strong className="text-2xl font-bold font-mono text-[#18211F]">
                   {formatCurrency(displayQuote.totalAmount)}
                 </strong>
               </div>
-            </div>
-
-            {/* Feasy Guarantee Notice */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#E2EEE9]/60 border border-[#BCD4CC] text-xs text-[#176B5B]">
-              <ShieldCheck className="w-5 h-5 flex-shrink-0 text-[#176B5B]" />
-              <span>
-                Protected by the <strong>Feasy 12-Month Guarantee</strong>. If anything fails related to this repair, we send a technician back for free.
-              </span>
             </div>
 
             {/* Optional Decline Explanation */}
