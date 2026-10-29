@@ -15,6 +15,7 @@ import {
   Lightbulb,
   MapPin,
   Paintbrush,
+  SearchX,
   ShieldCheck,
   Sparkles,
   Wind,
@@ -260,19 +261,20 @@ function Notice({ tone, children }: { tone: 'danger' | 'ochre'; children: ReactN
 
 function InboxCard({ item }: { item: CustomerInboxItem }) {
   const isQuote = item.kind === 'quote';
-  const Icon = isQuote ? FileText : IndianRupee;
+  const isUnmatched = item.kind === 'unmatched';
+  const Icon = isQuote ? FileText : isUnmatched ? SearchX : IndianRupee;
   return (
     <Link
       href={item.href}
       scroll={false}
       className={`group flex h-full flex-col rounded-2xl border bg-paper p-4 transition-colors hover:bg-paper-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal ${
-        isQuote ? 'border-clay/30' : 'border-ochre/30'
+        isQuote ? 'border-clay/30' : isUnmatched ? 'border-blue/30' : 'border-ochre/30'
       }`}
     >
       <div className="flex items-start gap-3">
         <span
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-            isQuote ? 'bg-clay-soft text-clay' : 'bg-ochre-soft text-ochre'
+            isQuote ? 'bg-clay-soft text-clay' : isUnmatched ? 'bg-blue-soft text-blue' : 'bg-ochre-soft text-ochre'
           }`}
         >
           <Icon className="h-5 w-5" aria-hidden="true" />
@@ -281,10 +283,12 @@ function InboxCard({ item }: { item: CustomerInboxItem }) {
           <p className="text-sm font-semibold text-ink">{item.title}</p>
           <p className="mt-0.5 truncate text-sm text-ink-3">{item.detail}</p>
         </div>
-        <p className="shrink-0 text-base font-semibold tabular-nums text-ink">{money(item.amount)}</p>
+        {item.amount != null && (
+          <p className="shrink-0 text-base font-semibold tabular-nums text-ink">{money(item.amount)}</p>
+        )}
       </div>
       <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal group-hover:text-teal-deep">
-        {isQuote ? 'Review quote' : 'Open booking to pay'}
+        {isQuote ? 'Review quote' : isUnmatched ? 'Open booking' : 'Open booking to pay'}
         <ArrowRight className="h-4 w-4" aria-hidden="true" />
       </span>
     </Link>
@@ -293,7 +297,7 @@ function InboxCard({ item }: { item: CustomerInboxItem }) {
 
 function ActiveJobCard({ booking }: { booking: CustomerBooking }) {
   const state = booking.job?.state ?? null;
-  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: state });
+  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: state, unmatchedSince: booking.unmatchedSince });
   const copy = state && isJobState(state) ? STATE_META[state].customerCopy : null;
   const slot = formatSlot(booking.scheduledStart);
 
@@ -348,7 +352,7 @@ function ActiveJobCard({ booking }: { booking: CustomerBooking }) {
 }
 
 function BookingRow({ booking }: { booking: CustomerBooking }) {
-  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null });
+  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null, unmatchedSince: booking.unmatchedSince });
   const slot = formatSlot(booking.scheduledStart);
   return (
     <Link
@@ -370,7 +374,7 @@ const dayFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', timeZone: '
 const monthFormat = new Intl.DateTimeFormat('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
 
 function UpcomingRow({ booking, past = false }: { booking: CustomerBooking; past?: boolean }) {
-  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null });
+  const status = bookingStatusDisplay({ bookingStatus: booking.bookingStatus, jobState: booking.job?.state ?? null, unmatchedSince: booking.unmatchedSince });
   const date = booking.scheduledStart ? new Date(booking.scheduledStart) : null;
   const slot = formatSlot(booking.scheduledStart);
   return (

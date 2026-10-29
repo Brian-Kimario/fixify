@@ -2,7 +2,10 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth';
+import { SearchX } from 'lucide-react';
 import { UPIIntentCheckout } from '@/components/customer/UPIIntentCheckout';
+import { ProfessionalCard } from '@/components/customer/ProfessionalCard';
+import { getBookingProfessional } from '@/lib/services/matching';
 
 export const metadata = {
   title: 'Booking Confirmed — Feasy',
@@ -30,6 +33,9 @@ const PRICING_MODEL_NOTE: Record<string, string> = {
   quote_after_inspection:'Professional will visit and provide a quote. No work starts without your approval.',
 };
 
+// The professional's phone is shared only once they have accepted the job.
+const PHONE_VISIBLE_STATES = ['accepted', 'on_the_way', 'arrived', 'in_progress', 'quote_pending'];
+
 interface BookingDetailPageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ new?: string }>;
@@ -54,6 +60,9 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
       quoted_or_base_amount,
       booking_status,
       created_at,
+      problem_summary,
+      intake_options,
+      unmatched_since,
       service:services (
         id, name, description, pricing_model,
         category:service_categories ( name )
@@ -67,15 +76,7 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
         current_state,
         payments ( id, status ),
         professional_profiles (
-          user_id,
-          display_name,
-          rating_average,
-          completed_jobs_count,
-          verification_status,
-          profiles!professional_profiles_user_id_fkey (
-            full_name,
-            phone
-          )
+          profiles!professional_profiles_user_id_fkey ( phone )
         )
       )
     `)
@@ -91,32 +92,38 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
   const service  = booking.service as unknown as { id: string; name: string; description: string | null; pricing_model: string; category: { name: string } | null } | null;
   const property = booking.property as unknown as { id: string; name: string; property_type: string; address: { address_line_1: string; city: string; area?: string } | null } | null;
 
-  // ── Payment state ─────────────────────────────────────────────────────────
   // jobs is 1:1 with booking (UNIQUE constraint on booking_id)
-  const jobRow = Array.isArray(booking.jobs)
-    ? booking.jobs[0]
-    : (booking.jobs as { id: string; current_state: string; payments: { id: string; status: string }[] } | null);
+  type JobRow = {
+    id: string;
+    current_state: string;
+    payments: { id: string; status: string }[] | null;
+    professional_profiles: { profiles: { phone: string | null } | null } | null;
+  };
+  const jobs = booking.jobs as unknown as JobRow[] | JobRow | null;
+  const jobRow = Array.isArray(jobs) ? jobs[0] : jobs;
 
-  // ── Professional data (if assigned) ───────────────────────────────────────
-  let professional: { id: string; name: string; phone?: string; rating: number; completedJobs: number; verificationStatus: string } | null = null;
-  
-  if (jobRow && Array.isArray(booking.jobs)) {
-    const job = booking.jobs[0] as any;
-    const rawPro = Array.isArray(job?.professional_profiles) ? job.professional_profiles[0] : job?.professional_profiles;
-    
-    if (rawPro) {
-      professional = {
-        id: rawPro.user_id,
-        name: rawPro.display_name || 'Certified Professional',
-        phone: (Array.isArray(rawPro['profiles!professional_profiles_user_id_fkey'])
-          ? rawPro['profiles!professional_profiles_user_id_fkey'][0]?.phone
-          : rawPro['profiles!professional_profiles_user_id_fkey']?.phone) || undefined,
-        rating: Number(rawPro.rating_average) || 0,
-        completedJobs: Number(rawPro.completed_jobs_count) || 0,
-        verificationStatus: rawPro.verification_status || 'pending',
-      };
-    }
-  }
+  // ── Professional (from matching v2) ───────────────────────────────────────
+  const professional = await getBookingProfessional(booking.id);
+  const awaitingAcceptance = jobRow?.current_state === 'assigned';
+  const showPhone = jobRow != null && PHONE_VISIBLE_STATES.includes(jobRow.current_state);
+  const phone = showPhone ? jobRow.professional_profiles?.profiles?.phone ?? null : null;
+
+  const isOpen = booking.booking_status !== 'cancelled' && booking.booking_status !== 'completed';
+  // The matcher only offers bookings whose start is still ahead, so don't promise matching after it.
+  const startPassed = new Date(booking.scheduled_start) < new Date();
+  const unmatched =
+    isOpen && booking.unmatched_since != null && (!jobRow || jobRow.current_state === 'assigned') && !professional;
+
+  const intakeOptions = Array.isArray(booking.intake_options)
+    ? booking.intake_options.flatMap((entry) => {
+        if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+          const option = typeof entry.option === 'string' ? entry.option : null;
+          const label = typeof entry.label === 'string' ? entry.label : typeof entry.value === 'string' ? entry.value : null;
+          if (label) return [option ? `${option}: ${label}` : label];
+        }
+        return [];
+      })
+    : [];
 
   const existingPayments = (jobRow?.payments ?? []) as { id: string; status: string }[];
   const alreadyPaid      = existingPayments.some((p) => p.status === 'paid');
@@ -261,34 +268,51 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
             </div>
           )}
 
-          {/* Professional details — shown when job is assigned/accepted/active */}
-          {professional && jobRow && ['accepted', 'on_the_way', 'arrived', 'in_progress', 'quote_pending', 'completed'].includes(jobRow.current_state) && (
-            <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-3">Technician</p>
+          {/* Problem the customer described */}
+          {(booking.problem_summary || intakeOptions.length > 0) && (
+            <div className="rounded-xl border border-line bg-paper p-5">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-ink-4">Your description</p>
+              {booking.problem_summary && (
+                <p className="whitespace-pre-line text-sm leading-relaxed text-ink">{booking.problem_summary}</p>
+              )}
+              {intakeOptions.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-1.5">
+                  {intakeOptions.map((option) => (
+                    <li key={option} className="rounded-full border border-line bg-porcelain px-2.5 py-0.5 text-xs text-ink-2">
+                      {option}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Professional */}
+          {professional && isOpen && (
+            <ProfessionalCard professional={professional} awaitingAcceptance={awaitingAcceptance} phone={phone} />
+          )}
+          {professional && !isOpen && booking.booking_status === 'completed' && (
+            <ProfessionalCard professional={professional} awaitingAcceptance={false} />
+          )}
+
+          {/* Nobody available */}
+          {unmatched && (
+            <div className="rounded-xl border border-ochre/25 bg-ochre-soft p-5">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#E2EEE9] text-[#176B5B] flex items-center justify-center font-bold text-xs flex-shrink-0">
-                  {professional.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-[#18211F]">{professional.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-[#5A6661]">★ {professional.rating.toFixed(1)}</span>
-                    <span className="text-xs text-[#5A6661]">·</span>
-                    <span className="text-xs text-[#5A6661]">{professional.completedJobs} jobs</span>
-                    {professional.verificationStatus === 'verified' && (
-                      <>
-                        <span className="text-xs text-[#5A6661]">·</span>
-                        <span className="text-xs font-semibold text-[#2F7D5B]">✓ Verified</span>
-                      </>
-                    )}
-                  </div>
-                  {professional.phone && (
-                    <a
-                      href={`tel:${professional.phone}`}
-                      className="text-xs text-[#176B5B] hover:underline mt-2 inline-flex items-center gap-1"
+                <SearchX className="mt-0.5 h-5 w-5 shrink-0 text-ochre" aria-hidden="true" />
+                <div>
+                  <p className="font-bold text-ink">No professional available yet</p>
+                  <p className="mt-1 text-sm text-ink-2">
+                    None of our verified professionals for this service can take this time slot right now.
+                    Your booking stays open and our team can see it. You can also book a different time.
+                  </p>
+                  {service && property && (
+                    <Link
+                      href={`/customer/bookings/new?service=${service.id}&propertyId=${property.id}`}
+                      className="mt-3 inline-flex items-center rounded-lg bg-teal px-4 py-2 text-sm font-bold text-paper hover:bg-teal-deep"
                     >
-                      {professional.phone}
-                    </a>
+                      Book another time
+                    </Link>
                   )}
                 </div>
               </div>
@@ -336,7 +360,7 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
         </div>
 
         {/* What happens next */}
-        {!showPaySection && !alreadyPaid && (
+        {!showPaySection && !alreadyPaid && !unmatched && isOpen && !startPassed && (!jobRow || awaitingAcceptance) && (
           <div className="mt-6 bg-[#F1F7F4] border border-[#C5D8CF] rounded-xl p-5">
             <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#176B5B] mb-3">What happens next?</p>
             <ol className="space-y-2 text-sm text-[#18211F]">

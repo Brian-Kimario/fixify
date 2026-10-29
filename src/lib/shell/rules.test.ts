@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  responseTimeLabel,
   bookingStatusDisplay,
   bookingTab,
   formatCountdown,
@@ -7,6 +8,8 @@ import {
   isOfferOpen,
   isPaymentDue,
   isQuoteAwaitingCustomer,
+  offerLocalityLabel,
+  offerPayBasis,
   propertyTypeLabel,
   isTodayIST,
   startOfDayIST,
@@ -159,5 +162,75 @@ describe('propertyTypeLabel', () => {
   it('humanises unknown types instead of hiding them', () => {
     expect(propertyTypeLabel('farm_house')).toBe('Farm house');
     expect(propertyTypeLabel('')).toBe('Property');
+  });
+});
+
+describe('offerPayBasis', () => {
+  it('shows the customer price for fixed-price jobs', () => {
+    expect(offerPayBasis({ pricingModel: 'fixed', customerPrice: 1499, inspectionFee: null })).toEqual({
+      label: 'Fixed price',
+      detail: '₹1,499 customer price',
+    });
+  });
+  it('hides a fixed price with no amount instead of showing ₹0', () => {
+    expect(offerPayBasis({ pricingModel: 'fixed', customerPrice: null, inspectionFee: null })).toBeNull();
+  });
+  it('shows the inspection fee then the quote', () => {
+    expect(offerPayBasis({ pricingModel: 'inspection', customerPrice: 299, inspectionFee: 299 })?.detail).toBe(
+      '₹299 inspection fee, then your quote',
+    );
+  });
+  it('describes quote-after-inspection without an amount', () => {
+    expect(
+      offerPayBasis({ pricingModel: 'quote_after_inspection', customerPrice: null, inspectionFee: null })?.detail,
+    ).toBe('Priced by your quote after inspection');
+  });
+  it('returns nothing for an unknown model', () => {
+    expect(offerPayBasis({ pricingModel: 'hourly', customerPrice: 100, inspectionFee: null })).toBeNull();
+  });
+});
+
+describe('offerLocalityLabel', () => {
+  it('joins area and city', () => {
+    expect(offerLocalityLabel({ area: 'Indiranagar', city: 'Bengaluru', distanceKm: null })).toBe(
+      'Indiranagar, Bengaluru',
+    );
+  });
+  it('adds distance when the matcher measured it', () => {
+    expect(offerLocalityLabel({ area: null, city: 'Pune', distanceKm: 3.24 })).toBe('Pune · 3.2 km');
+    expect(offerLocalityLabel({ area: 'Baner', city: 'Pune', distanceKm: 12.6 })).toBe('Baner, Pune · 13 km');
+  });
+  it('is empty without a locality', () => {
+    expect(offerLocalityLabel(null)).toBeNull();
+  });
+});
+
+describe('bookingStatusDisplay while unmatched', () => {
+  it('says no professional yet for an open unmatched booking', () => {
+    expect(
+      bookingStatusDisplay({ bookingStatus: 'pending', jobState: 'assigned', unmatchedSince: '2026-10-30T10:00:00Z' }),
+    ).toEqual({ label: 'No professional yet', tone: 'ochre' });
+    expect(
+      bookingStatusDisplay({ bookingStatus: 'pending', jobState: null, unmatchedSince: '2026-10-30T10:00:00Z' }).label,
+    ).toBe('No professional yet');
+  });
+  it('ignores the flag once the booking is cancelled or the job has moved on', () => {
+    expect(
+      bookingStatusDisplay({ bookingStatus: 'cancelled', jobState: null, unmatchedSince: '2026-10-30T10:00:00Z' }).label,
+    ).toBe('Cancelled');
+    expect(
+      bookingStatusDisplay({ bookingStatus: 'confirmed', jobState: 'accepted', unmatchedSince: '2026-10-30T10:00:00Z' }).label,
+    ).not.toBe('No professional yet');
+  });
+});
+
+describe('responseTimeLabel', () => {
+  it('returns null without history', () => {
+    expect(responseTimeLabel(null)).toBeNull();
+  });
+  it('formats seconds, minutes and hours', () => {
+    expect(responseTimeLabel(30)).toBe('Typically responds in under a minute');
+    expect(responseTimeLabel(12 * 60 + 10)).toBe('Typically responds in 12 min');
+    expect(responseTimeLabel(2 * 3600 + 100)).toBe('Typically responds in 2 hr');
   });
 });

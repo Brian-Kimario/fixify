@@ -10,6 +10,7 @@ import {
   inspectionSchema,
   jobIdSchema,
   type CreateQuoteInput,
+  type DeclineJobInput,
   type InspectionInput,
 } from "@/validators";
 import type {
@@ -668,10 +669,9 @@ export async function acceptRequest(
  * or the booking returns to "finding a professional" if there is none.
  */
 export async function declineJobAction(
-  jobId: string,
-  reason?: string
-): Promise<ActionResult> {
-  const parsed = parseInput(declineJobSchema, { jobId, reason });
+  input: DeclineJobInput
+): Promise<ActionResult<{ reassigned: boolean }>> {
+  const parsed = parseInput(declineJobSchema, input);
   if (parsed.success === false) return parsed;
 
   const supabase = await createClient();
@@ -680,14 +680,25 @@ export async function declineJobAction(
   } = await supabase.auth.getUser();
   if (!user) return fail("unauthenticated", "Not authenticated");
 
-  const { error } = await supabase.rpc("decline_job", {
+  const { data, error } = await supabase.rpc("decline_job", {
     p_job_id: parsed.data.jobId,
-    p_reason: parsed.data.reason || null,
+    p_reason_code: parsed.data.reasonCode,
+    p_note: parsed.data.note || undefined,
   });
-  if (error) return fail("rejected", error.message);
+  if (error) {
+    if (error.code === "P0002") {
+      return fail("not_found", "This request is no longer yours to decline. It may have expired.");
+    }
+    if (error.code === "22023") {
+      return fail("invalid_input", "Choose a reason, and add a note if you pick Other.");
+    }
+    console.error("decline_job error:", error.message);
+    return fail("failed", "Could not decline this request. Please try again.");
+  }
 
   revalidatePath("/professional", "layout");
-  return ok();
+  const reassigned = Boolean((data as { reassigned?: boolean } | null)?.reassigned);
+  return ok({ reassigned });
 }
 
 export interface JobCustomerContact {

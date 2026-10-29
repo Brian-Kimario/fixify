@@ -1,15 +1,18 @@
-import { Building2, CalendarClock } from 'lucide-react';
+import { Building2, CalendarClock, IndianRupee, MapPin } from 'lucide-react';
 import type { ProJob } from '@/lib/services/shell';
-import { formatSlot, propertyTypeLabel } from '@/lib/shell/rules';
+import { formatSlot, offerLocalityLabel, offerPayBasis, propertyTypeLabel } from '@/lib/shell/rules';
 import { OfferCountdown } from './OfferCountdown';
 import { RequestCardActions } from './RequestCardActions';
 
 /**
  * One job offer. Shows only what the professional is allowed to see before accepting:
- * service, category, time and property type. Customer name and address come after.
+ * service, time, area and city, property type, how it is priced and the customer's own
+ * description. Customer name, street address and access notes come after acceptance.
  */
 export function RequestCard({ job, serverNow }: { job: ProJob; serverNow: number }) {
   const slot = formatSlot(job.scheduledStart);
+  const place = offerLocalityLabel(job.locality);
+  const pay = offerPayBasis(job);
 
   return (
     <article
@@ -44,7 +47,43 @@ export function RequestCard({ job, serverNow }: { job: ProJob; serverNow: number
             <dd>{propertyTypeLabel(job.propertyType)}</dd>
           </div>
         )}
+        {place && (
+          <div className="flex items-center gap-2">
+            <dt>
+              <MapPin className="h-4 w-4 text-ink-4" aria-hidden="true" />
+              <span className="sr-only">Area</span>
+            </dt>
+            <dd>{place}</dd>
+          </div>
+        )}
+        {pay && (
+          <div className="flex items-center gap-2">
+            <dt>
+              <IndianRupee className="h-4 w-4 text-ink-4" aria-hidden="true" />
+              <span className="sr-only">{pay.label}</span>
+            </dt>
+            <dd>{pay.detail}</dd>
+          </div>
+        )}
       </dl>
+
+      {(job.problemSummary || job.intakeOptions.length > 0) && (
+        <div className="mt-3 rounded-xl bg-porcelain px-3.5 py-3">
+          <p className="text-xs font-medium text-ink-4">From the customer</p>
+          {job.problemSummary ? (
+            <p className="mt-1 whitespace-pre-line break-words text-sm text-ink">{job.problemSummary}</p>
+          ) : null}
+          {job.intakeOptions.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Options chosen">
+              {job.intakeOptions.map((o) => (
+                <li key={o} className="rounded-md border border-line bg-paper px-2 py-0.5 text-xs text-ink-2">
+                  {o}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <RequestCardActions jobId={job.id} serviceName={job.serviceName} />
     </article>

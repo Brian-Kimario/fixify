@@ -3,14 +3,14 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateJobState } from '@/lib/services/jobs';
-import { declineJobAction } from '@/app/professional/actions';
 import { SuccessState } from '@/components/ui/SuccessState';
 
 // ── Configuration ──────────────────────────────────────────────────────────────
 
 /** States a professional can trigger from any given current state */
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  assigned:      ['accepted', 'declined'],
+  // An open offer is answered with RequestCardActions, which asks for a decline reason.
+  assigned:      [],
   accepted:      ['on_the_way', 'cancelled'],
   on_the_way:    ['arrived', 'cancelled'],
   arrived:       ['in_progress', 'cancelled'],
@@ -106,17 +106,6 @@ export function StateTransitionButtons({
 
     startTransition(async () => {
       try {
-        if (targetState === 'declined') {
-          const declined = await declineJobAction(jobId);
-          if (declined.success === false) {
-            showToast('error', declined.error ?? 'Could not decline this job.');
-          } else {
-            router.push('/professional/jobs');
-            router.refresh();
-          }
-          return;
-        }
-
         const result = await updateJobState(jobId, targetState);
 
         if (result.success === false) {

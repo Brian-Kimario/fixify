@@ -57,8 +57,8 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     href: item.href,
     title: item.title,
     detail: item.detail,
-    meta: formatCurrency(item.amount, { minimumFractionDigits: 0 }),
-    tone: item.kind === 'quote' ? 'clay' : 'ochre',
+    meta: item.amount == null ? undefined : formatCurrency(item.amount, { minimumFractionDigits: 0 }),
+    tone: item.kind === 'quote' ? 'clay' : item.kind === 'unmatched' ? 'blue' : 'ochre',
   }));
 
   const first = shell.activeJobs[0];

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getJobById, getJobCustomerContact } from '@/app/professional/actions';
 import { JobTimeline } from '@/components/professional/JobTimeline';
 import { StateTransitionButtons } from '@/components/professional/StateTransitionButtons';
+import { RequestCardActions } from '@/components/professional/RequestCardActions';
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
 import { Badge } from '@/components/ui';
 import { isTerminal } from '@/lib/jobs/states';
@@ -184,6 +185,13 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                       ? 'Waiting for the customer to approve your quote.'
                       : 'No actions available for the current state.'}
               </p>
+            ) : job.current_state === 'assigned' ? (
+              /* An open offer: accept, or decline with a reason */
+              <RequestCardActions
+                jobId={job.id}
+                serviceName={serviceName}
+                afterDeclineHref="/professional/requests"
+              />
             ) : (
               /* Active state — render interactive transition buttons */
               <StateTransitionButtons

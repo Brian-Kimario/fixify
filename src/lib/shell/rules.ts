@@ -164,11 +164,20 @@ const BOOKING_STATUS_DISPLAY: Record<string, { label: string; tone: JobStateTone
   cancelled: { label: 'Cancelled', tone: 'danger' },
 };
 
-/** Status shown on a booking card: the job's state once there is a job, else the booking's own status. */
+/**
+ * Status shown on a booking card: "No professional yet" while the matcher has found nobody
+ * (bookings.unmatched_since), else the job's state once there is a job, else the booking's
+ * own status.
+ */
 export function bookingStatusDisplay(input: {
   bookingStatus: string | null;
   jobState: string | null;
+  unmatchedSince?: string | null;
 }): { label: string; tone: JobStateTone } {
+  const open = input.bookingStatus !== 'cancelled' && input.bookingStatus !== 'completed';
+  if (input.unmatchedSince && open && (!input.jobState || input.jobState === 'assigned')) {
+    return { label: 'No professional yet', tone: 'ochre' };
+  }
   if (input.jobState && isJobState(input.jobState)) {
     const meta = STATE_META[input.jobState];
     return { label: meta.label, tone: meta.tone };
@@ -272,4 +281,63 @@ export function propertyTypeLabel(type: string): string {
   if (known) return known;
   const words = type.replace(/_/g, ' ').trim();
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Property';
+}
+
+/* ── Offers ───────────────────────────────────────────────────────────────── */
+
+function rupees(amount: number): string {
+  return `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+}
+
+/**
+ * How an offered job is priced, from the booking's pricing_model and amounts. These are
+ * customer prices; nothing here says what the professional is paid.
+ */
+export function offerPayBasis(input: {
+  pricingModel: string | null;
+  customerPrice: number | null;
+  inspectionFee: number | null;
+}): { label: string; detail: string } | null {
+  switch (input.pricingModel) {
+    case 'fixed':
+      return input.customerPrice == null
+        ? null
+        : { label: 'Fixed price', detail: `${rupees(input.customerPrice)} customer price` };
+    case 'inspection':
+      return {
+        label: 'Inspection',
+        detail:
+          input.inspectionFee == null
+            ? 'Inspection, then your quote'
+            : `${rupees(input.inspectionFee)} inspection fee, then your quote`,
+      };
+    case 'quote_after_inspection':
+      return { label: 'Quote', detail: 'Priced by your quote after inspection' };
+    default:
+      return null;
+  }
+}
+
+/** "Indiranagar, Bengaluru · 3.2 km" from get_offer_localities. */
+export function offerLocalityLabel(
+  locality: { area: string | null; city: string; distanceKm: number | null } | null,
+): string | null {
+  if (!locality) return null;
+  const place = [locality.area, locality.city].filter(Boolean).join(', ');
+  if (locality.distanceKm == null) return place;
+  const km = locality.distanceKm < 10 ? locality.distanceKm.toFixed(1) : Math.round(locality.distanceKm).toString();
+  return `${place} · ${km} km`;
+}
+
+/**
+ * Median time a professional takes to answer an offer (professional_metrics), as shown to
+ * customers. Null when there is no history.
+ */
+export function responseTimeLabel(seconds: number | null): string | null {
+  if (seconds == null || seconds < 0) return null;
+  if (seconds < 60) return 'Typically responds in under a minute';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `Typically responds in ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  return `Typically responds in ${hours} hr`;
 }

@@ -32,6 +32,8 @@ export interface CustomerBooking {
   scheduledEnd: string | null;
   amount: number | null;
   createdAt: string;
+  /** Set while the matcher has found no eligible professional. */
+  unmatchedSince: string | null;
   serviceName: string;
   categoryName: string | null;
   propertyId: string | null;
@@ -48,13 +50,14 @@ export interface CustomerBooking {
 }
 
 export interface CustomerInboxItem {
-  kind: 'quote' | 'payment';
+  kind: 'quote' | 'payment' | 'unmatched';
   id: string;
   bookingId: string;
   href: string;
   title: string;
   detail: string;
-  amount: number;
+  /** Null for items with no amount (an unmatched booking). */
+  amount: number | null;
 }
 
 export interface CustomerShellData {
@@ -74,6 +77,7 @@ export const getCustomerShell = cache(async (userId: string): Promise<CustomerSh
     .from('bookings')
     .select(
       `id, booking_reference, booking_status, scheduled_start, scheduled_end, quoted_or_base_amount, created_at,
+       unmatched_since,
        service:services!bookings_service_id_fkey ( name, category:service_categories!services_category_id_fkey ( name ) ),
        property:properties!bookings_property_id_fkey ( id, name ),
        job:jobs!jobs_booking_id_fkey (
@@ -110,6 +114,7 @@ export const getCustomerShell = cache(async (userId: string): Promise<CustomerSh
       scheduledEnd: row.scheduled_end,
       amount: row.quoted_or_base_amount == null ? null : Number(row.quoted_or_base_amount),
       createdAt: row.created_at,
+      unmatchedSince: row.unmatched_since,
       serviceName: service?.name ?? 'Service',
       categoryName: category?.name ?? null,
       propertyId: property?.id ?? null,
@@ -126,6 +131,17 @@ export const getCustomerShell = cache(async (userId: string): Promise<CustomerSh
 
   const inbox: CustomerInboxItem[] = [];
   for (const b of bookings) {
+    if (b.unmatchedSince && b.tab !== 'past' && (!b.job || b.job.state === 'assigned')) {
+      inbox.push({
+        kind: 'unmatched',
+        id: `unmatched-${b.id}`,
+        bookingId: b.id,
+        href: `/customer/bookings/${b.id}`,
+        title: 'No professional available yet',
+        detail: `${b.serviceName} · ${b.reference}`,
+        amount: null,
+      });
+    }
     if (b.pendingQuote) {
       inbox.push({
         kind: 'quote',
@@ -300,6 +316,17 @@ export async function getQuoteForReview(userId: string, quoteId: string): Promis
 
 /* ── Professional ─────────────────────────────────────────────────────────── */
 
+/** bookings.intake_options is [{option, label, ...}]; anything else is ignored. */
+function intakeOptionLabels(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const { option, label } = item as { option?: unknown; label?: unknown };
+    if (typeof label !== 'string' || !label) return [];
+    return [typeof option === 'string' && option ? `${option}: ${label}` : label];
+  });
+}
+
 export interface ProJob {
   id: string;
   state: string;
@@ -312,6 +339,18 @@ export interface ProJob {
   propertyType: string | null;
   offerExpiresAt: string | null;
   completedAt: string | null;
+  /** The customer's description, written to be read before accepting. */
+  problemSummary: string | null;
+  /** Labels of the options chosen at booking, e.g. "Number of taps: 2". */
+  intakeOptions: string[];
+  /** bookings.pricing_model, copied from the service when the booking was made. */
+  pricingModel: string | null;
+  /** bookings.quoted_or_base_amount: what the customer is charged before any quote. */
+  customerPrice: number | null;
+  /** services.inspection_fee, for inspection-priced services. */
+  inspectionFee: number | null;
+  /** Area and city of the property, released for open offers only (get_offer_localities). */
+  locality: { area: string | null; city: string; distanceKm: number | null } | null;
 }
 
 export interface ProShellData {
@@ -333,7 +372,10 @@ const OPEN_JOB_STATES = ['assigned', 'accepted', 'on_the_way', 'arrived', 'in_pr
 const PRO_JOB_SELECT = `id, current_state, offer_expires_at, completed_at, updated_at,
   booking:bookings!jobs_booking_id_fkey (
     id, booking_reference, scheduled_start, scheduled_end,
-    service:services!bookings_service_id_fkey ( name, category:service_categories!services_category_id_fkey ( name ) )
+    problem_summary, intake_options, pricing_model, quoted_or_base_amount,
+    service:services!bookings_service_id_fkey (
+      name, inspection_fee, category:service_categories!services_category_id_fkey ( name )
+    )
   ),
   property:properties!jobs_property_id_fkey ( property_type )`;
 
@@ -391,6 +433,12 @@ export const getProfessionalShell = cache(async (userId: string): Promise<ProShe
       propertyType: property?.property_type ?? null,
       offerExpiresAt: row.offer_expires_at,
       completedAt: row.completed_at,
+      problemSummary: booking?.problem_summary ?? null,
+      intakeOptions: intakeOptionLabels(booking?.intake_options),
+      pricingModel: booking?.pricing_model ?? null,
+      customerPrice: booking?.quoted_or_base_amount == null ? null : Number(booking.quoted_or_base_amount),
+      inspectionFee: service?.inspection_fee == null ? null : Number(service.inspection_fee),
+      locality: null,
     };
   });
 
@@ -401,6 +449,24 @@ export const getProfessionalShell = cache(async (userId: string): Promise<ProShe
     .filter((j) => j.state === 'assigned' && isOfferOpen(j.offerExpiresAt, now))
     .sort((a, b) => (a.offerExpiresAt ?? '9999').localeCompare(b.offerExpiresAt ?? '9999'));
   const upcoming = jobs.filter((j) => j.state !== 'assigned').sort(byStart);
+
+  // Address columns are hidden until acceptance; the RPC releases area and city for offers.
+  if (requests.length > 0) {
+    const { data: places, error: placesError } = await supabase.rpc('get_offer_localities', {
+      p_job_ids: requests.map((j) => j.id),
+    });
+    if (placesError) console.error('getProfessionalShell localities:', placesError.message);
+    for (const place of places ?? []) {
+      const job = requests.find((j) => j.id === place.job_id);
+      if (job && place.city) {
+        job.locality = {
+          area: place.area ?? null,
+          city: place.city,
+          distanceKm: place.distance_km == null ? null : Number(place.distance_km),
+        };
+      }
+    }
+  }
   // `jobs` is ordered by updated_at desc, so the first live one is the most recent.
   const liveJob = jobs.find((j) => isLiveState(j.state)) ?? null;
 

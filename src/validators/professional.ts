@@ -3,10 +3,28 @@ import { uuid } from './common';
 
 export const jobIdSchema = uuid;
 
-export const declineJobSchema = z.object({
-  jobId: uuid,
-  reason: z.string().trim().max(500).optional(),
-});
+/** Mirrors the booking_assignment_attempts.reason_code check and decline_job. */
+export const DECLINE_REASON_CODES = [
+  'schedule_conflict',
+  'too_far',
+  'not_my_skill',
+  'need_more_detail',
+  'other',
+] as const;
+export type DeclineReasonCode = (typeof DECLINE_REASON_CODES)[number];
+
+export const declineJobSchema = z
+  .object({
+    jobId: uuid,
+    reasonCode: z.enum(DECLINE_REASON_CODES, { message: 'Choose a reason.' }),
+    note: z.string().trim().max(500).optional(),
+  })
+  .refine((v) => v.reasonCode !== 'other' || Boolean(v.note), {
+    path: ['note'],
+    message: 'Tell us why you’re declining.',
+  });
+
+export type DeclineJobInput = z.input<typeof declineJobSchema>;
 
 export const inspectionSchema = z.object({
   jobId: uuid,
