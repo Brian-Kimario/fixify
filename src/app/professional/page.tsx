@@ -50,6 +50,12 @@ export const metadata = { title: 'Today — Feasy' };
 
 const money = (amount: number) => formatCurrency(amount, { minimumFractionDigits: 0 });
 
+function valueHint(unpriced: number) {
+  const base = 'Approved quote, or booking amount, for each job completed. Gross value, not your payout.';
+  if (unpriced === 0) return base;
+  return `${base} ${unpriced} ${unpriced === 1 ? 'job has' : 'jobs have'} no amount recorded and ${unpriced === 1 ? 'isn’t' : 'aren’t'} counted.`;
+}
+
 const dayLabel = new Intl.DateTimeFormat('en-IN', {
   weekday: 'short',
   day: 'numeric',
@@ -201,8 +207,8 @@ export default async function ProfessionalToday() {
                 <StatTile label="Jobs completed" value={String(week.completedCount)} />
                 <StatTile
                   label="Completed job value"
-                  value={money(week.jobValue)}
-                  hint="Approved quote, or booking amount, for each job completed. Gross value, not your payout."
+                  value={week.unpricedCount === week.completedCount && week.completedCount > 0 ? '—' : money(week.jobValue)}
+                  hint={valueHint(week.unpricedCount)}
                 />
               </div>
             )}

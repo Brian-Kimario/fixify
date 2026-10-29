@@ -420,6 +420,8 @@ export interface ProWeekSummary {
   completedCount: number;
   /** Sum of the approved quote total, else the booking amount, for jobs completed since `since`. */
   jobValue: number;
+  /** Completed jobs with neither an approved quote nor a booking amount; left out of `jobValue`. */
+  unpricedCount: number;
   since: string;
   error: boolean;
 }
@@ -440,17 +442,20 @@ export async function getProfessionalCompletedSince(userId: string, since: Date)
 
   if (error) {
     console.error('getProfessionalCompletedSince:', error.message);
-    return { completedCount: 0, jobValue: 0, since: since.toISOString(), error: true };
+    return { completedCount: 0, jobValue: 0, unpricedCount: 0, since: since.toISOString(), error: true };
   }
 
   let jobValue = 0;
+  let unpricedCount = 0;
   for (const row of data ?? []) {
     const approved = (row.quotes ?? []).find((q) => q.status === 'approved');
-    const amount = approved ? Number(approved.total) : Number(one(row.booking)?.quoted_or_base_amount ?? 0);
-    jobValue += Number.isFinite(amount) ? amount : 0;
+    const raw = approved ? approved.total : one(row.booking)?.quoted_or_base_amount;
+    const amount = raw === null || raw === undefined ? NaN : Number(raw);
+    if (Number.isFinite(amount)) jobValue += amount;
+    else unpricedCount += 1;
   }
 
-  return { completedCount: data?.length ?? 0, jobValue, since: since.toISOString(), error: false };
+  return { completedCount: data?.length ?? 0, jobValue, unpricedCount, since: since.toISOString(), error: false };
 }
 
 /**
