@@ -1,13 +1,10 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { SiteHeader } from '@/components/marketing/site-header';
-import { RepairSceneHero } from '@/components/marketing/repair-scene-hero';
-import { ServiceCategoryGrid } from '@/components/marketing/service-category-grid';
-import { WorkflowStory } from '@/components/marketing/workflow-story';
-import { PropertyRecordPreview } from '@/components/marketing/property-record-preview';
 import { SiteFooter } from '@/components/marketing/site-footer';
-import { REPAIR_CATEGORIES } from '@/lib/repair-categories';
+import { Hero } from '@/components/home/hero';
+import { FactsStrip, HowItWorks, ServicesIndex, PropertyRecord, ProfessionalSection, Faq, ClosingCta } from '@/components/home/sections';
+import type { ViewerRole } from '@/lib/marketing-links';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
 
@@ -33,8 +30,22 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const user = await getCurrentUser(); const profile = await getCurrentProfile();
-  return <div className="min-h-screen bg-[#F7F4EC] flex flex-col"><SiteHeader role={user ? profile?.role ?? 'customer' : null} /><main id="main-content" className="flex-1"><RepairSceneHero categories={REPAIR_CATEGORIES} /><ServiceCategoryGrid /><WorkflowStory /><PropertyRecordPreview /><ProfessionalBand /><FinalCTA /></main><SiteFooter /></div>;
+  const [user, profile] = await Promise.all([getCurrentUser(), getCurrentProfile()]);
+  const role = (user ? (profile?.role ?? 'customer') : null) as ViewerRole;
+  return (
+    <div className="flex min-h-screen flex-col bg-porcelain font-sans text-ink">
+      <SiteHeader role={role} />
+      <main id="main-content" className="flex-1">
+        <Hero role={role} />
+        <FactsStrip />
+        <HowItWorks />
+        <ServicesIndex role={role} />
+        <PropertyRecord role={role} />
+        <ProfessionalSection role={role} />
+        <Faq />
+        <ClosingCta role={role} />
+      </main>
+      <SiteFooter />
+    </div>
+  );
 }
-function ProfessionalBand() { return <section id="professionals" className="py-20 sm:py-28 bg-[#F1EEE5] border-t border-[#D9DED8]"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-16 lg:gap-20 items-center"><div className="space-y-4"><p className="text-xs font-semibold uppercase tracking-wider text-[#5A6661]">For professionals</p><h2 className="text-5xl lg:text-6xl font-bold text-[#18211F] leading-tight tracking-tight max-w-[11ch]">Get more jobs. Skip the chasing.</h2><p className="text-base text-[#34413D] max-w-[52ch] mt-4">Receive job requests near you, send quotes, record proof of completion and track your earnings, all from one dashboard.</p></div><div className="flex flex-col gap-3"><Link href="/professional" className="inline-flex items-center justify-center px-6 py-3 bg-[#176B5B] text-white rounded-[11px] font-semibold text-sm hover:bg-[#0D5144] transition-colors">Join as a professional</Link><Link href="/auth/login" className="inline-flex items-center justify-center px-6 py-3 border border-[#B8C3BC] bg-white text-[#18211F] rounded-[11px] font-semibold text-sm hover:bg-[#F7F4EC] transition-colors">Professional sign in</Link></div></div></div></section>; }
-function FinalCTA() { return <section className="py-24 sm:py-32 bg-[#F7F4EC] text-center"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><p className="text-xs font-semibold uppercase tracking-wider text-[#5A6661] mb-6">Get started</p><h2 className="text-6xl lg:text-7xl font-bold text-[#18211F] leading-tight tracking-tight max-w-[11ch] mx-auto">Need a repair done?</h2><p className="text-base text-[#34413D] max-w-[52ch] mx-auto mt-6">Describe the problem in your own words. We will match you with the right professional.</p><Link href="/customer" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#176B5B] text-white rounded-[11px] font-semibold text-sm hover:bg-[#0D5144] transition-colors mt-8">Book a repair <span>↗</span></Link></div></section>; }

@@ -3,6 +3,9 @@
 /* Tailwind 4 does not read tailwind.config.ts; design tokens are registered here
    so utilities like bg-paper, text-ink-3 and border-line generate CSS. */
 @theme {
+  --font-sans: var(--font-dm-sans), ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-editorial: var(--font-fraunces), Georgia, "Times New Roman", serif;
+
   --color-porcelain: #F7F4EC;
   --color-paper: #FFFEFA;
   --color-paper-2: #F1EEE5;
@@ -67,7 +70,7 @@
   --color-danger-soft: #FEE2E2;
   
   /* Typography */
-  --font-sans: "DM Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Instrument Serif", Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   
@@ -111,7 +114,7 @@
 body {
   background: var(--color-porcelain);
   color: var(--color-ink);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: 1.5;
 }
@@ -2151,4 +2154,10 @@ a:focus-visible {
 html,
 body {
   overflow-x: clip;
+}
+
+/* Homepage: job ticket entrance */
+@keyframes ticketIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }

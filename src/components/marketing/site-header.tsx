@@ -43,7 +43,11 @@ export function SiteHeader({ role }: SiteHeaderProps) {
   }, []);
 
   // Close on navigation, and keep the page behind the menu from scrolling.
-  useEffect(() => setOpen(false), [pathname]);
+  const [menuPath, setMenuPath] = useState(pathname);
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
+    setOpen(false);
+  }
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
@@ -78,10 +82,10 @@ export function SiteHeader({ role }: SiteHeaderProps) {
           <Link
             href="/"
             onClick={close}
-            className="inline-flex shrink-0 items-center gap-2.5 text-[18px] font-bold tracking-[-0.035em] text-ink sm:text-[19px]"
+            className="inline-flex shrink-0 items-center gap-2.5 text-ink"
           >
             <Symbol size="md" className="size-[31px] text-teal" />
-            <span>Feasy</span>
+            <span className="font-editorial text-[24px] font-normal tracking-[-0.02em]">Feasy</span>
           </Link>
 
           <nav aria-label="Primary" className="ml-auto hidden gap-7 lg:flex">
@@ -99,10 +103,13 @@ export function SiteHeader({ role }: SiteHeaderProps) {
               </Link>
             ) : (
               <>
-                <Link href="/auth/login" className={`${btnGhost} hidden sm:inline-flex`}>
+                <Link href="/auth/login?as=professional" className={`${btnGhost} max-xl:hidden`}>
+                  Professional sign in
+                </Link>
+                <Link href="/auth/login?as=customer" className={`${btnGhost} max-sm:hidden`}>
                   Sign in
                 </Link>
-                <Link href="/auth/register" className={`${btnPrimary} whitespace-nowrap`}>
+                <Link href="/auth/register?as=customer" className={`${btnPrimary} whitespace-nowrap`}>
                   Get started <ArrowUpRight size={14} aria-hidden="true" />
                 </Link>
               </>
@@ -139,10 +146,21 @@ export function SiteHeader({ role }: SiteHeaderProps) {
               </Link>
             ))}
             {!signedIn && (
-              <div className="mt-5 grid gap-2.5 sm:grid-cols-2 sm:hidden">
-                <Link href="/auth/login" onClick={close} className={`${btnGhost} w-full`}>
-                  Sign in
-                </Link>
+              <div className="mt-6 grid gap-3">
+                <div className="rounded-2xl border border-line bg-paper p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-4">I need a repair</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2.5">
+                    <Link href="/auth/register?as=customer" onClick={close} className={`${btnPrimary} w-full`}>Get started</Link>
+                    <Link href="/auth/login?as=customer" onClick={close} className={`${btnGhost} w-full`}>Sign in</Link>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-line bg-ink p-4 text-porcelain">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-porcelain/55">I fix things for a living</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2.5">
+                    <Link href="/auth/register?as=professional" onClick={close} className={`${btnBase} w-full border-transparent bg-porcelain text-ink`}>Apply</Link>
+                    <Link href="/auth/login?as=professional" onClick={close} className={`${btnBase} w-full border-porcelain/30 text-porcelain`}>Sign in</Link>
+                  </div>
+                </div>
               </div>
             )}
           </nav>
