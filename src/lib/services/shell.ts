@@ -18,7 +18,7 @@ import {
  */
 
 /** Supabase returns an embedded row as an object, an array or null depending on the FK. */
-function one<T>(value: T | T[] | null | undefined): T | null {
+export function one<T>(value: T | T[] | null | undefined): T | null {
   if (Array.isArray(value)) return value[0] ?? null;
   return value ?? null;
 }
@@ -327,7 +327,7 @@ export async function getQuoteForReview(userId: string, quoteId: string): Promis
 /* ── Professional ─────────────────────────────────────────────────────────── */
 
 /** bookings.intake_options is [{option, label, ...}]; anything else is ignored. */
-function intakeOptionLabels(value: unknown): string[] {
+export function intakeOptionLabels(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item) => {
     if (!item || typeof item !== 'object') return [];

@@ -1,222 +1,218 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getJobById, getJobCustomerContact } from '@/app/professional/actions';
-import { JobTimeline } from '@/components/professional/JobTimeline';
+import { ArrowLeft, MapPin, Phone, User } from 'lucide-react';
+import { getCurrentUser } from '@/lib/auth';
+import { getProfessionalCase } from '@/lib/services/job-case';
+import { STATE_META, isJobState } from '@/lib/jobs/states';
+import { formatSlot, offerLocalityLabel, offerPayBasis, propertyTypeLabel } from '@/lib/shell/rules';
+import { PageContainer, Panel, StatusPill } from '@/components/shell/primitives';
+import {
+  CaseCard,
+  CaseProgress,
+  CaseTimeline,
+  FactList,
+  IncompleteNotice,
+  InspectionList,
+  QuoteSummary,
+} from '@/components/case/CaseFile';
 import { StateTransitionButtons } from '@/components/professional/StateTransitionButtons';
 import { RequestCardActions } from '@/components/professional/RequestCardActions';
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
-import { Badge } from '@/components/ui';
-import { isTerminal } from '@/lib/jobs/states';
 
-export const metadata = {
-  title: 'Job Details - Feasy Professional',
+export const metadata: Metadata = {
+  title: 'Job — Feasy Professional',
 };
 
-// Waiting on the customer: the professional has nothing to press
-const WAITING_STATES: ReadonlySet<string> = new Set(['quote_pending']);
+/** States where the professional can move the job forward with StateTransitionButtons. */
+const ACTIONABLE: ReadonlySet<string> = new Set(['accepted', 'on_the_way', 'arrived', 'in_progress']);
+/** Inspection notes and quotes are written on site, before the work is finished. */
+const ON_SITE: ReadonlySet<string> = new Set(['arrived', 'in_progress']);
+
+const IDLE_COPY: Record<string, string> = {
+  quote_pending: 'Waiting for the customer to approve your quote.',
+  completed: 'Work is complete. The customer pays through the app.',
+  closed: 'This job is closed.',
+  cancelled: 'This job was cancelled.',
+};
 
 interface JobDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
+  const user = await getCurrentUser();
+  if (!user) notFound();
+
   const { id } = await params;
-  const job = await getJobById(id).catch(() => null);
+  const kase = await getProfessionalCase(user.id, id);
+  if (!kase) notFound();
 
-  if (!job) {
-    notFound();
-  }
-
-  const noActions = isTerminal(job.current_state) || WAITING_STATES.has(job.current_state);
-
-  // Safely extract nested fields
-  const serviceName = (job.booking as { service?: { name?: string } })?.service?.name ?? 'Service';
-  const categoryName = (job.booking as { service?: { category?: { name?: string } } })?.service?.category?.name ?? '';
-  // Name, phone and exact address are released by the database only after acceptance.
-  const contact = await getJobCustomerContact(job.id);
-  const customerName = contact?.full_name ?? job.customer?.full_name ?? 'Customer';
-  const customerPhone = contact?.phone ?? null;
-  const propertyName = job.property?.name ?? '—';
-  const city = (job.property as { address?: { city?: string } })?.address?.city ?? '';
-  const fullAddress = contact
+  const { job, booking, contact, property } = kase;
+  const meta = isJobState(job.state) ? STATE_META[job.state] : null;
+  const isOffer = job.state === 'assigned';
+  const payBasis = offerPayBasis({
+    pricingModel: booking.pricingModel,
+    customerPrice: booking.customerPrice,
+    inspectionFee: kase.inspectionFee,
+  });
+  const locality = offerLocalityLabel(kase.locality);
+  const address = contact
     ? [contact.address_line_1, contact.address_line_2, contact.area, contact.city, contact.postal_code]
         .filter(Boolean)
         .join(', ')
-    : [city].filter(Boolean).join(', ');
-  const scheduledStart = (job.booking as { scheduled_start?: string })?.scheduled_start ?? null;
+    : null;
+  const paidCopy = job.state === 'completed' && kase.paidAt ? `Customer paid ${formatSlot(kase.paidAt)}.` : null;
 
   return (
-    <div className="pb-24 md:pb-8 px-4 md:px-6 pt-6 md:pt-8 max-w-7xl mx-auto">
-      {/* Back link */}
-      <div className="mb-6">
-        <Link
-          href="/professional/jobs"
-          className="inline-flex items-center gap-1.5 text-sm text-[#5A6661] hover:text-[#176B5B] transition-colors"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M19 12H5M12 5l-7 7 7 7" />
-          </svg>
-          Back to Jobs
-        </Link>
-      </div>
+    <PageContainer className="pb-24">
+      <Link
+        href={isOffer ? '/professional/requests' : '/professional/jobs'}
+        className="mb-5 inline-flex min-h-11 items-center gap-1.5 text-sm text-ink-3 transition-colors hover:text-teal"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        {isOffer ? 'Requests' : 'Jobs'}
+      </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* ── Left column: details + timeline ── */}
-        <div className="lg:col-span-2 space-y-6">
+      <header className="mb-6">
+        {kase.categoryName && <p className="text-sm font-medium text-ink-3">{kase.categoryName}</p>}
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <h1 className="font-editorial text-3xl font-semibold leading-tight tracking-[-0.02em] text-ink">
+            {kase.serviceName}
+          </h1>
+          {meta && <StatusPill tone={meta.tone}>{meta.label}</StatusPill>}
+        </div>
+        {booking.reference && <p className="mt-1 font-mono text-xs text-ink-4">{booking.reference}</p>}
+      </header>
 
-          {/* Job header card */}
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-              <div className="min-w-0">
-                {categoryName && (
-                  <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
-                    {categoryName}
-                  </p>
-                )}
-                <h1 className="text-2xl md:text-3xl font-bold text-[#18211F] leading-snug">
-                  {serviceName}
-                </h1>
-              </div>
-              <Badge state={job.current_state} size="sm" className="flex-shrink-0" />
-            </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          {kase.incomplete && <IncompleteNotice />}
 
-            {scheduledStart && (
-              <div className="flex items-center gap-2 text-sm text-[#5A6661]">
-                <svg className="w-4 h-4 flex-shrink-0 text-[#7C8681]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                <span>
-                  Scheduled:{' '}
-                  {new Date(scheduledStart).toLocaleString('en-IN', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
-              </div>
+          {/* The one thing to do next. */}
+          <Panel className="border-teal/30 p-5">
+            {meta && <p className="text-sm font-semibold text-ink">{meta.proCopy}</p>}
+            {isOffer && job.offerExpiresAt && (
+              <p className="mt-1 text-sm text-ink-3">Offer open until {formatSlot(job.offerExpiresAt)}.</p>
             )}
-          </div>
-
-          {/* Customer & Property */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Customer */}
-            <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-              <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-3">Customer</p>
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-[#E2EEE9] flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-[#176B5B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold text-[#18211F]">{customerName}</p>
-                  {customerPhone && (
-                    <a
-                      href={`tel:${customerPhone}`}
-                      className="text-sm text-[#176B5B] hover:underline"
-                    >
-                      {customerPhone}
-                    </a>
-                  )}
-                </div>
-              </div>
+            <div className="mt-4">
+              {isOffer ? (
+                <RequestCardActions jobId={job.id} serviceName={kase.serviceName} afterDeclineHref="/professional/requests" />
+              ) : ACTIONABLE.has(job.state) ? (
+                <StateTransitionButtons jobId={job.id} currentState={job.state} />
+              ) : (
+                <p className="text-sm text-ink-3">{paidCopy ?? IDLE_COPY[job.state] ?? 'No actions available.'}</p>
+              )}
             </div>
+          </Panel>
 
-            {/* Property */}
-            <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-              <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-3">Property</p>
+          {ON_SITE.has(job.state) && <JobInspectionAndQuote jobId={job.id} currentState={job.state} />}
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <CaseCard title="Customer">
+              {contact ? (
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-soft">
+                    <User className="h-5 w-5 text-teal" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-ink">{contact.full_name ?? 'Customer'}</p>
+                    {contact.phone && (
+                      <a
+                        href={`tel:${contact.phone}`}
+                        className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-teal hover:underline"
+                      >
+                        <Phone className="h-4 w-4" aria-hidden="true" />
+                        {contact.phone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-ink-3">Name and phone are shared once you accept.</p>
+              )}
+            </CaseCard>
+
+            <CaseCard title="Property">
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-full bg-[#E2EEE9] flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-[#176B5B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold text-[#18211F]">{propertyName}</p>
-                  {fullAddress && (
-                    <p className="text-sm text-[#5A6661]">{fullAddress}</p>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-soft">
+                  <MapPin className="h-5 w-5 text-teal" aria-hidden="true" />
+                </span>
+                <div className="min-w-0 text-sm">
+                  {property.name && <p className="font-semibold text-ink">{property.name}</p>}
+                  {property.propertyType && <p className="text-ink-3">{propertyTypeLabel(property.propertyType)}</p>}
+                  {address ? (
+                    <p className="mt-1 text-ink-2">{address}</p>
+                  ) : (
+                    <>
+                      {locality && <p className="mt-1 text-ink-2">{locality}</p>}
+                      <p className="mt-1 text-xs text-ink-4">The full address is shared once you accept.</p>
+                    </>
                   )}
-                  {!contact && (
-                    <p className="text-xs text-[#7C8681] mt-1">
-                      Full address and phone are shared once you accept.
-                    </p>
-                  )}
-                  {contact?.access_notes && (
-                    <p className="text-xs text-[#7C8681] mt-1">Access: {contact.access_notes}</p>
-                  )}
+                  {contact?.access_notes && <p className="mt-1 text-xs text-ink-3">Access: {contact.access_notes}</p>}
                 </div>
               </div>
-            </div>
+            </CaseCard>
           </div>
 
-          {/* On-Site Inspection & Quote Builder */}
-          <JobInspectionAndQuote
-            jobId={job.id}
-            currentState={job.current_state}
-          />
-
-          {/* Timeline */}
-          <JobTimeline
-            currentState={job.current_state}
-            events={job.job_events ?? []}
-          />
-        </div>
-
-        {/* ── Right column: actions ── */}
-        <div className="lg:col-span-1">
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 lg:sticky lg:top-6 space-y-4">
-            <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681]">Actions</p>
-
-            {noActions ? (
-              /* Terminal state — no more transitions */
-              <p className="text-sm text-[#5A6661]">
-                {job.current_state === 'completed' || job.current_state === 'closed'
-                  ? 'This job is complete. No further actions required.'
-                  : job.current_state === 'cancelled'
-                    ? 'This job has been cancelled.'
-                    : job.current_state === 'quote_pending'
-                      ? 'Waiting for the customer to approve your quote.'
-                      : 'No actions available for the current state.'}
-              </p>
-            ) : job.current_state === 'assigned' ? (
-              /* An open offer: accept, or decline with a reason */
-              <RequestCardActions
-                jobId={job.id}
-                serviceName={serviceName}
-                afterDeclineHref="/professional/requests"
-              />
-            ) : (
-              /* Active state — render interactive transition buttons */
-              <StateTransitionButtons
-                jobId={job.id}
-                currentState={job.current_state}
-              />
+          <CaseCard title="Job">
+            <FactList
+              facts={[
+                { label: 'Scheduled for', value: formatSlot(booking.scheduledStart) ?? '—' },
+                ...(payBasis
+                  ? [
+                      {
+                        label: payBasis.label,
+                        value: payBasis.detail,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+            {(booking.problemSummary || booking.intakeOptions.length > 0) && (
+              <div className="mt-4 border-t border-line pt-4">
+                <p className="text-xs text-ink-4">Customer&apos;s description</p>
+                {booking.problemSummary && (
+                  <p className="mt-1 whitespace-pre-line text-sm leading-6 text-ink">{booking.problemSummary}</p>
+                )}
+                {booking.intakeOptions.length > 0 && (
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {booking.intakeOptions.map((option) => (
+                      <li key={option} className="rounded-full border border-line bg-porcelain px-2.5 py-0.5 text-xs text-ink-2">
+                        {option}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             )}
+          </CaseCard>
 
-            {/* Job ID reference */}
-            <div className="pt-3 border-t border-[#E8EBE7]">
-              <p className="text-xs text-[#7C8681]">
-                Job ID: <span className="font-mono text-[#5A6661]">{job.id.slice(0, 8)}…</span>
-              </p>
-              <p className="text-xs text-[#7C8681] mt-1">
-                Created:{' '}
-                {new Date(job.created_at).toLocaleDateString('en-IN', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </p>
-            </div>
-          </div>
+          {kase.inspections.length > 0 && (
+            <CaseCard title="Inspection notes">
+              <InspectionList inspections={kase.inspections} />
+            </CaseCard>
+          )}
+          {kase.quotes.length > 0 && (
+            <CaseCard title={kase.quotes.length > 1 ? 'Quotes' : 'Quote'}>
+              <div className="space-y-3">
+                {kase.quotes.map((quote) => (
+                  <QuoteSummary key={quote.id} quote={quote} role="professional" jobState={job.state} />
+                ))}
+              </div>
+            </CaseCard>
+          )}
         </div>
+
+        <aside className="space-y-4">
+          <CaseCard title="Progress">
+            <CaseProgress steps={kase.progress} />
+          </CaseCard>
+          <CaseCard title="Timeline">
+            <CaseTimeline entries={kase.timeline} />
+          </CaseCard>
+        </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }

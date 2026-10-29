@@ -755,7 +755,8 @@ export async function fetchJobDetail(jobId: string): Promise<{
 }
 
 /**
- * Submit an on-site inspection report
+ * Submit an on-site inspection report. submit_inspection checks the caller is the job's
+ * professional and the job is on site, and records the timeline event in the same transaction.
  */
 export async function submitInspectionAction(
   payload: InspectionInput
@@ -768,45 +769,29 @@ export async function submitInspectionAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return fail('unauthenticated', 'Not authenticated');
 
-  // getJobById filters by professional_id = user.id, so null means not assigned to this user.
-  const job = await getJobById(input.jobId);
-  if (!job) return fail('not_found', 'Job not found or not assigned to you');
-
-  const { data, error } = await supabase
-    .from('inspections')
-    .insert({
-      job_id: input.jobId,
-      professional_id: user.id,
-      findings: input.findings,
-      recommendation: input.recommendation || null,
-    })
-    .select('id')
-    .single();
-
-  if (error) return fail('failed', error.message);
-
-  // Audit record only; the job state does not change on inspection.
-  const { error: eventError } = await supabase.from('job_events').insert({
-    job_id: input.jobId,
-    from_state: job.current_state,
-    to_state: job.current_state,
-    actor_user_id: user.id,
-    event_type: 'inspection_submitted',
-    metadata: { findings: input.findings.slice(0, 100), inspection_id: data.id },
+  const { data, error } = await supabase.rpc('submit_inspection', {
+    p_job_id: input.jobId,
+    p_findings: input.findings,
+    p_recommendation: input.recommendation || undefined,
   });
-  if (eventError) {
-    console.error('submitInspectionAction job_events insert failed:', eventError.message);
+  if (error) {
+    if (error.code === 'P0002') return fail('not_found', 'Job not found or not assigned to you');
+    // 22023 messages are written in submit_inspection for the professional to read.
+    if (error.code === '22023') return fail('rejected', error.message);
+    console.error('submit_inspection error:', error.message);
+    return fail('failed', 'Could not save the inspection. Please try again.');
   }
 
   revalidatePath(`/professional/jobs/${input.jobId}`);
   revalidatePath('/professional', 'layout');
-  return ok({ inspectionId: data.id });
+  return ok({ inspectionId: data });
 }
 
 /**
  * Submit an additional/variable quote for customer approval.
- * No platform fee or tax is added: none is configured (see ROLE_DASHBOARDS_REBUILD §5.1),
- * so the quote total is the sum of its line items.
+ * create_quote prices the items in SQL, writes the quote and its items atomically and moves the
+ * job to quote_pending. No platform fee or tax is added: none is configured
+ * (see ROLE_DASHBOARDS_REBUILD §5.1), so the quote total is the sum of its line items.
  */
 export async function createQuoteAction(
   payload: CreateQuoteInput
@@ -819,69 +804,25 @@ export async function createQuoteAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return fail('unauthenticated', 'Not authenticated');
 
-  // getJobById filters by professional_id = user.id, so null means not assigned to this user.
-  const job = await getJobById(input.jobId);
-  if (!job) return fail('not_found', 'Job not found or not assigned to you');
-
-  const items = input.lineItems.map((item) => ({
-    ...item,
-    lineTotal: Number((item.quantity * item.unitPrice).toFixed(2)),
-  }));
-  const subtotal = Number(items.reduce((acc, i) => acc + i.lineTotal, 0).toFixed(2));
-  const total = subtotal;
-
-  const { data: quote, error: quoteError } = await supabase
-    .from('quotes')
-    .insert({
-      job_id: input.jobId,
-      professional_id: user.id,
-      reason: input.reason,
-      subtotal,
-      taxes_or_fees: 0,
-      total,
-      status: 'pending_customer',
-    })
-    .select('id')
-    .single();
-
-  if (quoteError || !quote) {
-    return fail('failed', quoteError?.message || 'Could not create quote');
-  }
-
-  const { error: itemsError } = await supabase.from('quote_items').insert(
-    items.map((item) => ({
-      quote_id: quote.id,
+  const { data, error } = await supabase.rpc('create_quote', {
+    p_job_id: input.jobId,
+    p_reason: input.reason,
+    p_items: input.lineItems.map((item) => ({
       item_type: item.itemType,
       description: item.description,
       quantity: item.quantity,
       unit_price: item.unitPrice,
-      line_total: item.lineTotal,
-    }))
-  );
-  if (itemsError) {
-    console.error('createQuoteAction quote_items insert failed:', itemsError.message);
-    return fail('failed', 'Quote created but its line items could not be saved: ' + itemsError.message);
-  }
-
-  // Move job to quote_pending via the state machine RPC (validates and records the event).
-  const { error: rpcError } = await supabase.rpc('transition_job_state', {
-    p_job_id: input.jobId,
-    p_new_state: 'quote_pending',
-    p_actor_user_id: user.id,
-    p_metadata: {
-      event_type: 'quote_submitted',
-      quote_id: quote.id,
-      total,
-      reason: input.reason,
-    },
+    })),
   });
-
-  if (rpcError) {
-    console.error('createQuoteAction transition_job_state error:', rpcError.message);
-    return fail('rejected', 'Quote created but job state transition failed: ' + rpcError.message);
+  if (error) {
+    if (error.code === 'P0002') return fail('not_found', 'Job not found or not assigned to you');
+    // 22023 messages are written in create_quote for the professional to read.
+    if (error.code === '22023') return fail('rejected', error.message);
+    console.error('create_quote error:', error.message);
+    return fail('failed', 'Could not send the quote. Please try again.');
   }
 
   revalidatePath(`/professional/jobs/${input.jobId}`);
   revalidatePath('/professional', 'layout');
-  return ok({ quoteId: quote.id });
+  return ok({ quoteId: data });
 }

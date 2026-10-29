@@ -1736,6 +1736,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_quote: {
+        Args: { p_items: Json; p_job_id: string; p_reason: string }
+        Returns: string
+      }
       decline_job: {
         Args: { p_job_id: string; p_note?: string; p_reason_code: string }
         Returns: Json
@@ -1767,11 +1771,20 @@ export type Database = {
           job_id: string
         }[]
       }
+      job_paid_at: { Args: { p_job_id: string }; Returns: string }
       job_payment_amount: { Args: { p_job_id: string }; Returns: number }
       process_assignment_queue: { Args: never; Returns: Json }
       respond_to_quote: {
         Args: { p_decision: string; p_quote_id: string; p_reason?: string }
         Returns: boolean
+      }
+      submit_inspection: {
+        Args: {
+          p_findings: string
+          p_job_id: string
+          p_recommendation?: string
+        }
+        Returns: string
       }
       transition_job_state: {
         Args: {
