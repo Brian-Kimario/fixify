@@ -12,7 +12,7 @@ SET search_path = public
 AS $$
 DECLARE
   requested_role text := NEW.raw_user_meta_data->>'role';
-  assigned_role  text := CASE WHEN requested_role = 'professional' THEN 'professional' ELSE 'customer' END;
+  assigned_role  public.user_role := CASE WHEN requested_role = 'professional' THEN 'professional'::public.user_role ELSE 'customer'::public.user_role END;
 BEGIN
   INSERT INTO public.profiles (id, full_name, role, email)
   VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name', assigned_role, NEW.email)

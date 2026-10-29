@@ -11,9 +11,10 @@ const ACCOUNTS = {
   customer: 'customer.a@fixify.dev',
   professional: 'pro.a@fixify.dev',
   admin: 'admin.test@fixify.dev',
+  support: 'support.test@fixify.dev',
 } as const;
 
-const HOME = { customer: '/customer', professional: '/professional', admin: '/admin' } as const;
+const HOME = { customer: '/customer', professional: '/professional', admin: '/admin', support: '/support' } as const;
 
 async function signIn(page: Page, door: 'customer' | 'professional', email: string) {
   await page.goto(`/auth/login?as=${door}&logged_out=1`);
@@ -47,9 +48,9 @@ test.describe('sign-in doors', () => {
   });
 });
 
-for (const role of ['customer', 'professional'] as const) {
+for (const role of ['customer', 'professional', 'support'] as const) {
   test(`${role} signs in and stays inside ${HOME[role]}`, async ({ page }) => {
-    await signIn(page, role, ACCOUNTS[role]);
+    await signIn(page, role === 'professional' ? 'professional' : 'customer', ACCOUNTS[role]);
     await page.waitForURL(`**${HOME[role]}`);
     for (const other of Object.values(HOME).filter((p) => p !== HOME[role])) {
       expect(await landedPath(page, other)).toBe(HOME[role]);
@@ -57,10 +58,10 @@ for (const role of ['customer', 'professional'] as const) {
   });
 }
 
-test('admin is kept out of customer and professional areas', async ({ page }) => {
+test('admin is kept out of customer, professional and support areas', async ({ page }) => {
   await signIn(page, 'customer', ACCOUNTS.admin);
   await page.waitForURL('**/admin');
-  for (const other of ['/customer', '/professional']) {
+  for (const other of ['/customer', '/professional', '/support']) {
     expect(await landedPath(page, other)).toBe('/admin');
   }
 });

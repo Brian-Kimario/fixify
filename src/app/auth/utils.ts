@@ -13,7 +13,7 @@ export function getRedirectPathByRole(role: UserRole | null) {
     case "admin":
       return "/admin";
     case "support":
-      return "/admin";
+      return "/support";
     case "customer":
     default:
       return "/customer";
