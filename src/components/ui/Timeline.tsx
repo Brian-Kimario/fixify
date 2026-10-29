@@ -1,26 +1,15 @@
 'use client';
 
-type JobState =
-  | 'REQUESTED'
-  | 'ASSIGNED'
-  | 'ACCEPTED'
-  | 'ON_THE_WAY'
-  | 'ARRIVED'
-  | 'INSPECTION'
-  | 'AWAITING_APPROVAL'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'PAYMENT_PENDING'
-  | 'CLOSED'
-  | 'DISPUTED';
+import { RAIL_STEPS, STATE_META, type JobState } from '@/lib/jobs/states';
 
 interface TimelineStep {
-  key: JobState;
+  key: string;
   label: string;
 }
 
 interface TimelineProps {
-  state: JobState;
+  /** Key of the current step. */
+  state: string;
   steps: TimelineStep[];
 }
 
@@ -79,23 +68,15 @@ export function Timeline({ state, steps }: TimelineProps) {
 }
 
 /**
- * StateRail - Convenience component for job state timeline
- * Pre-configured with standard job states
+ * StateRail - Job progress rail driven by the shared job state module.
+ * Cancelled jobs sit off the rail and show the first step as current.
  */
 interface StateRailProps {
   state: JobState;
 }
 
-const JOB_STEPS: TimelineStep[] = [
-  { key: 'ACCEPTED', label: 'Accepted' },
-  { key: 'ON_THE_WAY', label: 'On the way' },
-  { key: 'ARRIVED', label: 'Arrived' },
-  { key: 'INSPECTION', label: 'Inspection' },
-  { key: 'AWAITING_APPROVAL', label: 'Approval' },
-  { key: 'IN_PROGRESS', label: 'Work' },
-  { key: 'COMPLETED', label: 'Complete' },
-];
+const JOB_STEPS: TimelineStep[] = RAIL_STEPS.map((s) => ({ key: String(s.step), label: s.label }));
 
 export function StateRail({ state }: StateRailProps) {
-  return <Timeline state={state} steps={JOB_STEPS} />;
+  return <Timeline state={String(STATE_META[state].step ?? 0)} steps={JOB_STEPS} />;
 }

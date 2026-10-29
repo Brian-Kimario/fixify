@@ -59,14 +59,10 @@ export function CustomerDashboardClient({
   const [isQuoteDrawerOpen, setIsQuoteDrawerOpen] = useState(false);
   const [currentJob, setCurrentJob] = useState<ActiveJobData | null>(activeJob);
 
-  // If a quote was approved or declined in the drawer
-  const handleQuoteDecision = (decision: 'approved' | 'declined') => {
+  // respond_to_quote moves the job back to in_progress for both decisions
+  const handleQuoteDecision = () => {
     if (currentJob) {
-      setCurrentJob({
-        ...currentJob,
-        hasPendingQuote: false,
-        currentState: decision === 'approved' ? 'IN_PROGRESS' : currentJob.currentState,
-      });
+      setCurrentJob({ ...currentJob, hasPendingQuote: false, currentState: 'in_progress' });
     }
   };
 

@@ -2,19 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { canTransition } from '@/lib/jobs/states';
 
-/** States a professional can transition to from any given state */
-const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  assigned:      ['accepted', 'cancelled'],
-  accepted:      ['on_the_way', 'cancelled'],
-  on_the_way:    ['arrived', 'cancelled'],
-  arrived:       ['in_progress', 'cancelled'],
-  in_progress:   ['completed', 'cancelled'],
-  quote_pending: [],
-  completed:     [],
-  cancelled:     [],
-  closed:        [],
-};
+/** Targets a professional may request here; `quote_pending` goes through the quote flow. */
+const PRO_TARGETS: ReadonlySet<string> = new Set(['accepted', 'on_the_way', 'arrived', 'in_progress', 'completed', 'cancelled']);
 
 export type TransitionResult =
   | { success: true; jobId: string; newState: string }
@@ -83,8 +74,7 @@ export async function updateJobState(
   }
 
   // 5. Server-side transition guard (belt-and-suspenders before hitting DB function)
-  const allowed = ALLOWED_TRANSITIONS[job.current_state] ?? [];
-  if (!allowed.includes(newState)) {
+  if (!PRO_TARGETS.has(newState) || !canTransition(job.current_state, newState)) {
     return {
       success: false,
       error: `Transition from "${job.current_state}" to "${newState}" is not allowed.`,

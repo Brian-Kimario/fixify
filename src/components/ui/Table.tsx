@@ -30,7 +30,7 @@ interface TableProps {
  *   <Table.Body>
  *     <Table.Row>
  *       <Table.Cell>Plumbing repair</Table.Cell>
- *       <Table.Cell><Badge state="IN_PROGRESS" /></Table.Cell>
+ *       <Table.Cell><Badge state="in_progress" /></Table.Cell>
  *     </Table.Row>
  *   </Table.Body>
  * </Table>

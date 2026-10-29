@@ -9,6 +9,7 @@ import type { ActiveJobData } from '@/components/customer/ActiveJobPanel';
 import type { QuoteApprovalData } from '@/components/customer/QuoteApprovalPanel';
 import type { TimelineEvent } from '@/components/customer/PropertyMaintenanceTimeline';
 import type { ActivityItem } from '@/components/customer/RecentActivityList';
+import { ACTIVE_STATES } from '@/lib/jobs/states';
 
 export const metadata = {
   title: 'Customer Dashboard — Feasy',
@@ -63,7 +64,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
       }
     })(),
 
-    // Query 2: Fetch Active Job (non-completed / non-closed)
+    // Query 2: Fetch the most recent active job (Phase 1 replaces this with the full list)
     (async () => {
       try {
         const { data: jobs } = await supabase
@@ -108,7 +109,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
             )
           `)
           .eq('customer_id', user.id)
-          .not('current_state', 'in', '("CLOSED","COMPLETED","cancelled")')
+          .in('current_state', [...ACTIVE_STATES])
           .order('created_at', { ascending: false })
           .limit(1);
 
@@ -228,7 +229,6 @@ async function CustomerDashboardContent({ user, profile }: any) {
       propertyAddress: userProperties[0]?.addressLine1 || 'On file',
       currentState: rawJob.current_state,
       scheduledTime: rawBooking?.scheduled_start,
-      etaMinutes: 14,
       hasPendingQuote: false,
       professional: rawPro ? {
         id: rawPro.user_id,
@@ -269,12 +269,12 @@ async function CustomerDashboardContent({ user, profile }: any) {
         serviceTitle: activeJobData.serviceTitle,
         propertyName: activeJobData.propertyName,
         proName: activeJobData.professional?.name || 'Technician',
-        reason: q.reason || 'Additional repair authorization requested.',
+        reason: q.reason || '',
         lineItems,
-        subtotal: Number(q.subtotal) || 65.0,
-        partsTotal: lineItems.filter((i) => i.type === 'material').reduce((acc, i) => acc + i.total, 0) || 38.5,
-        platformFee: Number(q.taxes_or_fees) || 4.5,
-        totalAmount: Number(q.total) || 108.0,
+        subtotal: Number(q.subtotal ?? 0),
+        partsTotal: lineItems.filter((i) => i.type === 'material').reduce((acc, i) => acc + i.total, 0),
+        platformFee: Number(q.taxes_or_fees ?? 0),
+        totalAmount: Number(q.total ?? 0),
       };
 
       activeJobData.hasPendingQuote = true;

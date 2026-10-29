@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { clearSessionCookies } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { ACTIVE_STATES } from '@/lib/jobs/states';
 
 // OWNERSHIP CHECK: Every fetch action verifies customer_id = auth.getUser().id via RLS policy jobs_select_own
 
@@ -351,7 +352,7 @@ export async function fetchCustomerJobs(): Promise<{
         )
       `)
       .eq('customer_id', user.id)
-      .not('current_state', 'in', '("CLOSED","COMPLETED","cancelled")')
+      .in('current_state', [...ACTIVE_STATES])
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -366,7 +367,11 @@ export async function fetchCustomerJobs(): Promise<{
         ? service?.service_categories[0]?.name
         : service?.service_categories?.name;
       const pro = Array.isArray(job.professional_profiles) ? job.professional_profiles[0] : job.professional_profiles;
-      const quote = Array.isArray(job.quotes) ? job.quotes[0] : job.quotes;
+      const quotesList: { status?: string; total?: number | string }[] = Array.isArray(job.quotes) ? job.quotes : job.quotes ? [job.quotes] : [];
+      // Prefer the quote that matters to the customer: pending first, then approved
+      const quote =
+        quotesList.find((q) => q.status === 'pending_customer') ??
+        quotesList.find((q) => q.status === 'approved');
 
       return {
         id: job.id,
@@ -642,7 +647,9 @@ export async function fetchJobTimeline(): Promise<{
         : service?.service_categories?.name;
       const property = Array.isArray(job.properties) ? job.properties[0] : job.properties;
       const pro = Array.isArray(job.professional_profiles) ? job.professional_profiles[0] : job.professional_profiles;
-      const quote = Array.isArray(job.quotes) ? job.quotes[0] : job.quotes;
+      const quotesList: { status?: string; total?: number | string }[] = Array.isArray(job.quotes) ? job.quotes : job.quotes ? [job.quotes] : [];
+      // History shows what was actually agreed
+      const quote = quotesList.find((q) => q.status === 'approved');
 
       const completedDate = new Date(job.completed_at || job.created_at);
       const warrantyDate = new Date(completedDate);

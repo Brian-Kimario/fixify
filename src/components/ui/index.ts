@@ -11,16 +11,16 @@ export { Input, Select, Checkbox, RadioGroup, TextareaField } from './Input';
 export type { InputProps, SelectProps, CheckboxProps, RadioGroupProps, TextareaFieldProps } from './Input';
 
 export { Badge, CategoryBadge } from './Badge';
-export type { JobState } from './Badge';
+export type { JobState } from '@/lib/jobs/states';
 
 export { Card } from './Card';
 export { Label } from './Label';
 export { Textarea } from './Textarea';
-export { Pill, StatusPill } from './Pill';
+export { Pill } from './Pill';
 export { Metric, MetricGrid } from './Metric';
 export { Toggle } from './Toggle';
 export { Tabs } from './Tabs';
-export { Timeline } from './Timeline';
+export { Timeline, StateRail } from './Timeline';
 
 // ── Feedback / Status ───────────────────────────────────────────────────────
 export { EmptyState, EmptyStateContent, LoadingState, SkeletonRows } from './EmptyState';

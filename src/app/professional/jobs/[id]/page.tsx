@@ -4,39 +4,15 @@ import { getJobById, getJobCustomerContact } from '@/app/professional/actions';
 import { JobTimeline } from '@/components/professional/JobTimeline';
 import { StateTransitionButtons } from '@/components/professional/StateTransitionButtons';
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
+import { Badge } from '@/components/ui';
+import { isTerminal } from '@/lib/jobs/states';
 
 export const metadata = {
   title: 'Job Details - Feasy Professional',
 };
 
-// States with no possible professional-driven transitions
-const TERMINAL_STATES = new Set(['completed', 'cancelled', 'closed', 'quote_pending']);
-
-const STATE_BADGE: Record<string, string> = {
-  assigned:      'bg-[#E6EEF2] text-[#416B84] border-[#BCD0DB]',
-  accepted:      'bg-[#E2EEE9] text-[#176B5B] border-[#B8D5CB]',
-  on_the_way:    'bg-[#E2EEE9] text-[#176B5B] border-[#B8D5CB]',
-  arrived:       'bg-[#E2EEE9] text-[#176B5B] border-[#B8D5CB]',
-  in_progress:   'bg-[#FFF4E0] text-[#9B6700] border-[#E8D5A3]',
-  quote_pending: 'bg-[#F3E1DA] text-[#A9523D] border-[#DFC0B7]',
-  completed:     'bg-[#E3F0E8] text-[#2F7D5B] border-[#C7DCCF]',
-  cancelled:     'bg-[#F5E6E6] text-[#9B3535] border-[#DFC0C0]',
-  closed:        'bg-[#F1EEE5] text-[#7C8681] border-[#D9DED8]',
-};
-
-const STATE_LABELS: Record<string, string> = {
-  assigned:      'Assigned',
-  accepted:      'Accepted',
-  on_the_way:    'On the Way',
-  arrived:       'Arrived',
-  in_progress:   'In Progress',
-  quote_pending: 'Quote Pending',
-  completed:     'Completed',
-  cancelled:     'Cancelled',
-  closed:        'Closed',
-};
-
-const LIVE_STATES = new Set(['on_the_way', 'arrived', 'in_progress', 'quote_pending']);
+// Waiting on the customer: the professional has nothing to press
+const WAITING_STATES: ReadonlySet<string> = new Set(['quote_pending']);
 
 interface JobDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -50,10 +26,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
     notFound();
   }
 
-  const stateLabel = STATE_LABELS[job.current_state] ?? job.current_state;
-  const badgeStyle = STATE_BADGE[job.current_state] ?? STATE_BADGE['assigned'];
-  const isLive = LIVE_STATES.has(job.current_state);
-  const isTerminal = TERMINAL_STATES.has(job.current_state);
+  const noActions = isTerminal(job.current_state) || WAITING_STATES.has(job.current_state);
 
   // Safely extract nested fields
   const serviceName = (job.booking as { service?: { name?: string } })?.service?.name ?? 'Service';
@@ -103,14 +76,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                   {serviceName}
                 </h1>
               </div>
-              <span
-                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border ${badgeStyle}`}
-              >
-                {isLive && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" aria-hidden="true" />
-                )}
-                {stateLabel}
-              </span>
+              <Badge state={job.current_state} size="sm" className="flex-shrink-0" />
             </div>
 
             {scheduledStart && (
@@ -207,7 +173,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
           <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 lg:sticky lg:top-6 space-y-4">
             <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681]">Actions</p>
 
-            {isTerminal ? (
+            {noActions ? (
               /* Terminal state — no more transitions */
               <p className="text-sm text-[#5A6661]">
                 {job.current_state === 'completed' || job.current_state === 'closed'

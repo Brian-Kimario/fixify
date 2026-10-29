@@ -51,7 +51,7 @@ describe('Customer Dashboard Modernized Components', () => {
       category: 'Plumbing',
       propertyName: 'Oakwood Residence',
       propertyAddress: '1428 Elm Creek Road',
-      currentState: 'IN_PROGRESS',
+      currentState: 'in_progress',
       professional: {
         id: 'pro-1',
         name: 'Dario Venn',
@@ -65,7 +65,7 @@ describe('Customer Dashboard Modernized Components', () => {
     expect(html).toContain('FX-4821');
     expect(html).toContain('Quarter-Turn Valve Replacement');
     expect(html).toContain('Dario Venn');
-    expect(html).toContain('Request');
+    expect(html).toContain('Assigned');
     expect(html).toContain('Complete');
   });
 
