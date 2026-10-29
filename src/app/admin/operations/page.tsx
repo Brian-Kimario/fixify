@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { fetchNeedsAttention, type AttentionItem } from '@/app/admin/actions';
 import { OperationsQueue } from '@/components/admin/OperationsQueue';
 import { CaseDrawer } from '@/components/admin/CaseDrawer';
@@ -71,6 +72,9 @@ export default function OperationsPage() {
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">Operations Queue</h1>
         <p className="text-[#5A6661]">Manage exceptions and operational decisions.</p>
+        <Link href="/admin/operations/unmatched" className="mt-2 inline-block text-sm font-semibold text-teal hover:underline">
+          Unmatched bookings →
+        </Link>
       </div>
 
       {/* Filters */}

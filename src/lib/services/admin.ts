@@ -14,6 +14,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared types
@@ -1007,3 +1008,75 @@ export async function getAllCustomers(): Promise<{
   }
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Unmatched bookings (matching v2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface UnmatchedBooking {
+  id: string;
+  reference: string;
+  scheduledStart: string;
+  unmatchedSince: string;
+  serviceName: string;
+  city: string | null;
+  /** Offers that were declined or expired (booking_assignment_attempts). */
+  attempts: number;
+}
+
+const unmatchedRowSchema = z.object({
+  id: z.string(),
+  booking_reference: z.string(),
+  scheduled_start: z.string(),
+  unmatched_since: z.string(),
+  service: z.object({ name: z.string() }).nullable(),
+  property: z.object({ address: z.object({ city: z.string().nullable() }).nullable() }).nullable(),
+  attempts: z.array(z.object({ count: z.number() })),
+});
+
+/**
+ * Open bookings the matcher found nobody for, oldest first. Admins have no RLS read on
+ * bookings, so this uses the service-role client after the role check.
+ */
+export async function getUnmatchedBookings(): Promise<{ data: UnmatchedBooking[]; error: string | null }> {
+  const auth = await requireAdmin();
+  if ('error' in auth) return { data: [], error: auth.error };
+
+  const admin = await createAdminClient();
+  const { data, error } = await admin
+    .from('bookings')
+    .select(
+      `id, booking_reference, scheduled_start, unmatched_since,
+       service:services!bookings_service_id_fkey ( name ),
+       property:properties!bookings_property_id_fkey ( address:addresses ( city ) ),
+       attempts:booking_assignment_attempts ( count )`,
+    )
+    .not('unmatched_since', 'is', null)
+    .not('booking_status', 'in', '("cancelled","completed")')
+    .order('unmatched_since', { ascending: true })
+    .limit(200);
+
+  if (error) {
+    console.error('getUnmatchedBookings:', error.message);
+    return { data: [], error: 'Could not load unmatched bookings.' };
+  }
+
+  const parsed = z.array(unmatchedRowSchema).safeParse(data);
+  if (!parsed.success) {
+    console.error('getUnmatchedBookings: unexpected shape', parsed.error.issues[0]?.message);
+    return { data: [], error: 'Could not read unmatched bookings.' };
+  }
+
+  return {
+    data: parsed.data.map((row) => ({
+      id: row.id,
+      reference: row.booking_reference,
+      scheduledStart: row.scheduled_start,
+      unmatchedSince: row.unmatched_since,
+      serviceName: row.service?.name ?? 'Service',
+      city: row.property?.address?.city ?? null,
+      attempts: row.attempts[0]?.count ?? 0,
+    })),
+    error: null,
+  };
+}
