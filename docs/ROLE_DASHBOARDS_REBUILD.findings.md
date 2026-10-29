@@ -220,3 +220,39 @@ Code that depends on the missing objects and is therefore broken today:
   charges `quoted_or_base_amount` when there is no approved quote. Fix by moving booking creation
   into a SECURITY DEFINER `create_booking` RPC that reads the price from `services`, and dropping
   the insert policy. Not done in Phase 0 (outside the approved plan); needs owner sign-off.
+
+## F. Payments (Phase 0 step 6)
+
+- **The old webhook could never record a payment.** It selected and updated
+  `razorpay_order_id`, `razorpay_payment_id` and `upi_*` columns that do not exist on the live
+  `payments` table, inserted into an `invoices` table that does not exist, treated
+  `payment.authorized` as paid, and returned 200 from its catch block so failures were silent.
+- `20261030_004` adds `payment_events` (RLS: SELECT for the paying customer and admin/support;
+  writes only through the function), a `payments.status` CHECK of `pending`/`paid`/`failed`,
+  and `transition_payment_status()` (SECURITY DEFINER, EXECUTE for service_role only). It looks
+  the payment up by `provider_reference` (the Razorpay order id), locks it, allows
+  pending→paid, pending→failed and failed→paid, checks the paise amount and currency on capture,
+  and closes a `completed` job through `transition_job_state()` in the same transaction.
+  Already paid, or already in the requested status, returns `already_processed`.
+- The webhook validates the payload with Zod, acts only on `payment.captured` and
+  `payment.failed`, and returns 404 (no matching payment), 422 (amount/transition rejected) or
+  500 so Razorpay retries. Invoices are a Phase 5 TODO.
+- `createUPIIntentPayment` now creates orders with `payment_capture: true`.
+- Removed `src/lib/services/payments.ts`: unused, and it called the RPC with a signature that
+  never existed.
+- Verified: SQL rollback test `supabase/tests/20261030_004_payment_status_transition.sql`
+  (13/13), route unit tests (11), and a signed `payment.captured` sent twice to the dev server
+  against a throwaway payment row (200 `applied`, then 200 `already_processed`; deleted after).
+- **Open: customers cannot create a payment.** `payments` has only a SELECT policy, so the
+  `payments` insert in `createUPIIntentPayment` (user-scoped client) is refused by RLS. The
+  checkout fails before Razorpay is ever involved. Fix with a SECURITY DEFINER
+  `create_pending_payment(p_job_id, p_order_id)` that checks the caller owns the completed job
+  and computes the amount in SQL (approved quote, else booking amount). Ties into the booking
+  amount hole in section E; needs owner sign-off.
+- **Open: wrong columns elsewhere, found by typing the admin client.** Typing
+  `createAdminClient()` with `Database` reports `src/app/admin/actions.ts` selecting
+  `bookings.status` (lines 292, 316, 373, 404; the column does not exist) and
+  `src/lib/notifications/send.ts` selecting `profiles.whatsapp_number` (does not exist). The
+  admin client stays untyped for now; the webhook casts it to `SupabaseClient<Database>`.
+- Minor: `transition_job_state()` sets `closed_at` when a job becomes `completed` or
+  `cancelled`, not when it becomes `closed`.

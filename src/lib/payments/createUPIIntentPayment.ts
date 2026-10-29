@@ -1,6 +1,7 @@
 'use server';
 
 import Razorpay from 'razorpay';
+import type { Orders } from 'razorpay/dist/types/orders';
 import { createClient } from '@/lib/supabase/server';
 
 // ── SDK initialisation ────────────────────────────────────────────────────────
@@ -188,12 +189,15 @@ export async function createUPIIntentPayment(
     .maybeSingle();
 
   // ── 7. Create Razorpay order ─────────────────────────────────────────────────
-  let razorpayOrder: any;
+  let razorpayOrder: Orders.RazorpayOrder;
   try {
     const rzp = getRazorpayClient();
-    razorpayOrder = await (rzp.orders as any).create({
+    razorpayOrder = await rzp.orders.create({
       amount:   amountPaise,
       currency: 'INR',
+      // Capture automatically so the webhook receives payment.captured. An authorized but
+      // uncaptured payment is not money received and is ignored by the webhook.
+      payment_capture: true,
       // receipt must be ≤ 40 chars
       receipt:  `job_${jobId.replace(/-/g, '').slice(0, 30)}`,
       notes: {
@@ -207,8 +211,8 @@ export async function createUPIIntentPayment(
   }
 
   // ── 8. Persist pending payment record ───────────────────────────────────────
-  // provider_reference has a UNIQUE constraint — use the Razorpay order_id as
-  // the initial value; the webhook will update it to the payment_id on capture.
+  // provider_reference (UNIQUE) holds the Razorpay order id. The webhook looks the payment
+  // up by it; the Razorpay payment id is recorded on payment_events.
   const { data: payment, error: insertErr } = await supabase
     .from('payments')
     .insert({
@@ -218,7 +222,7 @@ export async function createUPIIntentPayment(
       amount:             amountPaise / 100,   // schema stores rupees (numeric 10,2)
       currency:           'INR',
       provider:           'razorpay',
-      provider_reference: razorpayOrder.id,    // unique; updated to payment_id on capture
+      provider_reference: razorpayOrder.id,
       status:             'pending',
     })
     .select('id')

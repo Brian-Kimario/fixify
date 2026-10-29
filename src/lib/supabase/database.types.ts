@@ -521,6 +521,47 @@ export type Database = {
           },
         ]
       }
+      payment_events: {
+        Row: {
+          created_at: string
+          from_status: string
+          id: string
+          metadata: Json
+          payment_id: string
+          provider_event: string
+          provider_payment_id: string | null
+          to_status: string
+        }
+        Insert: {
+          created_at?: string
+          from_status: string
+          id?: string
+          metadata?: Json
+          payment_id: string
+          provider_event: string
+          provider_payment_id?: string | null
+          to_status: string
+        }
+        Update: {
+          created_at?: string
+          from_status?: string
+          id?: string
+          metadata?: Json
+          payment_id?: string
+          provider_event?: string
+          provider_payment_id?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -1469,6 +1510,18 @@ export type Database = {
           p_new_state: string
         }
         Returns: boolean
+      }
+      transition_payment_status: {
+        Args: {
+          p_amount_paise: number
+          p_currency: string
+          p_metadata?: Json
+          p_new_status: string
+          p_provider_event: string
+          p_provider_payment_id: string
+          p_provider_reference: string
+        }
+        Returns: string
       }
     }
     Enums: {
