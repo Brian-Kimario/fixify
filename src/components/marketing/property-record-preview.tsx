@@ -32,7 +32,7 @@ export function PropertyRecordPreview() {
                 Your home remembers the work.
               </h2>
               <p className="text-base text-[#34413D] max-w-[43ch] leading-relaxed">
-                Fixify keeps completed maintenance, useful notes and service history with the property so future repairs begin with context.
+                Feasy keeps completed maintenance, useful notes and service history with the property so future repairs begin with context.
               </p>
             </div>
 
@@ -59,7 +59,7 @@ export function PropertyRecordPreview() {
               {/* Head Section */}
               <div className="relative z-10 max-w-[60%] pb-6">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-[#5A6661] mb-1">
-                  Property / Meridian Court
+                  Sample property record
                 </p>
                 <h3 className="text-2xl font-bold text-[#18211F]">Flat 3B</h3>
 

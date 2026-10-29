@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { CheckCircle2, ArrowLeft } from 'lucide-react';
 import { SupportForm } from '@/components/shared/SupportForm';
@@ -23,7 +24,7 @@ export function DemoContactPageClient() {
         <div className="container max-w-4xl mx-auto px-4 py-12 sm:py-16">
           <h1 className="text-3xl sm:text-4xl font-bold mb-3">Request a Demo</h1>
           <p className="text-muted-foreground text-lg">
-            See Fixify in action. Submit your demo request and our team will get back to you as soon as possible.
+            See Feasy in action. Submit your demo request and our team will get back to you as soon as possible.
           </p>
         </div>
       </div>
@@ -91,11 +92,11 @@ export function DemoContactPageClient() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Submit Another Request
               </Button>
-              <a href="/help" className="flex-1">
+              <Link href="/help" className="flex-1">
                 <Button variant="outline" className="w-full">
                   Learn More
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
         ) : (

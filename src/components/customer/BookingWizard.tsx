@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { createBookingAction } from '@/app/customer/bookings/new/actions';
 import { SuccessState } from '@/components/ui/SuccessState';
@@ -419,7 +420,7 @@ export function BookingWizard({
             </label>
             {properties.length === 0 ? (
               <div className="p-4 bg-[#FFF4E0] border border-[#E8D5A3] rounded-xl text-sm text-[#9B6700]">
-                No properties found. <a href="/customer/properties" className="underline font-semibold">Add a property first.</a>
+                No properties found. <Link href="/customer/properties" className="underline font-semibold">Add a property first.</Link>
               </div>
             ) : (
               <div className="space-y-2">
@@ -584,7 +585,7 @@ export function BookingWizard({
 
         {/* Terms note */}
         <p className="text-xs text-[#7C8681] mb-5">
-          By confirming, you agree to Fixify&apos;s terms of service. A professional will be matched and you will be notified.
+          By confirming, you agree to Feasy&apos;s terms of service. A professional will be matched and you will be notified.
         </p>
 
         <div className="flex justify-between">

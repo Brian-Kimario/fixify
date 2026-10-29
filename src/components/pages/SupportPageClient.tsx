@@ -34,7 +34,7 @@ export function SupportPageClient() {
           <div className="p-5.5 pb-4.25">
             <Link href="/" className="inline-flex items-center gap-2.5 text-sm font-bold tracking-[-0.035em] text-[#18211F]">
               <Symbol size="sm" className="w-[29px] h-[29px]" />
-              <span>Fixify</span>
+              <span>Feasy</span>
             </Link>
           </div>
 
@@ -42,24 +42,24 @@ export function SupportPageClient() {
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] px-2.5 pb-2.25">Customer space</p>
               <div className="space-y-0.5">
-                <a href="/customer" className="flex items-center gap-2.5 px-2.75 py-2.5 rounded-[10px] text-[#5A6661] hover:bg-[#F1EEE5] hover:text-[#18211F] transition">
+                <Link href="/customer" className="flex items-center gap-2.5 px-2.75 py-2.5 rounded-[10px] text-[#5A6661] hover:bg-[#F1EEE5] hover:text-[#18211F] transition">
                   <svg viewBox="0 0 24 24" className="w-4.25 h-4.25" fill="none" stroke="currentColor" strokeWidth="1.65">
                     <rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>
                   </svg>
                   Overview
-                </a>
-                <a href="/support" className="flex items-center gap-2.5 px-2.75 py-2.5 rounded-[10px] bg-[#E2EEE9] text-[#0D5144] font-bold transition">
+                </Link>
+                <Link href="/support" className="flex items-center gap-2.5 px-2.75 py-2.5 rounded-[10px] bg-[#E2EEE9] text-[#0D5144] font-bold transition">
                   <svg viewBox="0 0 24 24" className="w-4.25 h-4.25" fill="none" stroke="currentColor" strokeWidth="1.65">
                     <path d="M5 6h14v10H9l-4 4z"/>
                   </svg>
                   Help & support
-                </a>
-                <a href="/help" className="flex items-center gap-2.5 px-2.75 py-2.5 rounded-[10px] text-[#5A6661] hover:bg-[#F1EEE5] hover:text-[#18211F] transition">
+                </Link>
+                <Link href="/help" className="flex items-center gap-2.5 px-2.75 py-2.5 rounded-[10px] text-[#5A6661] hover:bg-[#F1EEE5] hover:text-[#18211F] transition">
                   <svg viewBox="0 0 24 24" className="w-4.25 h-4.25" fill="none" stroke="currentColor" strokeWidth="1.65">
                     <circle cx="12" cy="12" r="8"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.9.65-1.5 1.1-1.5 2.4M12 17h.01"/>
                   </svg>
                   Help centre
-                </a>
+                </Link>
               </div>
             </div>
           </nav>
@@ -77,12 +77,12 @@ export function SupportPageClient() {
               <div className="flex-1">
                 <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681]">HELP & SUPPORT</p>
                 <h1 className="text-[22px] font-bold tracking-[-0.03em] text-[#18211F] mt-1.5">
-                  How can we help with your Fixify experience?
+                  How can we help with your Feasy experience?
                 </h1>
               </div>
-              <a href="/customer/profile" className="w-9 h-9 rounded-full bg-[#18211F] text-white flex items-center justify-center text-xs font-bold">
+              <Link href="/customer/profile" className="w-9 h-9 rounded-full bg-[#18211F] text-white flex items-center justify-center text-xs font-bold">
                 AB
-              </a>
+              </Link>
             </div>
           </header>
 
@@ -119,9 +119,9 @@ export function SupportPageClient() {
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Submit Another Request
                   </button>
-                  <a href="/help" className="flex-1 flex items-center justify-center px-5 py-2.5 bg-[#FFFEFA] border border-[#D9DED8] text-[#18211F] rounded-[10px] text-xs font-bold hover:border-[#C7CEC8] transition">
+                  <Link href="/help" className="flex-1 flex items-center justify-center px-5 py-2.5 bg-[#FFFEFA] border border-[#D9DED8] text-[#18211F] rounded-[10px] text-xs font-bold hover:border-[#C7CEC8] transition">
                     Browse FAQ
-                  </a>
+                  </Link>
                 </div>
               </div>
             ) : (
@@ -141,9 +141,9 @@ export function SupportPageClient() {
                           Start here because your support request stays connected to the active job and property.
                         </p>
                       </div>
-                      <a href="/customer" className="text-xs font-bold text-[#176B5B] tracking-[0.05em] flex-shrink-0 whitespace-nowrap">
+                      <Link href="/customer" className="text-xs font-bold text-[#176B5B] tracking-[0.05em] flex-shrink-0 whitespace-nowrap">
                         ← BACK TO CUSTOMER SPACE
-                      </a>
+                      </Link>
                     </div>
                   </div>
 
@@ -155,7 +155,7 @@ export function SupportPageClient() {
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.11em] text-[rgba(255,255,255,0.4)] mb-1">ACTIVE SUPPORT CONTEXT</p>
                         <h3 className="text-2xl text-white font-bold mt-1.75">Kitchen sink leak</h3>
-                        <div className="text-xs text-[rgba(255,255,255,0.55)] mt-1.25">Inspection · Meridian Court, Flat 3B · Dario Venn</div>
+                        <div className="text-xs text-[rgba(255,255,255,0.55)] mt-1.25">Inspection · Sample Apartments, Flat 3B · Sample Professional</div>
                       </div>
                       <span className="px-2 py-1.5 border border-[rgba(114,208,183,0.24)] bg-[rgba(114,208,183,0.08)] text-[#72D0B7] rounded-full text-xs font-bold whitespace-nowrap h-fit">
                         OPEN JOB
@@ -261,9 +261,9 @@ export function SupportPageClient() {
                     <h3 className="font-bold text-[#18211F] mb-2">Job context</h3>
                     <div className="space-y-3">
                       {[
-                        { label: 'Customer', value: 'Alex Brown' },
-                        { label: 'Property', value: 'Meridian Court · Flat 3B' },
-                        { label: 'Professional', value: 'Dario Venn' },
+                        { label: 'Customer', value: 'Sample Customer' },
+                        { label: 'Property', value: 'Sample Apartments · Flat 3B' },
+                        { label: 'Professional', value: 'Sample Professional' },
                         { label: 'Current state', value: 'Inspection' },
                         { label: 'Request started', value: 'Today · 08:12' },
                       ].map((row, idx) => (
@@ -285,15 +285,15 @@ export function SupportPageClient() {
                   <section className="bg-[#FFFEFA] border border-[#D9DED8] rounded-[16px] p-5 shadow-[0_2px_15px_rgba(24,33,31,0.025)]">
                     <h3 className="font-bold text-[#18211F] text-sm mb-2.5">Quick help</h3>
                     <div className="space-y-2">
-                      <a href="/help" className="block px-2.75 py-2.5 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition">
+                      <Link href="/help" className="block px-2.75 py-2.5 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition">
                         How do quotes work?
-                      </a>
-                      <a href="/help" className="block px-2.75 py-2.5 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition">
+                      </Link>
+                      <Link href="/help" className="block px-2.75 py-2.5 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition">
                         Where can I see job status?
-                      </a>
-                      <a href="/help" className="block px-2.75 py-2.5 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition">
+                      </Link>
+                      <Link href="/help" className="block px-2.75 py-2.5 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition">
                         How does the property record work?
-                      </a>
+                      </Link>
                     </div>
                   </section>
                 </div>

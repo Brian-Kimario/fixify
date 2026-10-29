@@ -11,7 +11,7 @@ import type { TimelineEvent } from '@/components/customer/PropertyMaintenanceTim
 import type { ActivityItem } from '@/components/customer/RecentActivityList';
 
 export const metadata = {
-  title: 'Customer Dashboard — Fixify',
+  title: 'Customer Dashboard — Feasy',
   description: 'Manage active home repairs, express problem intake, and verify property maintenance history.',
 };
 
@@ -236,9 +236,9 @@ async function CustomerDashboardContent({ user, profile }: any) {
         phone: (Array.isArray(rawPro['profiles!professional_profiles_user_id_fkey']) 
           ? rawPro['profiles!professional_profiles_user_id_fkey'][0]?.phone 
           : rawPro['profiles!professional_profiles_user_id_fkey']?.phone) || undefined,
-        rating: Number(rawPro.rating_average) || 4.9,
-        completedJobs: Number(rawPro.completed_jobs_count) || 48,
-        verificationStatus: (rawPro.verification_status as 'verified' | 'pending' | 'not_verified') || 'verified',
+        rating: Number(rawPro.rating_average) || 0,
+        completedJobs: Number(rawPro.completed_jobs_count) || 0,
+        verificationStatus: (rawPro.verification_status as 'verified' | 'pending' | 'not_verified') || 'pending',
       } : undefined,
     };
   }
@@ -380,7 +380,7 @@ async function CustomerDashboardContent({ user, profile }: any) {
           partsReplaced: partsReplaced.length > 0 ? partsReplaced : undefined,
           cost: Number(approvedQuote?.total ?? rawBooking?.quoted_or_base_amount ?? 0),
           proName: rawPro?.display_name || 'Verified Professional',
-          proRating: Number(rawPro?.rating_average) || 4.95,
+          proRating: Number(rawPro?.rating_average) || 0,
           warrantyValidUntil: warrantyDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
           referenceNumber: rawBooking?.booking_reference || `FX-${job.id.slice(0, 4).toUpperCase()}`,
         };

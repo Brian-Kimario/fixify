@@ -14,7 +14,7 @@ export function SiteFooter() {
           <div>
             <Link className="brand" href="/">
               <Symbol size="md" className="brand-mark" />
-              <span>Fixify</span>
+              <span>Feasy</span>
             </Link>
             <p className="foot-copy">Property maintenance marketplace connecting customers with verified professionals.</p>
             <div className="foot-social">
@@ -40,7 +40,7 @@ export function SiteFooter() {
           <div>
             <p className="foot-title">SUPPORT</p>
             <Link href="/">Contact us</Link>
-            <a href="mailto:support@fixify.com">Email support</a>
+            <a href="mailto:support@feasy.com">Email support</a>
             <Link href="/terms">Terms of Service</Link>
             <Link href="/privacy">Privacy Policy</Link>
             <Link href="/cookies">Cookie Policy</Link>
@@ -50,10 +50,10 @@ export function SiteFooter() {
           {/* Company Column */}
           <div>
             <p className="foot-title">COMPANY</p>
-            <p className="foot-link-label">About Fixify</p>
-            <p className="foot-info">Fixify is a trusted marketplace for property maintenance services. We connect verified professionals with customers seeking reliable home repair and maintenance solutions.</p>
+            <p className="foot-link-label">About Feasy</p>
+            <p className="foot-info">Feasy is a trusted marketplace for property maintenance services. We connect verified professionals with customers seeking reliable home repair and maintenance solutions.</p>
             <p className="foot-link-label mt-4">Headquarters</p>
-            <p className="foot-info">Fixify Technologies<br />India</p>
+            <p className="foot-info">Feasy Technologies<br />India</p>
           </div>
         </div>
 
@@ -61,12 +61,11 @@ export function SiteFooter() {
 
         <div className="foot-bottom">
           <div className="foot-bottom-left">
-            <span className="foot-copyright">© {currentYear} Fixify. All rights reserved.</span>
-            <span className="foot-status">Status: Production Ready</span>
+            <span className="foot-copyright">© {currentYear} Feasy. All rights reserved.</span>
           </div>
           <div className="foot-bottom-right">
             <span className="foot-contact">
-              For inquiries: <a href="mailto:support@fixify.com">support@fixify.com</a>
+              For inquiries: <a href="mailto:support@feasy.com">support@feasy.com</a>
             </span>
           </div>
         </div>

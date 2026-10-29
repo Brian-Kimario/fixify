@@ -10,7 +10,7 @@ import { getUnverifiedProfessionals as getVerifQueue } from '@/lib/services/veri
 import { SkeletonDashboard } from '@/components/ui/SkeletonDashboard';
 
 export const metadata = {
-  title: 'Admin Console — Fixify',
+  title: 'Admin Console — Feasy',
 };
 
 // Revalidate every 60s — this is an operations dashboard, not realtime
@@ -243,33 +243,6 @@ async function AdminPageContent() {
 
         {/* Right: Verification panel + System health */}
         <div className="space-y-6 order-last md:order-none">
-          {/* System health card (appears last on mobile, first on desktop via order) */}
-          <div className="bg-[#18211F] text-white rounded-xl p-5 md:p-6 md:order-last order-2">
-            <div className="text-xs font-bold uppercase tracking-[0.11em] text-gray-400 mb-4">
-              SYSTEM SIGNALS
-            </div>
-            <h2 className="text-lg md:text-xl font-bold mb-4">Operational health</h2>
-            <div className="space-y-3">
-              {[
-                { label: 'Payment webhook processing', status: 'Healthy', ok: true },
-                { label: 'SMS / email dispatch', status: 'Healthy', ok: true },
-                { label: 'AI problem intake & routing', status: 'Active', ok: true },
-              ].map((s) => (
-                <div key={s.label} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-300">{s.label}</span>
-                  <span className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        s.ok ? 'bg-[#2F7D5B]' : 'bg-[#9B6A1E]'
-                      }`}
-                    />
-                    {s.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Verification panel (appears first on mobile, second on desktop via order) */}
           <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl overflow-hidden md:order-first order-1">
             <div className="px-5 md:px-6 py-4 md:py-5 border-b border-[#D9DED8] flex items-start justify-between">

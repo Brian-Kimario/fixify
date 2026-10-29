@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, ChevronLeft, ChevronRight, Pause, Play, ShieldCheck } from 'lucide-react';
@@ -51,7 +52,7 @@ const slides: Slide[] = [
   },
   {
     id: 'appliances', label: 'Appliances', title: 'A faulty appliance returns to daily life.',
-    detail: 'From the first photo to the final test, Fixify keeps the repair understandable and the outcome visible.',
+    detail: 'From the first photo to the final test, Feasy keeps the repair understandable and the outcome visible.',
     image: 'https://files.manuscdn.com/search-media/310519663994103623/Y5q7XWbpq3HGFM26smQYF0/w4jA8jF4SYQC3cxxjFjhQH.webp',
     secondary: 'https://files.manuscdn.com/search-media/310519663994103623/Y5q7XWbpq3HGFM26smQYF0/DmyGL5sPA86PRKsDiadcRH.jpg',
     accent: '#efd3cc',
@@ -80,14 +81,14 @@ export function RepairSceneHero({ categories, defaultCategory }: RepairSceneHero
     <section ref={heroRef} className="repair-scene-hero" id="top">
       <div className="hero-wrap">
         <div className="hero-copy">
-          <p className="hero-kicker"><span className="kicker-dot" /> PROPERTY CARE / MADE CLEAR</p>
-          <h1 className="hero-headline" aria-label="Your problem. Fixed properly."><PremiumSplitHeadline lines={[{ text: 'Your problem.' }, { text: 'Fixed properly.', emphasis: true }]} /></h1>
-          <p className="hero-lead">Tell Fixify what&apos;s happening at your property. We connect the everyday problem to the right verified technician, then keep the work clear from first visit to final fix.</p>
+          <p className="hero-kicker"><span className="kicker-dot" /> HOME REPAIRS ON DEMAND</p>
+          <h1 className="hero-headline" aria-label="Home repairs, booked in minutes."><PremiumSplitHeadline lines={[{ text: 'Home repairs,' }, { text: 'booked in minutes.', emphasis: true }]} /></h1>
+          <p className="hero-lead">Describe what needs fixing. Get quotes from verified professionals, approve the price, pay securely by UPI, and follow the job until it is done.</p>
           <div className="category-selector" aria-label="Choose a repair story">
             {slides.map((item, index) => <button key={item.id} type="button" onClick={() => { goTo(index); setPlaying(false); }} className={`selector-option ${activeIndex === index ? 'active' : ''}`} aria-pressed={activeIndex === index}>{item.label}</button>)}
           </div>
-          <div className="hero-actions"><a href="/customer" className="hero-cta">Describe a problem <ArrowUpRight size={16} /></a><a href="#how" className="hero-secondary">See the journey <span>↓</span></a></div>
-          <div className="hero-trust"><span><ShieldCheck size={15} /> Verified technicians</span><span>Clear approval before extra work</span></div>
+          <div className="hero-actions"><Link href="/customer" className="hero-cta">Book a repair <ArrowUpRight size={16} /></Link><a href="#how" className="hero-secondary">How it works <span>↓</span></a></div>
+          <div className="hero-trust"><span><ShieldCheck size={15} /> Verified technicians</span><span>You approve every quote before work starts</span></div>
         </div>
 
         <div className="repair-showcase" aria-live="polite">
@@ -102,7 +103,7 @@ export function RepairSceneHero({ categories, defaultCategory }: RepairSceneHero
               className="object-cover"
             />
             <div className="showcase-shade" />
-            <div className="showcase-topline"><span>FIXIFY / REPAIR STORY</span><span>{String(activeIndex + 1).padStart(2, '0')} / 04</span></div>
+            <div className="showcase-topline"><span>FEASY / REPAIR STORY</span><span>{String(activeIndex + 1).padStart(2, '0')} / 04</span></div>
             <div className="showcase-copy"><span className="showcase-label">{slide.label}</span><h2>{slide.title}</h2><p>{slide.detail}</p></div>
           </div>
           <div ref={secondaryCardRef} className="showcase-secondary premium-hero-card">

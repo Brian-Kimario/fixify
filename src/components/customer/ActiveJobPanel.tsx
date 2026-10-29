@@ -300,9 +300,13 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
               <ShieldCheck className="w-3.5 h-3.5 text-[#72D0B7]" />
             </div>
             <div className="text-[11px] text-white/50 flex items-center gap-2 mt-0.5">
-              <span>★ {pro?.rating ? pro.rating.toFixed(1) : '4.9'} rating</span>
-              <span>·</span>
-              <span>{pro?.completedJobs ?? 48} jobs completed</span>
+              {pro?.rating ? (
+                <>
+                  <span>★ {pro.rating.toFixed(1)} rating</span>
+                  <span>·</span>
+                </>
+              ) : null}
+              <span>{pro?.completedJobs ?? 0} jobs completed</span>
             </div>
           </div>
         </div>

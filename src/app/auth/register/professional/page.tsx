@@ -1,8 +1,9 @@
+import Link from 'next/link';
 import { ProfessionalRegisterForm } from './ProfessionalRegisterForm';
 
 export const metadata = {
-  title: 'Professional Registration - Fixify',
-  description: 'Create your professional account and start accepting jobs on Fixify',
+  title: 'Professional Registration - Feasy',
+  description: 'Create your professional account and start accepting jobs on Feasy',
 };
 
 export default function ProfessionalRegisterPage() {
@@ -13,9 +14,9 @@ export default function ProfessionalRegisterPage() {
         <div className="mt-8 text-center text-sm text-[var(--color-ink-4)]">
           <p>
             Looking to book services instead?{' '}
-            <a href="/auth/register" className="font-semibold text-[var(--color-teal)] hover:underline">
+            <Link href="/auth/register" className="font-semibold text-[var(--color-teal)] hover:underline">
               Register as a customer
-            </a>
+            </Link>
           </p>
         </div>
       </div>

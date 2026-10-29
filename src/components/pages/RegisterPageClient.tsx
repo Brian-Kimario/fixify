@@ -96,7 +96,7 @@ export function RegisterPageClient() {
   return (
     <main id="main-content" className="page">
       {/* Left Visual */}
-      <section className="visual" aria-label="Fixify invitation">
+      <section className="visual" aria-label="Feasy invitation">
         <Image 
           src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1800&q=88" 
           alt="Professional services in a home environment"
@@ -121,12 +121,12 @@ export function RegisterPageClient() {
         <div className="form-wrap">
           <Link className="brand auth-brand" href="/">
             <Symbol size="lg" className="brand-mark" />
-            <span>FIXIFY</span>
+            <span>FEASY</span>
           </Link>
 
           <p className="form-eyebrow">WELCOME</p>
           <h2>Create your account.</h2>
-          <p className="sub">Join Fixify to request services and access our network of verified professionals.</p>
+          <p className="sub">Join Feasy to request services and access our network of verified professionals.</p>
 
           <form className="form" onSubmit={handleRegister} noValidate>
             <button 
@@ -216,7 +216,7 @@ export function RegisterPageClient() {
 
           <p className="signup">Already have an account? <Link href="/auth/login">Sign in</Link></p>
           <p className="fineprint">
-            By creating an account, you agree to Fixify's <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link>. 
+            By creating an account, you agree to Feasy's <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link>. 
             Professional access requires separate verification.
           </p>
         </div>

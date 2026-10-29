@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { UPIIntentCheckout } from '@/components/customer/UPIIntentCheckout';
 
 export const metadata = {
-  title: 'Booking Confirmed — Fixify',
+  title: 'Booking Confirmed — Feasy',
 };
 
 const BOOKING_STATUS_LABEL: Record<string, string> = {
@@ -111,7 +111,7 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
         phone: (Array.isArray(rawPro['profiles!professional_profiles_user_id_fkey'])
           ? rawPro['profiles!professional_profiles_user_id_fkey'][0]?.phone
           : rawPro['profiles!professional_profiles_user_id_fkey']?.phone) || undefined,
-        rating: Number(rawPro.rating_average) || 4.9,
+        rating: Number(rawPro.rating_average) || 0,
         completedJobs: Number(rawPro.completed_jobs_count) || 0,
         verificationStatus: rawPro.verification_status || 'pending',
       };

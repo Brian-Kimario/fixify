@@ -41,7 +41,7 @@ export function LoginPageClient() {
     setError(null);
     setEmailError(null);
     setPasswordError(null);
-    if (!email.trim()) setEmailError('Enter the email address attached to your Fixify account.');
+    if (!email.trim()) setEmailError('Enter the email address attached to your Feasy account.');
     if (!password) setPasswordError('Enter your password to continue.');
     if (!email.trim() || !password) return;
     setIsLoading(true);
@@ -83,7 +83,7 @@ export function LoginPageClient() {
   return (
     <main id="main-content" className="page">
       {/* Left Visual */}
-      <section className="visual" aria-label="Fixify introduction">
+      <section className="visual" aria-label="Feasy introduction">
         <Image 
           src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1800&q=88" 
           alt="Warm contemporary home interior"
@@ -108,11 +108,11 @@ export function LoginPageClient() {
         <div className="form-wrap">
           <Link className="brand auth-brand" href="/">
             <Symbol size="lg" className="brand-mark" />
-            <span>FIXIFY</span>
+            <span>FEASY</span>
           </Link>
 
           <p className="form-eyebrow">WELCOME BACK</p>
-          <h2>Sign in to Fixify.</h2>
+          <h2>Sign in to Feasy.</h2>
           <p className="sub">Manage your requests, active work and property records.</p>
 
           <form className="form" onSubmit={handleEmailSignIn} noValidate>
@@ -184,9 +184,9 @@ export function LoginPageClient() {
             </button>
           </form>
 
-          <p className="signup">New to Fixify? <Link href="/auth/register">Create an account</Link></p>
+          <p className="signup">New to Feasy? <Link href="/auth/register">Create an account</Link></p>
           <p className="fineprint">
-            By continuing, you agree to Fixify's <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link>. 
+            By continuing, you agree to Feasy's <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link>. 
             Professional access remains subject to separate onboarding and verification.
           </p>
         </div>

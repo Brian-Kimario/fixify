@@ -164,10 +164,10 @@ export function CustomerDashboardClient({
                         PROPERTY RECORD
                       </span>
                       <h3 className="text-lg font-bold text-white leading-tight">
-                        {primaryProperty?.name || 'Oakwood Residence'}
+                        {primaryProperty?.name || 'Your property'}
                       </h3>
                       <p className="text-xs text-white/80 mt-0.5">
-                        {primaryProperty?.addressLine1 ? `${primaryProperty.addressLine1}, ${primaryProperty.city}` : '1428 Elm Creek Road · Single Family'}
+                        {primaryProperty?.addressLine1 ? `${primaryProperty.addressLine1}, ${primaryProperty.city}` : 'Add your property address'}
                       </p>
                     </div>
                   </div>

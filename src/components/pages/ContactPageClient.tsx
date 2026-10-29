@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { CheckCircle2, ArrowLeft } from 'lucide-react';
 import { SupportForm } from '@/components/shared/SupportForm';
@@ -91,11 +92,11 @@ export function ContactPageClient() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Send Another Message
               </Button>
-              <a href="/help" className="flex-1">
+              <Link href="/help" className="flex-1">
                 <Button variant="outline" className="w-full">
                   Browse Help
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
         ) : (

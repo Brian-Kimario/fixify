@@ -340,7 +340,7 @@ export function QuoteApprovalPanel({
                 <span className="font-mono font-medium">{formatCurrency(displayQuote.partsTotal)}</span>
               </div>
               <div className="flex justify-between text-xs text-[#5A6661]">
-                <span>Fixify Platform Guarantee & Coverage</span>
+                <span>Feasy Platform Guarantee & Coverage</span>
                 <span className="font-mono font-medium">{formatCurrency(displayQuote.platformFee)}</span>
               </div>
               <div className="pt-3 border-t border-[#D9DED8] flex justify-between items-baseline">
@@ -354,11 +354,11 @@ export function QuoteApprovalPanel({
               </div>
             </div>
 
-            {/* Fixify Guarantee Notice */}
+            {/* Feasy Guarantee Notice */}
             <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#E2EEE9]/60 border border-[#BCD4CC] text-xs text-[#176B5B]">
               <ShieldCheck className="w-5 h-5 flex-shrink-0 text-[#176B5B]" />
               <span>
-                Protected by the <strong>Fixify 12-Month Guarantee</strong>. If anything fails related to this repair, we send a technician back for free.
+                Protected by the <strong>Feasy 12-Month Guarantee</strong>. If anything fails related to this repair, we send a technician back for free.
               </span>
             </div>
 
