@@ -91,9 +91,9 @@ Booking + job + quote + messages + payment + review are a single **case file**. 
 - `src/app/customer/page.tsx` (~410 lines): `CustomerDashboardContent({ user, profile }: any)`.
   - **BUG:** active-job query uses `.not('current_state','in','("CLOSED","COMPLETED","cancelled")')` (line ~111) and the same filter at `src/app/customer/actions.ts:354`. DB states are lowercase, so `completed` and `closed` jobs are **not excluded** and can show as "active". Also `.limit(1)` means a second concurrent job is invisible.
   - Uppercase state names also appear in `src/components/ui/Pill.tsx`, `Timeline.tsx`, `Badge.tsx` (mismatch with DB).
-- **No cancel / reschedule UI.** `cancelBooking()` exists in `src/lib/services/bookings.ts:233` but nothing under `src/app/customer` or `src/components/customer` calls it. Cancelling a job in flight would be `transition_job_state(... 'cancelled')`; **CONFIRM** which path is correct and what it does to payments.
+- **No cancel / reschedule UI.** `cancelBooking()` in `src/lib/services/bookings.ts:233` has no callers and is broken: it calls `transition_booking_state`, which does not exist in the live DB. The only working path is `transition_job_state(... 'cancelled')` (customer allowed from `assigned/accepted/on_the_way/arrived/quote_pending`). It does not change `booking_status` and touches no payment (none exists before completion). An unmatched booking (no job) has no cancel path. *(Verified in Phase 0; see findings.)*
 - **Fabricated policy:** `src/app/customer/support/page.tsx:32-33` says "cancel up to 24 hours before… may incur a fee". There is no such rule or fee in the backend.
-- Booking creation (`src/app/customer/bookings/new/actions.ts`): decent (price read from DB, property ownership checked, calls `assign_booking`). Issues: hand-rolled input checks (no Zod), `throw new Error` for expected failures, `Math.random` booking reference (collision-prone; use a DB sequence or `gen_random_uuid` derived code), no problem description/photos captured here (that lives in `ProblemIntake`; **CONFIRM** how intake links to a booking).
+- Booking creation (`src/app/customer/bookings/new/actions.ts`): decent (price read from DB, property ownership checked, calls `assign_booking`). Issues: hand-rolled input checks (no Zod), `throw new Error` for expected failures, `Math.random` booking reference (collision-prone; use a DB sequence or `gen_random_uuid` derived code), no problem description/photos captured here. `ProblemIntake` writes a `service_requests` draft, but **nothing links it to a booking** (`service_request_id` is never set), so the customer's problem text never reaches the professional. `service_requests` is effectively orphaned.
 - Large components needing review before reuse: `BookingWizard.tsx` (671), `QuoteApprovalPanel.tsx` (457), `ActiveJobPanel.tsx` (346), `ProblemIntake.tsx` (332), `UPIIntentCheckout.tsx` (289).
 - Customer routes: `/customer`, `bookings`, `bookings/[id]`, `bookings/new`, `payments/result/[paymentId]`, `profile`, `profile/edit`, `properties`, `settings`, `support`.
 
@@ -118,28 +118,37 @@ Migrations: `004_create_bookings_and_jobs`, `003_create_professionals_and_verifi
 - Hard filters: verified, `is_available`, skill (service **or** category), same **city**, inside working-hours windows (no schedule = unrestricted), no other job within ±2h, not previously declined/expired for this booking.
 - Ranking: exact area match → fewest active jobs → `rating_average` → user_id (arbitrary tie-break).
 - **Unused signals:** `radius_km`, latitude/longitude, `skill_level`. Rating is effectively always 0 (no reviews exist), so ranking by it is meaningless today.
-- Gaps: customer never sees who was offered/chosen or why; no reputation signals (response time, acceptance rate, completion/cancel rate, repeat customers); when nobody is left the booking is silently deleted (**verify exact behaviour in the function body; do not assume**), with no customer notification; no multi-offer / race to accept; no urgency tier.
+- Gaps: customer never sees who was offered/chosen or why; no reputation signals (response time, acceptance rate, completion/cancel rate, repeat customers); no multi-offer / race to accept; no urgency tier.
+- **Empty pool (verified):** `_release_offer` deletes the **job** row (its `job_events` cascade with it) and nulls `bookings.professional_id`; the **booking stays `pending`**, it is not deleted. `process_assignment_queue` retries it only while `scheduled_start > now()`; after that it stays `pending` forever. The customer is never notified.
+- **The queue is not scheduled.** There is no `vercel.json` and no `pg_cron`; `/api/cron/assignment-queue` runs only if something outside the repo calls it. Without it, offers never expire.
 
 ### 2.5 Quotes, contact, payments
 
 - `respond_to_quote` is atomic: approve or decline both resume `in_progress`. `get_job_customer_contact` releases customer contact/address only after accept (good; preserve this and extend to messaging).
 - Payments: provider abstraction (Mock/Razorpay) in `src/lib/payments/*`; `createUPIIntentPayment`; `/api/payments/create`; `/api/webhooks/razorpay`.
-  - Webhook (`src/app/api/webhooks/razorpay/route.ts`): signature verified; on `payment.authorized|captured` calls `transition_payment_status` (**cast `as any`**, violates rule 7), then `transition_job_state(... 'closed')` (non-fatal on failure), then inserts into `invoices` with `amount = payment.amount/100`. On failure returns 200 and only logs.
-  - `payments` table: `currency DEFAULT 'USD'` (product is INR), no `professional_id`, no platform-fee / net split, no payout linkage. RLS: only customer or admin/support can read, so **a professional cannot read the payment for their own job**.
+  - Webhook (`src/app/api/webhooks/razorpay/route.ts`): signature verified, then **broken against the live DB**. It looks up `payments.razorpay_order_id` (column does not exist), calls `transition_payment_status` (function does not exist, cast `as any`) and inserts into `invoices` (table does not exist). The first query fails, the handler throws, and the route returns 200 after logging. **A payment can never be marked paid today.** `createUPIIntentPayment` stores the Razorpay order id in `provider_reference`.
+  - `/api/payments/create` (provider abstraction) has no callers, does not check job state, and duplicates `createUPIIntentPayment`.
+  - The booking page shows `quoted_or_base_amount` on the Pay button, but the server charges the approved quote total, so the two can differ.
+  - `payments` table: `currency DEFAULT 'USD'` (product is INR; 0 rows live), no `professional_id`, no platform-fee / net split, no payout linkage. RLS: only customer or admin/support can read, so **a professional cannot read the payment for their own job**.
+  - Several payment migrations in the folder (`20261002_001/002`, `20261004_001..003`) were never applied live. See findings §A.
   - Pricing models on `services`: `fixed`, `inspection`, `quote_after_inspection`; amount lives in `bookings.quoted_or_base_amount`.
 - Homepage copy promises "approve the quote and pay by UPI **only when the work is done**". The payment flow must honour that: pay-after-completion, not up-front.
 
 ### 2.6 Not built at all (verified by grep: no tables/UI under role code)
 
-Job-scoped messaging · reviews/ratings · cancel/reschedule UI + rules · disputes/refunds · professional payout accounts, settlements, payout ledger · platform-fee configuration · notification delivery (preferences UI exists, **CONFIRM** whether a `notifications` table/sender exists) · proof-of-work photos and on-site start/finish codes · customer view of professional profile · saved/favourite professionals · professional service-area/schedule management UI (**CONFIRM**: working-hours table exists; is there UI?).
+Job-scoped messaging · reviews/ratings · cancel/reschedule UI + rules · disputes/refunds · professional payout accounts, settlements, payout ledger · platform-fee configuration · notification delivery (no `notifications` table; `notification_logs` gets customer-only `pending` rows from a trigger, `sendNotification` has no callers, and the preferences UI writes `profiles` columns that do not exist) · proof-of-work photos and on-site start/finish codes (no storage buckets exist) · realtime (publication is empty) · customer view of professional profile · saved/favourite professionals · professional service-area/schedule management UI (`professional_availability` and `professional_service_areas` tables exist with own-row RLS; no UI edits either).
+
+Also broken today: the professional **availability toggle** calls `update_professional_availability`, which does not exist live.
 
 ### 2.7 Code-quality baseline (role code: `app/customer`, `app/professional`, `lib/services`)
 
 ~1,538 hex literals · ~34 `any` · ~108 `console.*` · manual validators, no Zod · `strict: false` (known debt; do not widen it, and prefer tightening touched files).
 
-### 2.8 CONFIRM in Phase 0 (not read during the scan)
+### 2.8 CONFIRM in Phase 0 — resolved
 
-`src/lib/payments/*`, `src/app/api/payments/create/route.ts`, `UPIIntentCheckout.tsx` · `customer/bookings/[id]/page.tsx` and `professional/jobs/[id]/page.tsx` · `StateTransitionButtons.tsx` · `invoices` schema and who can read it · notifications/`notification_preferences` tables · realtime enablement on the Supabase project · storage buckets and policies (photos, verification docs) · `process_assignment_queue` empty-pool behaviour · what `ProblemIntake` writes and how it joins to bookings · whether `service_requests` (`src/lib/services/service-requests.ts`) is live or legacy.
+All items below were verified on 2026-10-29; results are in `docs/ROLE_DASHBOARDS_REBUILD.findings.md` and folded into §2.2–2.6 above. Additional findings: the migrations folder and the live DB have drifted (findings §A); RLS policies `jobs_update_professional_own` and `bookings_update_professional_own` let a professional write `current_state` and amounts directly, bypassing `transition_job_state` (findings §C).
+
+Original list: `src/lib/payments/*`, `src/app/api/payments/create/route.ts`, `UPIIntentCheckout.tsx` · `customer/bookings/[id]/page.tsx` and `professional/jobs/[id]/page.tsx` · `StateTransitionButtons.tsx` · `invoices` schema and who can read it · notifications/`notification_preferences` tables · realtime enablement on the Supabase project · storage buckets and policies (photos, verification docs) · `process_assignment_queue` empty-pool behaviour · what `ProblemIntake` writes and how it joins to bookings · whether `service_requests` (`src/lib/services/service-requests.ts`) is live or legacy.
 
 ---
 
@@ -155,7 +164,7 @@ Each phase lists: **Goal · Schema · Services/server · UI · Tests · Acceptan
 
 1. **Read & confirm.** Work through §2.8 and amend this document where reality differs. Record findings in a short `docs/ROLE_DASHBOARDS_REBUILD.findings.md`.
 2. **Single state vocabulary.** Create `src/lib/jobs/states.ts`:
-   - `JobState` type derived from `Database` enum/check (not hand-typed if avoidable).
+   - `JobState` type. `jobs.current_state` has no enum or CHECK, so it cannot be derived from `Database`; define it from the `transition_job_state` body and keep the two in sync (a test asserts the list).
    - `STATE_META: Record<JobState, { label; customerCopy; proCopy; tone; terminal; step }>`.
    - Helpers `isActive(state)`, `isTerminal(state)`, `ACTIVE_STATES`, `PRO_ROUTE_STATES`.
    - Rewrite `Pill`, `Timeline`, `Badge` to consume it; **delete uppercase state strings**.
@@ -166,7 +175,7 @@ Each phase lists: **Goal · Schema · Services/server · UI · Tests · Acceptan
 7. **Currency:** migration to set `payments.currency DEFAULT 'INR'` and backfill/verify existing rows; add `src/lib/money.ts` (`formatINR(paise|rupees)`; **decide and document one unit** — recommend integer paise in new tables, rupees only at display).
 8. **Booking reference:** replace `Math.random` generation with a DB-side unique generator (sequence-backed `FS-######`).
 9. **Delete** `src/components/shared/AppNavbar.tsx`.
-10. **Remove `as any`** from the Razorpay webhook by regenerating types so `transition_payment_status` is typed.
+10. **Remove `as any`** from the Razorpay webhook. Regenerating types will not help: `transition_payment_status`, `invoices` and the `razorpay_*` columns do not exist live. The webhook must be rewritten against the live schema (look up by `provider_reference`), or its repair deferred to Phase 5 (owner decision).
 
 **Acceptance:** `pnpm tsc --noEmit`, `pnpm lint`, `pnpm test` green; a completed job never shows as active for the customer; no fabricated payout/fee text anywhere in role code; grep for uppercase state literals returns none.
 
@@ -221,7 +230,7 @@ Rules: show a nav item only if its page is real. Counts/badges come from queries
 **Goal:** connect the customer to a professional who can actually solve the problem, with transparency.
 
 **Schema (one migration per concern):**
-- `professional_service_areas` (pro_id, city, area, `radius_km`, `base_lat`, `base_lng`) **or** reuse existing columns after CONFIRM; RLS: pro manages own, customers read only via security-definer functions.
+- `professional_service_areas` **already exists** (`professional_id, city, area, radius_km, is_active`, own-row RLS) but nothing reads or writes it. Extend it with `base_lat`, `base_lng`; customers read only via security-definer functions.
 - Extend `professional_skills` use: `skill_level`, `years_experience`; ensure indexed by `service_id`/`category_id`.
 - `professional_metrics` (materialised or view, refreshed by trigger/cron): `acceptance_rate`, `median_response_seconds`, `completion_rate`, `cancel_rate`, `jobs_completed`, `repeat_customer_count`, `rating_average`, `rating_count`. Computed only from real `job_events`/`booking_assignment_attempts`/`reviews`.
 - `bookings`: add `problem_summary`, `urgency` (`flexible|today|emergency`), and a structured link to intake (after CONFIRM).
@@ -277,7 +286,7 @@ Derive "Inspecting/Quote sent/Approved" from `quote_pending` + `quotes.status` (
 
 **Schema:**
 - `job_messages` (id, job_id, sender_id, body, attachment_path nullable, created_at) + `job_message_reads` (job_id, user_id, last_read_at). RLS: only the job's customer and assigned pro (and admin read for disputes). Chat opens at **accepted**, closes read-only N days after `closed`.
-- `notifications` (id, user_id, kind, job_id, title, body, data jsonb, created_at, read_at) with RLS (own rows). CONFIRM whether this already exists; extend rather than duplicate.
+- `notifications` (id, user_id, kind, job_id, title, body, data jsonb, created_at, read_at) with RLS (own rows). Does not exist. `notification_logs` exists (delivery log, customer-only, written by `on_job_state_transition`); decide whether to keep it as the outbound-delivery log beside the new in-app table.
 - Enable Supabase Realtime on `job_messages` and `notifications` (publication) and verify RLS applies to realtime.
 
 **Server:** `sendMessage` (Zod, length cap, rate limit in DB), `markThreadRead`, `listThreads` (with unread counts). Emit notifications from DB triggers on `job_events` (assigned, accepted, on the way, arrived, quote sent, quote decision, completed, payment received, cancelled, new message) so they cannot be skipped by a code path.
