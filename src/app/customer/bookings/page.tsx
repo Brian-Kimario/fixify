@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth';
 
 export const metadata = {
-  title: 'My Bookings — Fixify',
+  title: 'My Bookings — Feasy',
 };
 
 const BOOKING_STATUS_LABEL: Record<string, string> = {

@@ -3,7 +3,7 @@ import { JobsFilterClient } from '@/components/professional/JobsFilterClient';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'My Jobs — Fixify Professional',
+  title: 'My Jobs — Feasy Professional',
 };
 
 export default async function JobsPage() {

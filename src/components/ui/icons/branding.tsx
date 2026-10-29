@@ -15,7 +15,7 @@ export function Arrow() {
 }
 
 /**
- * BrandMark - Fixify logo mark/icon
+ * BrandMark - Feasy logo mark/icon
  * House icon in teal color
  * Used in header and footer
  */

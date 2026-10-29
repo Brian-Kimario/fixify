@@ -3,19 +3,19 @@ import { Metadata } from 'next';
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
 
 export const metadata: Metadata = {
-  title: 'Refund Policy | Fixify',
-  description: 'Fixify refund and cancellation policy for customers and professionals',
+  title: 'Refund Policy | Feasy',
+  description: 'Feasy refund and cancellation policy for customers and professionals',
   openGraph: {
-    title: 'Refund Policy | Fixify',
-    description: 'Fixify Refund and Cancellation Policy',
+    title: 'Refund Policy | Feasy',
+    description: 'Feasy Refund and Cancellation Policy',
     url: `${siteUrl}/refund-policy`,
     type: 'website',
     images: [{ url: "/og-image-1200x630.png", width: 1200, height: 630, alt: "Refund Policy" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: 'Refund Policy | Fixify',
-    description: 'Fixify Refund and Cancellation Policy',
+    title: 'Refund Policy | Feasy',
+    description: 'Feasy Refund and Cancellation Policy',
     images: ["/og-image-1200x630.png"],
   },
   alternates: {
@@ -51,7 +51,7 @@ export default function RefundPolicyPage() {
             <h2 className="text-2xl font-bold text-ink mb-3">1. Overview</h2>
             <p className="text-line">
               This refund policy outlines the terms under which customers and professionals can request cancellations 
-              and refunds for services on the Fixify platform. Our goal is to be fair to all parties while protecting customers.
+              and refunds for services on the Feasy platform. Our goal is to be fair to all parties while protecting customers.
             </p>
           </section>
 
@@ -74,7 +74,7 @@ export default function RefundPolicyPage() {
             <p className="text-line"><strong>Processing time:</strong> 5-7 business days</p>
             <p className="text-line text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm">
               <strong>[PROVISIONAL]</strong> This 100% refund rule is provisional pending 3-6 months of operational data. 
-              Once Fixify has sufficient data on professional cancellation patterns and customer behavior, 
+              Once Feasy has sufficient data on professional cancellation patterns and customer behavior, 
               cancellation penalties may be introduced to protect professional earnings.
             </p>
           </section>
@@ -120,7 +120,7 @@ export default function RefundPolicyPage() {
               <li>Actual costs incurred by professional</li>
             </ul>
             <p className="text-line mt-4">
-              <strong>Processing:</strong> Fixify may grant full refund, partial refund, or no refund. 
+              <strong>Processing:</strong> Feasy may grant full refund, partial refund, or no refund. 
               In disputes, we will attempt mediation before determining outcome.
             </p>
           </section>
@@ -130,7 +130,7 @@ export default function RefundPolicyPage() {
             <h2 className="text-2xl font-bold text-ink mb-3">7. Refund Processing Timeline</h2>
             <ul className="list-disc list-inside text-line space-y-2">
               <li><strong>Request submitted:</strong> Refund request logged in system</li>
-              <li><strong>Pending phase (0-2 days):</strong> Fixify reviews request and gathers evidence</li>
+              <li><strong>Pending phase (0-2 days):</strong> Feasy reviews request and gathers evidence</li>
               <li><strong>Processing phase (2-7 business days):</strong> Refund is processed by payment provider</li>
               <li><strong>Completed:</strong> Refund reflected in your original payment method</li>
             </ul>
@@ -156,7 +156,7 @@ export default function RefundPolicyPage() {
             </p>
             <ul className="list-disc list-inside text-line space-y-2">
               <li><strong>Requested:</strong> Customer has submitted refund request</li>
-              <li><strong>Pending:</strong> Fixify is reviewing the request</li>
+              <li><strong>Pending:</strong> Feasy is reviewing the request</li>
               <li><strong>Processing:</strong> Refund has been approved and sent to payment provider</li>
               <li><strong>Completed:</strong> Refund has been successfully processed</li>
               <li><strong>Failed:</strong> Refund could not be processed (rare; customer will be contacted)</li>
@@ -170,7 +170,7 @@ export default function RefundPolicyPage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">10. Future Policy Changes</h2>
             <p className="text-line text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm">
-              <strong>[PROVISIONAL]</strong> After 3-6 months of operational experience, Fixify may establish:
+              <strong>[PROVISIONAL]</strong> After 3-6 months of operational experience, Feasy may establish:
             </p>
             <ul className="list-disc list-inside text-line space-y-2">
               <li>Cancellation fees or penalties for customer cancellations after a certain time</li>
@@ -191,9 +191,9 @@ export default function RefundPolicyPage() {
               If you disagree with a refund decision:
             </p>
             <ol className="list-decimal list-inside text-line space-y-2">
-              <li>Contact Fixify support within 14 days of the decision</li>
+              <li>Contact Feasy support within 14 days of the decision</li>
               <li>Provide additional evidence or explanation</li>
-              <li>Fixify will review your appeal</li>
+              <li>Feasy will review your appeal</li>
               <li>We will communicate the final decision within 7 days</li>
             </ol>
           </section>
@@ -206,8 +206,8 @@ export default function RefundPolicyPage() {
             </p>
             <p className="text-line">
               Email:{' '}
-              <a href="mailto:support@fixify.com" className="text-teal underline">
-                support@fixify.com
+              <a href="mailto:support@feasy.com" className="text-teal underline">
+                support@feasy.com
               </a>
             </p>
             <p className="text-line mt-4">
@@ -225,8 +225,8 @@ export default function RefundPolicyPage() {
             <p className="text-line font-semibold mt-3">
               Legal Review Team<br />
               Email:{' '}
-              <a href="mailto:legal@fixify.com" className="text-teal underline">
-                legal@fixify.com
+              <a href="mailto:legal@feasy.com" className="text-teal underline">
+                legal@feasy.com
               </a>
             </p>
             <p className="text-line mt-3 text-sm text-line/80">

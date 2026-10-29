@@ -10,7 +10,7 @@ import type {
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Book a Service — Fixify',
+  title: 'Book a Service — Feasy',
 };
 
 interface NewBookingPageProps {

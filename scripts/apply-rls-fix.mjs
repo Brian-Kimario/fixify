@@ -161,7 +161,7 @@ async function getAuthUsers() {
 }
 
 async function main() {
-  log.title('FIXIFY RLS FIX - Job Events and Notifications');
+  log.title('FEASY RLS FIX - Job Events and Notifications');
 
   try {
     // Step 1: Check test users

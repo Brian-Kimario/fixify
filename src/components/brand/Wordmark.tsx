@@ -1,6 +1,6 @@
 /**
- * Fixify Wordmark
- * "Fixify" text logo with brand typography
+ * Feasy Wordmark
+ * "Feasy" text logo with brand typography
  */
 
 interface WordmarkProps {
@@ -19,7 +19,7 @@ export function Wordmark({ size = "md", className = "" }: WordmarkProps) {
     <div
       className={`font-display font-bold tracking-tight ${sizes[size]} ${className}`}
     >
-      Fixify
+      Feasy
     </div>
   );
 }

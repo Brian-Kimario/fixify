@@ -11,8 +11,8 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
-  title: 'Admin Console — Fixify',
-  description: 'Fixify operations and admin panel',
+  title: 'Admin Console — Feasy',
+  description: 'Feasy operations and admin panel',
 };
 
 interface AdminLayoutProps {
@@ -131,7 +131,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             <span className="w-[24px] h-[24px] md:w-[29px] md:h-[29px] flex items-center justify-center">
               <Symbol size="sm" className="w-full h-full" />
             </span>
-            <span>Fixify</span>
+            <span>Feasy</span>
           </Link>
 
           {/* Desktop nav */}

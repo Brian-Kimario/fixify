@@ -19,9 +19,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const SESSION_COOKIES = {
   ACCESS_TOKEN: 'sb-access-token',
   REFRESH_TOKEN: 'sb-refresh-token',
-  SESSION_ID: 'fixify-session-id',
-  SESSION_METADATA: 'fixify-session-metadata',
-  CSRF_TOKEN: 'fixify-csrf-token',
+  SESSION_ID: 'feasy-session-id',
+  SESSION_METADATA: 'feasy-session-metadata',
+  CSRF_TOKEN: 'feasy-csrf-token',
 } as const;
 
 /**
@@ -54,10 +54,10 @@ export async function clearSessionCookies(): Promise<void> {
     cookieStore.delete(SESSION_COOKIES.SESSION_METADATA);
     cookieStore.delete(SESSION_COOKIES.CSRF_TOKEN);
 
-    // Clear any other fixify-related cookies
+    // Clear any other feasy-related cookies
     const allCookies = cookieStore.getAll();
     allCookies.forEach((cookie) => {
-      if (cookie.name.startsWith('fixify-') || cookie.name.startsWith('sb-')) {
+      if (cookie.name.startsWith('feasy-') || cookie.name.startsWith('sb-')) {
         cookieStore.delete(cookie.name);
       }
     });
@@ -77,11 +77,11 @@ export function clearLocalStorage(): void {
   if (typeof window === 'undefined') return;
 
   try {
-    // Clear all fixify-related localStorage
+    // Clear all feasy-related localStorage
     const keys = Object.keys(localStorage);
     keys.forEach((key) => {
       if (
-        key.startsWith('fixify-') ||
+        key.startsWith('feasy-') ||
         key.startsWith('supabase-') ||
         key === 'auth.token'
       ) {
@@ -92,7 +92,7 @@ export function clearLocalStorage(): void {
     // Clear session storage as well
     const sessionKeys = Object.keys(sessionStorage);
     sessionKeys.forEach((key) => {
-      if (key.startsWith('fixify-') || key.startsWith('supabase-')) {
+      if (key.startsWith('feasy-') || key.startsWith('supabase-')) {
         sessionStorage.removeItem(key);
       }
     });

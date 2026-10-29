@@ -51,7 +51,7 @@ export function Navbar({
           ) : (
             <>
               <BrandMark />
-              <span className="hidden font-display text-xl font-bold sm:inline">Fixify</span>
+              <span className="hidden font-display text-xl font-bold sm:inline">Feasy</span>
             </>
           )}
         </Link>

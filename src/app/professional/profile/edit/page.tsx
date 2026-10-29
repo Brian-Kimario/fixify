@@ -2,7 +2,7 @@ import { getCurrentProfile } from '@/lib/auth';
 import { EditProfessionalProfileForm } from './EditProfessionalProfileForm';
 
 export const metadata = {
-  title: 'Edit Professional Profile - Fixify',
+  title: 'Edit Professional Profile - Feasy',
 };
 
 export default async function EditProfessionalProfilePage() {

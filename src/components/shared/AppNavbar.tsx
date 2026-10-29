@@ -418,10 +418,10 @@ export function AppNavbar({
             <Link
               href={getLogoHref()}
               className="flex items-center gap-2 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-paper rounded-lg"
-              aria-label={`Fixify ${getRoleBadgeText()}`}
+              aria-label={`Feasy ${getRoleBadgeText()}`}
             >
               <Symbol size="sm" className={role === 'professional' ? 'text-teal' : 'text-teal'} />
-              <span className="font-display font-bold text-xl text-ink tracking-tight">Fixify</span>
+              <span className="font-display font-bold text-xl text-ink tracking-tight">Feasy</span>
               {getRoleBadgeText() && (
                 <span className={`hidden sm:inline-block font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${getRoleBadgeClass()}`}>
                   {getRoleBadgeText()}

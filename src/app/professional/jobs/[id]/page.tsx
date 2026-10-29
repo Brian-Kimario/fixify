@@ -6,7 +6,7 @@ import { StateTransitionButtons } from '@/components/professional/StateTransitio
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
 
 export const metadata = {
-  title: 'Job Details - Fixify Professional',
+  title: 'Job Details - Feasy Professional',
 };
 
 // States with no possible professional-driven transitions

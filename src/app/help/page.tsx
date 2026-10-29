@@ -5,14 +5,14 @@ import { HelpPageClient } from '@/components/pages/HelpPageClient';
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fixify.vercel.app';
 
 export const metadata: Metadata = {
-  title: 'Help Centre | Fixify',
-  description: 'Find answers about service requests, bookings, quotes, payments, and property records on Fixify',
+  title: 'Help Centre | Feasy',
+  description: 'Find answers about service requests, bookings, quotes, payments, and property records on Feasy',
   alternates: {
     canonical: `${siteUrl}/help`,
   },
   openGraph: {
-    title: 'Help Centre | Fixify',
-    description: 'Get help with Fixify property maintenance services',
+    title: 'Help Centre | Feasy',
+    description: 'Get help with Feasy property maintenance services',
     url: `${siteUrl}/help`,
     type: 'website',
     images: [
@@ -20,14 +20,14 @@ export const metadata: Metadata = {
         url: '/og-image-1200x630.png',
         width: 1200,
         height: 630,
-        alt: 'Fixify help centre',
+        alt: 'Feasy help centre',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Help Centre | Fixify',
-    description: 'Get help with Fixify property maintenance services',
+    title: 'Help Centre | Feasy',
+    description: 'Get help with Feasy property maintenance services',
     images: ['/og-image-1200x630.png'],
   },
 };
@@ -36,7 +36,7 @@ const FAQ_DATA = [
   {
     id: 1,
     q: 'Do I need to know which service I need?',
-    a: 'No. You can describe the problem in your own words first. Fixify can help structure the request before a service category is confirmed.',
+    a: 'No. You can describe the problem in your own words first. Feasy can help structure the request before a service category is confirmed.',
   },
   {
     id: 2,
@@ -65,8 +65,8 @@ const TOPICS = [
   { num: '02', title: 'Bookings & status', desc: 'Professional assignment, arrival, inspection, quote approval and completed work.' },
   { num: '03', title: 'Quotes & payments', desc: 'Inspection changes, customer approval, invoices and payment questions.' },
   { num: '04', title: 'Property record', desc: 'How completed work, parts, documents and maintenance history stay connected to a property.' },
-  { num: '05', title: 'Account & access', desc: 'Sign-in, account details and accessing the right Fixify workspace.' },
-  { num: '06', title: 'Safety & complaints', desc: 'When to stop work, how to raise a concern and what information helps Fixify respond.' },
+  { num: '05', title: 'Account & access', desc: 'Sign-in, account details and accessing the right Feasy workspace.' },
+  { num: '06', title: 'Safety & complaints', desc: 'When to stop work, how to raise a concern and what information helps Feasy respond.' },
 ];
 
 export default function HelpPage() {

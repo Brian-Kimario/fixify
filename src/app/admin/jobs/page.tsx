@@ -4,7 +4,7 @@ import { getAllJobs } from '@/lib/services/admin';
 import AdminJobsClient from '@/components/admin/JobsTable';
 
 export const metadata = {
-  title: 'All Jobs — Fixify Admin',
+  title: 'All Jobs — Feasy Admin',
 };
 
 export const revalidate = 60;

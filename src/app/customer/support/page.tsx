@@ -45,7 +45,7 @@ export default function CustomerSupportPage() {
   return (
     <div className="pb-20 md:pb-0 min-h-screen bg-paper">
       {/* Header */}
-      <div className="px-4 md:px-6 py-8 md:py-12 bg-gradient-to-br from-teal-soft to-paper border-b border-teal/20">
+      <div className="px-4 md:px-6 py-8 md:py-12 bg-gradient-to-br from-teal-soft to-paper border-b border-line">
         <div className="max-w-4xl mx-auto">
           <div className="text-xs font-bold uppercase tracking-[0.11em] text-teal mb-2 flex items-center gap-2">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

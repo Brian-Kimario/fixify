@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { formatCurrency } from '@/lib/currency';
 
 export const metadata = {
-  title: 'Professional Profile - Fixify',
+  title: 'Professional Profile - Feasy',
 };
 
 export default async function ProfessionalProfilePage() {

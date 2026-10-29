@@ -38,7 +38,7 @@ export async function signInWithEmail(email: string, password: string, next?: st
   const baseRedirectPath = getRedirectPathByRole(role);
   if (!baseRedirectPath) {
     await supabase.auth.signOut();
-    throw new Error("Your account does not have a valid Fixify role.");
+    throw new Error("Your account does not have a valid Feasy role.");
   }
 
   // Set session metadata tracking

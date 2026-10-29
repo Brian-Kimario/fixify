@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Earnings Ledger — Fixify Professional',
+  title: 'Earnings Ledger — Feasy Professional',
 };
 
 export default async function EarningsPage() {

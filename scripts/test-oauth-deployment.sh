@@ -155,7 +155,7 @@ if [ $TEST_STATUS -eq 0 ]; then
   log_success "OAuth flow is working correctly on Vercel!"
   log_success "New users should now:"
   log_success "  1. Sign in with Google"
-  log_success "  2. Grant permission to Fixify"
+  log_success "  2. Grant permission to Feasy"
   log_success "  3. Auto-create profile with role='customer'"
   log_success "  4. Redirect to /customer dashboard"
   echo ""

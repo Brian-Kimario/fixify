@@ -4,7 +4,7 @@ import { getAllCustomers } from '@/lib/services/admin';
 import CustomersTable from '@/components/admin/CustomersTable';
 
 export const metadata = {
-  title: 'Customers Directory — Fixify Admin',
+  title: 'Customers Directory — Feasy Admin',
 };
 
 export const revalidate = 60;

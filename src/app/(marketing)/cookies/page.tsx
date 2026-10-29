@@ -3,19 +3,19 @@ import { Metadata } from 'next';
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | Fixify',
-  description: 'Fixify cookie policy and session tracking',
+  title: 'Cookie Policy | Feasy',
+  description: 'Feasy cookie policy and session tracking',
   openGraph: {
-    title: 'Cookie Policy | Fixify',
-    description: 'Fixify Cookie Policy',
+    title: 'Cookie Policy | Feasy',
+    description: 'Feasy Cookie Policy',
     url: `${siteUrl}/cookies`,
     type: 'website',
     images: [{ url: "/og-image-1200x630.png", width: 1200, height: 630, alt: "Cookies" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: 'Cookie Policy | Fixify',
-    description: 'Fixify Cookie Policy',
+    title: 'Cookie Policy | Feasy',
+    description: 'Feasy Cookie Policy',
     images: ["/og-image-1200x630.png"],
   },
   alternates: {
@@ -49,7 +49,7 @@ export default function CookiePage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">1. Overview</h2>
             <p className="text-line">
-              Fixify uses cookies and similar tracking technologies to provide essential functionality, 
+              Feasy uses cookies and similar tracking technologies to provide essential functionality, 
               maintain secure sessions, and protect against fraud. This policy describes how we use these technologies.
             </p>
           </section>
@@ -65,9 +65,9 @@ export default function CookiePage() {
 
           {/* Section 3 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">3. Cookies Used by Fixify</h2>
+            <h2 className="text-2xl font-bold text-ink mb-3">3. Cookies Used by Feasy</h2>
             <p className="text-line">
-              Fixify uses the following cookies and session technologies:
+              Feasy uses the following cookies and session technologies:
             </p>
 
             <div className="space-y-4">
@@ -78,7 +78,7 @@ export default function CookiePage() {
                   <p><strong>Purpose:</strong> Supabase authentication session token</p>
                   <p><strong>Type:</strong> Essential (authentication)</p>
                   <p><strong>Duration:</strong> Session (expires when you close your browser)</p>
-                  <p><strong>Description:</strong> Maintains your authenticated session with Fixify. Required to keep you logged in.</p>
+                  <p><strong>Description:</strong> Maintains your authenticated session with Feasy. Required to keep you logged in.</p>
                 </div>
               </div>
 
@@ -89,24 +89,24 @@ export default function CookiePage() {
                   <p><strong>Purpose:</strong> Supabase authentication refresh token</p>
                   <p><strong>Type:</strong> Essential (authentication)</p>
                   <p><strong>Duration:</strong> Persistent (expires after 30 days of inactivity)</p>
-                  <p><strong>Description:</strong> Allows Fixify to refresh your session automatically without requiring re-authentication.</p>
+                  <p><strong>Description:</strong> Allows Feasy to refresh your session automatically without requiring re-authentication.</p>
                 </div>
               </div>
 
               {/* Cookie 3 */}
               <div className="border border-line/20 rounded-lg p-4">
-                <h3 className="font-semibold text-ink mb-2">fixify-session-id</h3>
+                <h3 className="font-semibold text-ink mb-2">feasy-session-id</h3>
                 <div className="text-sm text-line space-y-2">
                   <p><strong>Purpose:</strong> Application session identifier</p>
                   <p><strong>Type:</strong> Essential (session management)</p>
                   <p><strong>Duration:</strong> Session (expires when you close your browser)</p>
-                  <p><strong>Description:</strong> Identifies your current session within the Fixify application.</p>
+                  <p><strong>Description:</strong> Identifies your current session within the Feasy application.</p>
                 </div>
               </div>
 
               {/* Cookie 4 */}
               <div className="border border-line/20 rounded-lg p-4">
-                <h3 className="font-semibold text-ink mb-2">fixify-session-metadata</h3>
+                <h3 className="font-semibold text-ink mb-2">feasy-session-metadata</h3>
                 <div className="text-sm text-line space-y-2">
                   <p><strong>Purpose:</strong> Session metadata storage</p>
                   <p><strong>Type:</strong> Essential (session management)</p>
@@ -117,12 +117,12 @@ export default function CookiePage() {
 
               {/* Cookie 5 */}
               <div className="border border-line/20 rounded-lg p-4">
-                <h3 className="font-semibold text-ink mb-2">fixify-csrf-token</h3>
+                <h3 className="font-semibold text-ink mb-2">feasy-csrf-token</h3>
                 <div className="text-sm text-line space-y-2">
                   <p><strong>Purpose:</strong> CSRF (Cross-Site Request Forgery) protection</p>
                   <p><strong>Type:</strong> Essential (security)</p>
                   <p><strong>Duration:</strong> Session (expires when you close your browser)</p>
-                  <p><strong>Description:</strong> Prevents unauthorized actions by validating that requests originate from Fixify, not malicious third-party sites.</p>
+                  <p><strong>Description:</strong> Prevents unauthorized actions by validating that requests originate from Feasy, not malicious third-party sites.</p>
                 </div>
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function CookiePage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">4. What We Don't Use</h2>
             <p className="text-line">
-              <strong>Fixify does NOT use:</strong>
+              <strong>Feasy does NOT use:</strong>
             </p>
             <ul className="list-disc list-inside text-line space-y-2">
               <li>Advertising cookies or marketing pixels</li>
@@ -156,7 +156,7 @@ export default function CookiePage() {
               <li>Set your browser to prompt before accepting cookies</li>
             </ul>
             <p className="text-line mt-4 text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm">
-              <strong>Note:</strong> Blocking essential cookies may prevent Fixify from functioning properly. 
+              <strong>Note:</strong> Blocking essential cookies may prevent Feasy from functioning properly. 
               We recommend allowing essential cookies for authentication and security.
             </p>
           </section>
@@ -179,7 +179,7 @@ export default function CookiePage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">7. Third-Party Services</h2>
             <p className="text-line">
-              Fixify integrates with the following third-party services that may use cookies:
+              Feasy integrates with the following third-party services that may use cookies:
             </p>
             <ul className="list-disc list-inside text-line space-y-2">
               <li><strong>Supabase:</strong> Authentication and database service. See <a href="https://supabase.com/privacy" className="text-teal underline">Supabase Privacy Policy</a></li>
@@ -194,7 +194,7 @@ export default function CookiePage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">8. Do Not Track</h2>
             <p className="text-line">
-              Some browsers include a "Do Not Track" (DNT) feature. Fixify respects DNT signals and does not use behavioral tracking or profiling cookies.
+              Some browsers include a "Do Not Track" (DNT) feature. Feasy respects DNT signals and does not use behavioral tracking or profiling cookies.
             </p>
           </section>
 
@@ -202,7 +202,7 @@ export default function CookiePage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">9. Changes to This Policy</h2>
             <p className="text-line">
-              Fixify may update this cookie policy from time to time. The most current version will be posted to this page.
+              Feasy may update this cookie policy from time to time. The most current version will be posted to this page.
             </p>
           </section>
 
@@ -211,8 +211,8 @@ export default function CookiePage() {
             <h2 className="text-2xl font-bold text-ink mb-3">10. Contact Us</h2>
             <p className="text-line">
               If you have questions about this cookie policy, contact us at{' '}
-              <a href="mailto:privacy@fixify.com" className="text-teal underline">
-                privacy@fixify.com
+              <a href="mailto:privacy@feasy.com" className="text-teal underline">
+                privacy@feasy.com
               </a>
             </p>
           </section>
@@ -227,8 +227,8 @@ export default function CookiePage() {
             <p className="text-line font-semibold mt-3">
               Legal Review Team<br />
               Email:{' '}
-              <a href="mailto:legal@fixify.com" className="text-teal underline">
-                legal@fixify.com
+              <a href="mailto:legal@feasy.com" className="text-teal underline">
+                legal@feasy.com
               </a>
             </p>
             <p className="text-line mt-3 text-sm text-line/80">

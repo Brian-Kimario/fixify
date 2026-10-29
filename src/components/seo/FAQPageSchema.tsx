@@ -2,7 +2,7 @@ export function FAQPageSchema() {
   const faqs = [
     {
       question: "Do I need to know which service I need?",
-      answer: "No. You can describe the problem in your own words first. Fixify can help structure the request before a service category is confirmed.",
+      answer: "No. You can describe the problem in your own words first. Feasy can help structure the request before a service category is confirmed.",
     },
     {
       question: "What happens when inspection finds extra work?",

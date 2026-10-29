@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Fixify Automated Full-System Audit Crawler
+ * Feasy Automated Full-System Audit Crawler
  * Captures visual screenshots, clean DOM structures, console errors,
- * and network failures across all Fixify routes for ChatGPT/Codex audit.
+ * and network failures across all Feasy routes for ChatGPT/Codex audit.
  */
 
 import { chromium } from 'playwright';
@@ -65,7 +65,7 @@ function cleanDom(html) {
 
 async function runAudit() {
   console.log(`\n======================================================`);
-  console.log(`🚀 Starting Fixify Full-System Audit Crawler`);
+  console.log(`🚀 Starting Feasy Full-System Audit Crawler`);
   console.log(`🌐 Target: ${TARGET_URL}`);
   console.log(`📁 Output: ${OUTPUT_DIR}`);
   console.log(`======================================================\n`);
@@ -192,7 +192,7 @@ async function runAudit() {
   );
 
   // Generate a consolidated single text summary for ChatGPT
-  let promptContext = `# FIXIFY DEPLOYMENT AUDIT DATA DUMP\n\n`;
+  let promptContext = `# FEASY DEPLOYMENT AUDIT DATA DUMP\n\n`;
   promptContext += `- **Target URL:** ${TARGET_URL}\n`;
   promptContext += `- **Audit Date:** ${manifest.timestamp}\n`;
   promptContext += `- **Routes Captured:** ${manifest.routesAudited.length}\n`;

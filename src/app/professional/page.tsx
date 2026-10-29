@@ -8,7 +8,7 @@ import { RequestCardActions } from '@/components/professional/RequestCardActions
 import { ActiveJobProgressRail } from '@/components/professional/ActiveJobProgressRail';
 import Link from 'next/link';
 
-export const metadata = { title: 'Professional Dashboard — Fixify' };
+export const metadata = { title: 'Professional Dashboard — Feasy' };
 
 export default async function ProfessionalDashboard() {
   return (

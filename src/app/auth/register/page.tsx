@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { RegisterPageClient } from '@/components/pages/RegisterPageClient';
 
 export const metadata: Metadata = {
-  title: 'Create Account | Fixify',
-  description: 'Sign up as a customer to start requesting property maintenance services on Fixify',
+  title: 'Create Account | Feasy',
+  description: 'Sign up as a customer to start requesting property maintenance services on Feasy',
   robots: {
     index: false,
     follow: false,

@@ -9,9 +9,9 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Fixify — Property Maintenance, Made Simple",
+  title: "Feasy — Property Maintenance, Made Simple",
   description:
-    "Connect with verified professionals for plumbing, electrical, handyman and other property maintenance services. Describe your problem and let Fixify handle the rest.",
+    "Connect with verified professionals for plumbing, electrical, handyman and other property maintenance services. Describe your problem and let Feasy handle the rest.",
   keywords: [
     "property maintenance",
     "home repairs",
@@ -22,24 +22,24 @@ export const metadata: Metadata = {
     "handyman",
   ],
   openGraph: {
-    title: "Fixify — Property Maintenance, Made Simple",
+    title: "Feasy — Property Maintenance, Made Simple",
     description: "Connect with verified professionals for property maintenance services",
     url: siteUrl,
     type: "website",
-    locale: "en_US",
+    locale: "en_IN",
     images: [
       {
         url: "/og-image-1200x630.png",
         width: 1200,
         height: 630,
-        alt: "Fixify property maintenance marketplace",
+        alt: "Feasy property maintenance marketplace",
         type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fixify — Property Maintenance, Made Simple",
+    title: "Feasy — Property Maintenance, Made Simple",
     description: "Connect with verified professionals for property maintenance services",
     images: ["/og-image-1200x630.png"],
   },
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/brand/fixify-logo.svg", type: "image/svg+xml" },
+      { url: "/brand/feasy-logo.svg", type: "image/svg+xml" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180" },

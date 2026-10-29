@@ -3,19 +3,19 @@ import { Metadata } from 'next';
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fixify.vercel.app";
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Fixify',
-  description: 'How Fixify collects, uses, and protects your data',
+  title: 'Privacy Policy | Feasy',
+  description: 'How Feasy collects, uses, and protects your data',
   openGraph: {
-    title: 'Privacy Policy | Fixify',
-    description: 'Fixify Privacy Policy',
+    title: 'Privacy Policy | Feasy',
+    description: 'Feasy Privacy Policy',
     url: `${siteUrl}/privacy`,
     type: 'website',
     images: [{ url: "/og-image-1200x630.png", width: 1200, height: 630, alt: "Privacy" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: 'Privacy Policy | Fixify',
-    description: 'Fixify Privacy Policy',
+    title: 'Privacy Policy | Feasy',
+    description: 'Feasy Privacy Policy',
     images: ["/og-image-1200x630.png"],
   },
   alternates: {
@@ -50,8 +50,8 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">1. Introduction</h2>
             <p className="text-line">
-              Fixify ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, 
-              use, disclose, and otherwise process personal data in connection with the Fixify marketplace platform.
+              Feasy ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, 
+              use, disclose, and otherwise process personal data in connection with the Feasy marketplace platform.
             </p>
           </section>
 
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
             
             <h3 className="text-xl font-semibold text-ink mb-2">2.1 Account Information</h3>
             <p className="text-line">
-              When you create a Fixify account, we collect:
+              When you create a Feasy account, we collect:
             </p>
             <ul className="list-disc list-inside text-line space-y-2">
               <li>Full name</li>
@@ -142,7 +142,7 @@ export default function PrivacyPage() {
               <li>Payment and payout history</li>
             </ul>
 
-            <p className="text-line mt-4"><strong>Fixify admins can see:</strong></p>
+            <p className="text-line mt-4"><strong>Feasy admins can see:</strong></p>
             <ul className="list-disc list-inside text-line space-y-2">
               <li>Operational and audit data (with proper access controls)</li>
               <li>Verification submissions and audit trails</li>
@@ -154,17 +154,17 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-2xl font-bold text-ink mb-3">5. Cookies and Session Tracking</h2>
             <p className="text-line">
-              Fixify uses the following cookies and session technologies:
+              Feasy uses the following cookies and session technologies:
             </p>
             <ul className="list-disc list-inside text-line space-y-2">
               <li><code>sb-access-token</code> — Supabase authentication session (expires per session)</li>
               <li><code>sb-refresh-token</code> — Supabase token refresh (persistent)</li>
-              <li><code>fixify-session-id</code> — Application session identifier</li>
-              <li><code>fixify-session-metadata</code> — Session metadata</li>
-              <li><code>fixify-csrf-token</code> — CSRF protection token</li>
+              <li><code>feasy-session-id</code> — Application session identifier</li>
+              <li><code>feasy-session-metadata</code> — Session metadata</li>
+              <li><code>feasy-csrf-token</code> — CSRF protection token</li>
             </ul>
             <p className="text-line mt-4">
-              <strong>Fixify does NOT use:</strong> advertising cookies, marketing pixels, behavioral tracking, 
+              <strong>Feasy does NOT use:</strong> advertising cookies, marketing pixels, behavioral tracking, 
               or third-party analytics services.
             </p>
           </section>
@@ -190,7 +190,7 @@ export default function PrivacyPage() {
             <h2 className="text-2xl font-bold text-ink mb-3">7. Your Privacy Rights</h2>
             <p className="text-line">You have the right to:</p>
             <ul className="list-disc list-inside text-line space-y-2">
-              <li>Access your personal data held by Fixify</li>
+              <li>Access your personal data held by Feasy</li>
               <li>Request correction of inaccurate data</li>
               <li>Request deletion of your data (where legally permissible)</li>
               <li>Request restriction of processing</li>
@@ -198,8 +198,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="text-line mt-4">
               To exercise these rights, contact us at{' '}
-              <a href="mailto:privacy@fixify.com" className="text-teal underline">
-                privacy@fixify.com
+              <a href="mailto:privacy@feasy.com" className="text-teal underline">
+                privacy@feasy.com
               </a>
             </p>
           </section>
@@ -235,8 +235,8 @@ export default function PrivacyPage() {
             <p className="text-line font-semibold">
               Privacy Team<br />
               Email:{' '}
-              <a href="mailto:privacy@fixify.com" className="text-teal underline">
-                privacy@fixify.com
+              <a href="mailto:privacy@feasy.com" className="text-teal underline">
+                privacy@feasy.com
               </a>
             </p>
           </section>
@@ -251,8 +251,8 @@ export default function PrivacyPage() {
             <p className="text-line font-semibold mt-3">
               Legal Review Team<br />
               Email:{' '}
-              <a href="mailto:legal@fixify.com" className="text-teal underline">
-                legal@fixify.com
+              <a href="mailto:legal@feasy.com" className="text-teal underline">
+                legal@feasy.com
               </a>
             </p>
             <p className="text-line mt-3 text-sm text-line/80">

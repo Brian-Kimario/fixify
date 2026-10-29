@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   Fixify UI Component Library — barrel export
+   Feasy UI Component Library — barrel export
    Phase 7: Design System Consolidated
 ───────────────────────────────────────────────────────────────────────────── */
 
