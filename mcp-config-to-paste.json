@@ -16,7 +16,7 @@
     "21st": {
       "url": "https://21st.dev/api/mcp",
       "headers": {
-        "x-api-key": "21st_sk_6062c1a9eddfee43d6b31f43f475ff3c6eca0179ecc59be3dad71682fe59f61e"
+        "x-api-key": "<set-in-local-env>"
       }
     },
     "shadcn": {

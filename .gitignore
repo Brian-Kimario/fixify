@@ -85,3 +85,4 @@ supabase/seed.sql.local
 # Vercel CLI
 .vercel/
 .vercel
+mcp-config-to-paste.json
