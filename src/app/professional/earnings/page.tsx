@@ -36,16 +36,6 @@ export default async function EarningsPage() {
 
   return (
     <div className="pb-24 md:pb-12 px-4 md:px-6 max-w-6xl mx-auto space-y-8">
-      {/* Back Link */}
-      <div>
-        <Link
-          href="/professional"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5A6661] hover:text-[#176B5B] transition-colors"
-        >
-          ← Back to Operations Dashboard
-        </Link>
-      </div>
-
       {/* Header */}
       <div>
         <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-2">

@@ -54,7 +54,7 @@ export default async function ProfessionalProfilePage() {
                   <h1 className="font-display font-bold text-3xl text-ink mb-2">
                     {proProfile?.display_name || profile?.full_name || 'Your Profile'}
                   </h1>
-                  <p className="text-line">
+                  <p className="text-ink-3">
                     {isVerified ? 'Verified professional' : 'Verification pending'}
                     {proProfile?.years_experience ? ` · ${proProfile.years_experience} yrs experience` : ''}
                   </p>
@@ -72,7 +72,7 @@ export default async function ProfessionalProfilePage() {
           <Card>
             <div className="space-y-4">
               <h2 className="font-display font-bold text-xl text-ink">About</h2>
-              <p className="text-line leading-relaxed">
+              <p className="text-ink-3 leading-relaxed">
                 {bio ||
                   'Add a short bio so customers know your experience before you arrive.'}
               </p>
@@ -86,7 +86,7 @@ export default async function ProfessionalProfilePage() {
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   {skills.length === 0 && (
-                    <p className="text-line text-sm">No skills added yet.</p>
+                    <p className="text-ink-3 text-sm">No skills added yet.</p>
                   )}
                   {skills.map((name) => (
                     <span
@@ -97,7 +97,7 @@ export default async function ProfessionalProfilePage() {
                     </span>
                   ))}
                 </div>
-                <p className="text-line text-sm">
+                <p className="text-ink-3 text-sm">
                   The skills you add decide which jobs are assigned to you.
                 </p>
               </div>
@@ -113,18 +113,18 @@ export default async function ProfessionalProfilePage() {
               <h3 className="font-display font-bold text-lg text-ink">Profile Stats</h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-line text-sm">Rating</p>
+                  <p className="text-ink-3 text-sm">Rating</p>
                   {completedJobs > 0 && rating > 0 ? (
                     <p className="text-ink font-bold text-xl mt-1">{rating.toFixed(1)} ★</p>
                   ) : (
-                    <p className="text-line text-sm mt-1">No ratings yet</p>
+                    <p className="text-ink-3 text-sm mt-1">No ratings yet</p>
                   )}
                 </div>
                 <div className="border-t border-line pt-3">
-                  <p className="text-line text-sm">Jobs Completed</p>
+                  <p className="text-ink-3 text-sm">Jobs Completed</p>
                   <p className="text-ink font-bold text-xl mt-1">{completedJobs}</p>
                 </div>
-                <p className="text-line text-xs border-t border-line pt-3">
+                <p className="text-ink-3 text-xs border-t border-line pt-3">
                   Earnings are on the{' '}
                   <Link href="/professional/earnings" className="text-teal hover:text-teal-deep">
                     Earnings page
@@ -141,11 +141,11 @@ export default async function ProfessionalProfilePage() {
               <h3 className="font-display font-bold text-lg text-ink">Contact Info</h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-line text-sm">Email</p>
+                  <p className="text-ink-3 text-sm">Email</p>
                   <p className="text-ink text-sm break-all">{user?.email}</p>
                 </div>
                 <div className="border-t border-line pt-3">
-                  <p className="text-line text-sm">Phone</p>
+                  <p className="text-ink-3 text-sm">Phone</p>
                   <p className="text-ink text-sm">{profile?.phone || 'Not set'}</p>
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default async function ProfessionalProfilePage() {
             <Card className="bg-teal-soft border-teal/30">
               <div className="space-y-3">
                 <h3 className="font-display font-bold text-lg text-ink">Verify Your Profile</h3>
-                <p className="text-line text-sm">
+                <p className="text-ink-3 text-sm">
                   You need to be verified before you can accept jobs.
                 </p>
                 <Link

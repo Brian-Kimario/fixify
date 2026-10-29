@@ -96,7 +96,7 @@ export function EditProfessionalProfileForm({
               placeholder="+91 98765 43210"
               className="mt-2"
             />
-            <p className="text-line text-xs mt-2">Shared with customers once a job is accepted.</p>
+            <p className="text-ink-3 text-xs mt-2">Shared with customers once a job is accepted.</p>
           </div>
         </div>
       </Card>
@@ -116,7 +116,7 @@ export function EditProfessionalProfileForm({
               maxLength={500}
               className="mt-2"
             />
-            <p className="text-line text-xs mt-2">{form.bio.length} / 500 characters</p>
+            <p className="text-ink-3 text-xs mt-2">{form.bio.length} / 500 characters</p>
           </div>
           <div>
             <Label htmlFor="yearsExperience">Years of experience</Label>
@@ -134,7 +134,7 @@ export function EditProfessionalProfileForm({
           </div>
           <fieldset>
             <legend className="text-sm font-medium text-ink">Skills</legend>
-            <p className="text-line text-xs mt-1 mb-3">Select every category you can take jobs in.</p>
+            <p className="text-ink-3 text-xs mt-1 mb-3">Select every category you can take jobs in.</p>
             <div className="flex flex-wrap gap-2">
               {categories.map((c) => {
                 const selected = form.categoryIds.includes(c.id);

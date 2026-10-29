@@ -37,7 +37,7 @@ export default async function EditProfessionalProfilePage() {
       <div className="space-y-8">
         <div>
           <h1 className="font-display font-bold text-3xl text-ink mb-2">Edit Your Profile</h1>
-          <p className="text-line">
+          <p className="text-ink-3">
             Your skills decide which bookings can be assigned to you.
           </p>
         </div>

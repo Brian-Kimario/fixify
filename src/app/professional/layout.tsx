@@ -3,6 +3,7 @@ import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { SignOutMenu } from '@/components/shared/SignOutMenu';
+import { TopNavLinks, BottomNavLinks } from '@/components/shared/AppNavLinks';
 import { Symbol } from '@/components/brand/Symbol';
 
 export const metadata: Metadata = {
@@ -17,6 +18,13 @@ export const metadata: Metadata = {
 interface ProLayoutProps {
   children: React.ReactNode;
 }
+
+const NAV_ITEMS = [
+  { href: '/professional', label: 'Today', exact: true, icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg> },
+  { href: '/professional/jobs', label: 'Jobs', icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2"/></svg> },
+  { href: '/professional/earnings', label: 'Earnings', icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9 12h6"/></svg> },
+  { href: '/professional/profile', label: 'Profile', bottomOnly: true, icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><circle cx="12" cy="8" r="3"/><path d="M5 20c1.2-3.5 3.5-5 7-5s5.8 1.5 7 5"/></svg> },
+] as const;
 
 export default async function ProLayout({ children }: ProLayoutProps) {
   const user = await getCurrentUser();
@@ -43,11 +51,7 @@ export default async function ProLayout({ children }: ProLayoutProps) {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            <Link href="/professional" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Today</Link>
-            <Link href="/professional/jobs" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Jobs</Link>
-            <Link href="/professional/earnings" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Earnings</Link>
-          </nav>
+          <TopNavLinks items={NAV_ITEMS} />
 
           {/* Profile Section (Desktop only) */}
           <div className="hidden md:flex items-center gap-3 flex-shrink-0">
@@ -67,32 +71,7 @@ export default async function ProLayout({ children }: ProLayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFEFA] border-t border-[#D9DED8] flex items-center justify-around h-20">
-        <Link href="/professional" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>
-          </svg>
-          <span className="text-xs font-semibold">Today</span>
-        </Link>
-        <Link href="/professional/jobs" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <path d="m4 10 8-6 8 6v9H4zM9 19v-5h6v5"/>
-          </svg>
-          <span className="text-xs font-semibold">Jobs</span>
-        </Link>
-        <Link href="/professional/earnings" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <circle cx="12" cy="12" r="8"/><path d="M12 8v8M9 12h6"/>
-          </svg>
-          <span className="text-xs font-semibold">Earnings</span>
-        </Link>
-        <Link href="/professional/profile" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <circle cx="12" cy="8" r="3"/><path d="M5 20c1.2-3.5 3.5-5 7-5s5.8 1.5 7 5"/>
-          </svg>
-          <span className="text-xs font-semibold">Profile</span>
-        </Link>
-      </nav>
+      <BottomNavLinks items={NAV_ITEMS} />
     </div>
   );
 }

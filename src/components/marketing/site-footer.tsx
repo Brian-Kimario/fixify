@@ -30,8 +30,8 @@ export function SiteFooter() {
           {/* Product Column */}
           <div>
             <p className="foot-title">PRODUCT</p>
-            <Link href="/">How it works</Link>
-            <Link href="/">Find services</Link>
+            <Link href="/#how">How it works</Link>
+            <Link href="/#services">Find services</Link>
             <Link href="/professional">For professionals</Link>
             <Link href="/customer">Get started</Link>
           </div>
@@ -39,7 +39,7 @@ export function SiteFooter() {
           {/* Support & Legal Column */}
           <div>
             <p className="foot-title">SUPPORT</p>
-            <Link href="/">Contact us</Link>
+            <Link href="/contact">Contact us</Link>
             <a href="mailto:support@feasy.com">Email support</a>
             <Link href="/terms">Terms of Service</Link>
             <Link href="/privacy">Privacy Policy</Link>

@@ -28,42 +28,43 @@ const LAST_UPDATED = 'October 4, 2026';
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="bg-porcelain">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-ink mb-2">Terms of Service</h1>
-          <p className="text-line">Last updated: {LAST_UPDATED}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-3 mb-3">Legal</p>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-ink mb-3">Terms of Service</h1>
+          <p className="text-ink-3">Last updated: {LAST_UPDATED}</p>
         </div>
 
         {/* Provisional Notice */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8">
-          <p className="text-sm text-amber-900">
-            ⚠️ <strong>This policy is provisional</strong> and marked for legal review. 
+        <div className="bg-ochre-soft border border-ochre/30 rounded-xl p-4 mb-10">
+          <p className="text-sm text-ink-2">
+            <strong>This policy is provisional</strong> and marked for legal review. 
             It will be reviewed and updated by a qualified legal professional before production deployment.
           </p>
         </div>
 
         {/* Content */}
-        <div className="prose prose-sm max-w-none space-y-6">
+        <div className="max-w-none space-y-8 text-[15px] leading-7 [&_p]:mb-3 [&_ul]:ml-1 [&_a]:text-teal [&_a]:underline [&_a:hover]:text-teal-deep">
           {/* Section 1 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">1. Feasy's Role as a Marketplace</h2>
-            <p className="text-line">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">1. Feasy's Role as a Marketplace</h2>
+            <p className="text-ink-3">
               Feasy is a digital marketplace platform that connects customers with independent service professionals. 
               Feasy does not directly perform services, provide labor, or employ service professionals. 
               Instead, Feasy facilitates transactions between customers and professionals who operate as independent contractors.
             </p>
-            <p className="text-line">
+            <p className="text-ink-3">
               When you use Feasy, you are entering into agreements directly with service professionals, not with Feasy.
             </p>
           </section>
 
           {/* Section 2 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">2. Customer Responsibilities</h2>
-            <p className="text-line">As a customer using Feasy, you agree to:</p>
-            <ul className="list-disc list-inside text-line space-y-2">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">2. Customer Responsibilities</h2>
+            <p className="text-ink-3">As a customer using Feasy, you agree to:</p>
+            <ul className="list-disc list-inside text-ink-3 space-y-2">
               <li>Provide accurate, complete, and truthful information in service requests</li>
               <li>Describe services needed with sufficient detail for professionals to provide accurate quotes</li>
               <li>Disclose any hazards, obstacles, or property access limitations</li>
@@ -76,9 +77,9 @@ export default function TermsPage() {
 
           {/* Section 3 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">3. Professional Responsibilities</h2>
-            <p className="text-line">Service professionals using Feasy agree to:</p>
-            <ul className="list-disc list-inside text-line space-y-2">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">3. Professional Responsibilities</h2>
+            <p className="text-ink-3">Service professionals using Feasy agree to:</p>
+            <ul className="list-disc list-inside text-ink-3 space-y-2">
               <li>Provide truthful information about qualifications, licenses, and experience</li>
               <li>Perform services in a professional and workmanlike manner</li>
               <li>Comply with all applicable federal, state, and local laws</li>
@@ -90,9 +91,9 @@ export default function TermsPage() {
 
           {/* Section 4 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">4. Service Lifecycle</h2>
-            <p className="text-line">Typical service requests follow this process:</p>
-            <ol className="list-decimal list-inside text-line space-y-2">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">4. Service Lifecycle</h2>
+            <p className="text-ink-3">Typical service requests follow this process:</p>
+            <ol className="list-decimal list-inside text-ink-3 space-y-2">
               <li><strong>Request:</strong> Customer submits a service request with details and photos</li>
               <li><strong>Quote:</strong> Professional provides an estimate for the work</li>
               <li><strong>Approval:</strong> Customer reviews and approves the quote</li>
@@ -104,12 +105,12 @@ export default function TermsPage() {
 
           {/* Section 5 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">5. Cancellation and Refunds</h2>
-            <p className="text-line">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">5. Cancellation and Refunds</h2>
+            <p className="text-ink-3">
               Our refund policy is detailed in the <Link href="/refund-policy" className="text-teal underline">Refund Policy</Link>. 
               Briefly:
             </p>
-            <ul className="list-disc list-inside text-line space-y-2">
+            <ul className="list-disc list-inside text-ink-3 space-y-2">
               <li>Cancel before professional acceptance: 100% refund</li>
               <li>Cancel after acceptance, before work starts: 100% refund</li>
               <li>Work already in progress: case-by-case review for refunds</li>
@@ -118,11 +119,11 @@ export default function TermsPage() {
 
           {/* Section 6 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">6. Liability and Warranties</h2>
-            <p className="text-line text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">6. Liability and Warranties</h2>
+            <p className="text-ink-3 text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm">
               <strong>[PROVISIONAL — Pending Legal Review]</strong> This section requires review by a qualified legal professional.
             </p>
-            <p className="text-line">
+            <p className="text-ink-3">
               Feasy facilitates marketplace interactions but does not directly perform services. 
               Responsibility for the quality, workmanship, and outcomes of services rests solely with the service professional. 
               Customers should verify professional credentials and qualifications before engaging services.
@@ -131,22 +132,22 @@ export default function TermsPage() {
 
           {/* Section 7 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">7. Governing Law</h2>
-            <p className="text-line text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm mb-3">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">7. Governing Law</h2>
+            <p className="text-ink-3 text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm mb-3">
               <strong>[PROVISIONAL — Pending Legal Review]</strong> Jurisdiction to be confirmed based on company registration.
             </p>
-            <p className="text-line">
+            <p className="text-ink-3">
               These terms are governed by the laws of <strong>India</strong>, without regard to conflicts of law principles.
             </p>
           </section>
 
           {/* Section 8 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">8. Dispute Resolution</h2>
-            <p className="text-line text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">8. Dispute Resolution</h2>
+            <p className="text-ink-3 text-amber-900 bg-amber-50 p-3 rounded border border-amber-200 text-sm">
               <strong>[PROVISIONAL — Pending Legal Review]</strong> Detailed dispute resolution procedures to be added.
             </p>
-            <p className="text-line">
+            <p className="text-ink-3">
               If a dispute arises between a customer and professional, Feasy may assist with mediation. 
               Unresolved disputes may be pursued through applicable legal channels.
             </p>
@@ -154,8 +155,8 @@ export default function TermsPage() {
 
           {/* Section 9 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">9. Professional Verification</h2>
-            <p className="text-line">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">9. Professional Verification</h2>
+            <p className="text-ink-3">
               Feasy maintains a verification program for service professionals. Verification is not a guarantee of competence 
               but indicates that professionals have submitted identity documentation and background information. 
               Customers should still verify credentials and qualifications independently.
@@ -164,8 +165,8 @@ export default function TermsPage() {
 
           {/* Section 10 */}
           <section>
-            <h2 className="text-2xl font-bold text-ink mb-3">10. Changes to These Terms</h2>
-            <p className="text-line">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">10. Changes to These Terms</h2>
+            <p className="text-ink-3">
               Feasy reserves the right to modify these terms at any time. Changes will be effective when posted. 
               Continued use of the platform after changes are posted constitutes acceptance of the new terms.
             </p>
@@ -173,8 +174,8 @@ export default function TermsPage() {
 
           {/* Contact */}
           <section className="border-t border-line pt-6 mt-8">
-            <h2 className="text-2xl font-bold text-ink mb-3">Questions?</h2>
-            <p className="text-line">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">Questions?</h2>
+            <p className="text-ink-3">
               If you have questions about these terms, please contact us at{' '}
               <a href="mailto:support@feasy.com" className="text-teal underline">
                 support@feasy.com
@@ -184,28 +185,28 @@ export default function TermsPage() {
 
           {/* Legal Review */}
           <section className="border-t border-line pt-6 mt-8">
-            <h2 className="text-2xl font-bold text-ink mb-3">Legal Review and Feedback</h2>
-            <p className="text-line">
+            <h2 className="text-xl font-semibold tracking-tight text-ink mb-3 pt-6 border-t border-line">Legal Review and Feedback</h2>
+            <p className="text-ink-3">
               These terms are provisional and will be formally reviewed by legal counsel before production deployment. 
               If you have feedback regarding these terms or believe there are errors or omissions, please contact:
             </p>
-            <p className="text-line font-semibold mt-3">
+            <p className="text-ink-3 font-semibold mt-3">
               Legal Review Team<br />
               Email:{' '}
               <a href="mailto:legal@feasy.com" className="text-teal underline">
                 legal@feasy.com
               </a>
             </p>
-            <p className="text-line mt-3 text-sm text-line/80">
+            <p className="text-ink-3 mt-3 text-sm text-ink-3/80">
               Subject line: "Terms of Service Review — [Your Concern]"
             </p>
           </section>
         </div>
 
         {/* Footer Notice */}
-        <div className="mt-12 pt-8 border-t border-line/20 text-sm text-line text-center">
+        <div className="mt-12 pt-8 border-t border-line/20 text-sm text-ink-3 text-center">
           <p>This page was last updated on {LAST_UPDATED}</p>
-          <p className="text-xs text-line/60 mt-2">
+          <p className="text-xs text-ink-3/60 mt-2">
             Status: Provisional and marked for legal review
           </p>
         </div>

@@ -46,7 +46,7 @@ export function BidForm({ jobId, jobTitle, budget }: BidFormProps) {
           <div className="text-4xl">✓</div>
           <div>
             <h3 className="font-display font-bold text-ink mb-2">Bid Submitted!</h3>
-            <p className="text-line text-sm">
+            <p className="text-ink-3 text-sm">
               Your proposal has been sent to the customer. They will review and respond soon.
             </p>
           </div>
@@ -84,7 +84,7 @@ export function BidForm({ jobId, jobTitle, budget }: BidFormProps) {
               placeholder="0.00"
             />
           </div>
-          <p className="text-line text-xs mt-1">
+          <p className="text-ink-3 text-xs mt-1">
             Budget: ${budget} | {bidAmount > budget ? 'Above' : bidAmount < budget ? 'Below' : 'At'} budget
           </p>
         </div>
@@ -117,7 +117,7 @@ export function BidForm({ jobId, jobTitle, budget }: BidFormProps) {
             rows={5}
             className="mt-2"
           />
-          <p className="text-line text-xs mt-1">
+          <p className="text-ink-3 text-xs mt-1">
             {proposal.length} / 500 characters
           </p>
         </div>
@@ -134,7 +134,7 @@ export function BidForm({ jobId, jobTitle, budget }: BidFormProps) {
         </Button>
 
         {/* Terms */}
-        <p className="text-line text-xs text-center">
+        <p className="text-ink-3 text-xs text-center">
           By submitting, you agree to Feasy's terms of service
         </p>
       </form>

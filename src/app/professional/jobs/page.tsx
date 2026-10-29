@@ -1,6 +1,5 @@
 import { getProfessionalJobs } from '@/app/professional/actions';
 import { JobsFilterClient } from '@/components/professional/JobsFilterClient';
-import Link from 'next/link';
 
 export const metadata = {
   title: 'My Jobs — Feasy Professional',
@@ -33,12 +32,6 @@ export default async function JobsPage() {
           </p>
         </div>
 
-        <Link
-          href="/professional"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#176B5B] hover:underline self-start sm:self-auto"
-        >
-          ← Back to Operations Board
-        </Link>
       </div>
 
       {/* Error banner */}
