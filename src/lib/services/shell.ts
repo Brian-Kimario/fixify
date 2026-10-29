@@ -452,3 +452,21 @@ export async function getProfessionalCompletedSince(userId: string, since: Date)
 
   return { completedCount: data?.length ?? 0, jobValue, since: since.toISOString(), error: false };
 }
+
+/**
+ * All-time completed jobs, counted from `jobs`. `professional_profiles.completed_jobs_count`
+ * is not maintained by any trigger, so it is not used.
+ */
+export async function getProfessionalCompletedCount(userId: string): Promise<number | null> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from('jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('professional_id', userId)
+    .in('current_state', ['completed', 'closed']);
+  if (error) {
+    console.error('getProfessionalCompletedCount:', error.message);
+    return null;
+  }
+  return count ?? 0;
+}

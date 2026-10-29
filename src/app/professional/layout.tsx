@@ -1,77 +1,110 @@
 import type { Metadata } from 'next';
-import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { SignOutMenu } from '@/components/shared/SignOutMenu';
-import { TopNavLinks, BottomNavLinks } from '@/components/shared/AppNavLinks';
-import { Symbol } from '@/components/brand/Symbol';
+import { createClient } from '@/lib/supabase/server';
+import { getProfessionalShell } from '@/lib/services/shell';
+import { stateLabel } from '@/lib/jobs/states';
+import { formatSlot, initialsOf, isLiveState, verificationNotice } from '@/lib/shell/rules';
+import { RoleShell } from '@/components/shell/RoleShell';
+import { UserMenu } from '@/components/shell/UserMenu';
+import { NotificationBell, type BellItem } from '@/components/shell/NotificationBell';
+import { ActiveJobChip, ActiveJobStrip, type ActiveJob } from '@/components/shell/ActiveJobChip';
+import { AvailabilitySwitch } from '@/components/shell/AvailabilitySwitch';
+import { VerificationBanner } from '@/components/shell/primitives';
+import type { NavItem } from '@/components/shell/nav';
 
 export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
+  robots: { index: false, follow: false },
   title: 'Professional Dashboard — Feasy',
-  description: 'Manage your professional profile, jobs, bids, and earnings',
+  description: 'Manage your requests, jobs and earnings',
 };
 
-interface ProLayoutProps {
-  children: React.ReactNode;
-}
+export default async function ProLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) redirect('/auth/login');
 
-const NAV_ITEMS = [
-  { href: '/professional', label: 'Today', exact: true, icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg> },
-  { href: '/professional/jobs', label: 'Jobs', icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2"/></svg> },
-  { href: '/professional/earnings', label: 'Earnings', icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9 12h6"/></svg> },
-  { href: '/professional/profile', label: 'Profile', bottomOnly: true, icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65"><circle cx="12" cy="8" r="3"/><path d="M5 20c1.2-3.5 3.5-5 7-5s5.8 1.5 7 5"/></svg> },
-] as const;
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, full_name')
+    .eq('id', user.id)
+    .single();
+  if (!profile || profile.role !== 'professional') redirect('/customer');
 
-export default async function ProLayout({ children }: ProLayoutProps) {
-  const user = await getCurrentUser();
-  const profile = await getCurrentProfile();
+  const shell = await getProfessionalShell(user.id);
+  const displayName =
+    shell.displayName?.trim() || profile.full_name?.trim() || user.email?.split('@')[0] || 'Professional';
 
-  if (!user) redirect('/auth/login');
+  const notice = verificationNotice(shell.verificationStatus, shell.rejectionReason);
+  const locked = notice !== null;
+  const requestCount = locked ? 0 : shell.requests.length;
 
-  if (profile?.role !== 'professional') redirect('/customer');
+  const requestsItem: NavItem = {
+    href: '/professional/requests',
+    label: 'Requests',
+    icon: 'requests',
+    count: requestCount,
+    countLabel: 'waiting',
+    locked,
+  };
+  const topItems: NavItem[] = [
+    { href: '/professional', label: 'Today', icon: 'today', exact: true },
+    requestsItem,
+    { href: '/professional/jobs', label: 'Jobs', icon: 'jobs' },
+    { href: '/professional/earnings', label: 'Earnings', icon: 'earnings' },
+  ];
+  const bottomItems: NavItem[] = [...topItems, { href: '/professional/profile', label: 'Account', icon: 'account' }];
 
-  const displayName = profile?.full_name || user.email?.split('@')[0] || 'Professional';
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  const bellItems: BellItem[] = locked
+    ? []
+    : shell.requests.map((job) => ({
+        id: job.id,
+        href: '/professional/requests',
+        title: `New request · ${job.serviceName}`,
+        detail: formatSlot(job.scheduledStart) ?? 'Time not set',
+        tone: 'clay',
+      }));
+
+  const live = shell.liveJob;
+  const liveCount = shell.upcoming.filter((j) => isLiveState(j.state)).length;
+  const activeJob: ActiveJob | null = live
+    ? {
+        href: `/professional/jobs/${live.id}`,
+        title: live.serviceName,
+        status: stateLabel(live.state),
+        more: Math.max(0, liveCount - 1),
+      }
+    : null;
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC]">
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-[#FFFEFA] border-b border-[#D9DED8]">
-        <div className="flex items-center justify-between px-4 md:px-6 py-3.5 h-16">
-          {/* Logo */}
-          <Link href="/professional" className="inline-flex items-center gap-2 md:gap-2.5 font-bold text-sm md:text-[18px] tracking-[-0.035em] text-[#18211F] flex-shrink-0">
-            <span className="w-[24px] h-[24px] md:w-[29px] md:h-[29px] flex items-center justify-center">
-              <Symbol size="sm" className="w-full h-full" />
-            </span>
-            <span>Feasy</span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <TopNavLinks items={NAV_ITEMS} />
-
-          {/* Account menu */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <SignOutMenu 
-              user={user} 
-              displayName={displayName}
-              initials={initials}
-              role="professional"
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main id="main-content" className="pb-20 md:pb-0 px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto">
-        {children}
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <BottomNavLinks items={NAV_ITEMS} />
-    </div>
+    <RoleShell
+      homeHref="/professional"
+      navLabel="Professional navigation"
+      topItems={topItems}
+      bottomItems={bottomItems}
+      strip={activeJob && <ActiveJobStrip job={activeJob} />}
+      banner={notice && <VerificationBanner notice={notice} />}
+      actions={
+        <>
+          {activeJob && <ActiveJobChip job={activeJob} />}
+          <AvailabilitySwitch initial={shell.isAvailable} lockedReason={notice?.title ?? null} compact />
+          <NotificationBell items={bellItems} emptyText="No requests waiting for you." />
+          <UserMenu
+            displayName={displayName}
+            email={user.email ?? null}
+            initials={initialsOf(displayName)}
+            roleLabel="Professional"
+            links={[
+              { label: 'Profile', href: '/professional/profile' },
+              { label: 'Edit profile', href: '/professional/profile/edit' },
+            ]}
+          />
+        </>
+      }
+    >
+      {children}
+    </RoleShell>
   );
 }

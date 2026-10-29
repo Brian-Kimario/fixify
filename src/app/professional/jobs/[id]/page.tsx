@@ -45,7 +45,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   const scheduledStart = (job.booking as { scheduled_start?: string })?.scheduled_start ?? null;
 
   return (
-    <div className="pb-24 md:pb-8">
+    <div className="pb-24 md:pb-8 px-4 md:px-6 pt-6 md:pt-8 max-w-7xl mx-auto">
       {/* Back link */}
       <div className="mb-6">
         <Link

@@ -7,6 +7,7 @@ import {
   isOfferOpen,
   isPaymentDue,
   isQuoteAwaitingCustomer,
+  propertyTypeLabel,
   isTodayIST,
   startOfDayIST,
   startOfWeekIST,
@@ -146,5 +147,17 @@ describe('bookingStatusDisplay', () => {
       label: 'Awaiting slot',
       tone: 'neutral',
     });
+  });
+});
+
+describe('propertyTypeLabel', () => {
+  it('labels known types', () => {
+    expect(propertyTypeLabel('villa')).toBe('Villa');
+    expect(propertyTypeLabel('apartment')).toBe('Apartment');
+  });
+
+  it('humanises unknown types instead of hiding them', () => {
+    expect(propertyTypeLabel('farm_house')).toBe('Farm house');
+    expect(propertyTypeLabel('')).toBe('Property');
   });
 });

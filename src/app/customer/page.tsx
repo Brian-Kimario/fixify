@@ -35,7 +35,7 @@ import {
 import { getGreeting } from '@/lib/greeting';
 import { formatCurrency } from '@/lib/currency';
 import { STATE_META, isJobState } from '@/lib/jobs/states';
-import { bookingStatusDisplay, formatLongDate, formatSlot } from '@/lib/shell/rules';
+import { bookingStatusDisplay, formatLongDate, formatSlot, propertyTypeLabel } from '@/lib/shell/rules';
 import {
   EmptyState,
   JobProgress,
@@ -65,15 +65,6 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   paintbrush: Paintbrush,
   hammer: Hammer,
   sparkles: Sparkles,
-};
-
-const PROPERTY_TYPE_LABEL: Record<string, string> = {
-  house: 'House',
-  apartment: 'Apartment',
-  office: 'Office',
-  shop: 'Shop',
-  rental: 'Rental',
-  other: 'Other',
 };
 
 const money = (amount: number) => formatCurrency(amount, { minimumFractionDigits: 0 });
@@ -473,7 +464,7 @@ function PropertyList({ properties }: { properties: DashboardProperty[] }) {
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">{p.name}</p>
             <p className="flex items-center gap-1 truncate text-xs text-ink-3">
-              {PROPERTY_TYPE_LABEL[p.propertyType] ?? p.propertyType.charAt(0).toUpperCase() + p.propertyType.slice(1)}
+              {propertyTypeLabel(p.propertyType)}
               {(p.area || p.city) && (
                 <>
                   <MapPin className="ml-1 h-3 w-3 shrink-0" aria-hidden="true" />

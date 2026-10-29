@@ -35,7 +35,7 @@ export default async function EarningsPage() {
   const hasEarnings = ledger.totalEarned > 0 || ledger.recentTransactions.length > 0;
 
   return (
-    <div className="pb-24 md:pb-12 px-4 md:px-6 max-w-6xl mx-auto space-y-8">
+    <div className="pb-24 md:pb-12 px-4 md:px-6 pt-6 md:pt-8 max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div>
         <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-2">

@@ -17,7 +17,7 @@ export default async function JobsPage() {
   }
 
   return (
-    <div className="pb-24 md:pb-12 max-w-6xl mx-auto space-y-6">
+    <div className="pb-24 md:pb-12 px-4 md:px-6 pt-6 md:pt-8 max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

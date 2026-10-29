@@ -253,3 +253,23 @@ export function formatLongDate(now: Date): string {
     timeZone: PLATFORM_TIME_ZONE,
   }).format(now);
 }
+
+/* ── Properties ───────────────────────────────────────────────────────────── */
+
+const PROPERTY_TYPE_LABEL: Record<string, string> = {
+  house: 'House',
+  apartment: 'Apartment',
+  villa: 'Villa',
+  office: 'Office',
+  shop: 'Shop',
+  rental: 'Rental',
+  other: 'Other',
+};
+
+/** Display label for `properties.property_type`; unknown values are humanised, not hidden. */
+export function propertyTypeLabel(type: string): string {
+  const known = PROPERTY_TYPE_LABEL[type];
+  if (known) return known;
+  const words = type.replace(/_/g, ' ').trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Property';
+}
