@@ -282,7 +282,20 @@ Code that depends on the missing objects and is therefore broken today:
   directly with a client-made reference).
 - Verified: SQL rollback tests `supabase/tests/20261030_005_create_booking_rpc.sql` (11/11) and
   `supabase/tests/20261030_006_create_pending_payment.sql` (15/15); live payments still 0 rows.
-  Unit tests for both actions (8 + 5). Not verified end to end: no booking or checkout was
-  submitted from the browser, to avoid writing live rows and offering a job to a professional.
+  Unit tests for both actions (8 + 5).
+- Live booking check: as customer.a, booked Tap & Faucet Repair (fixed, ₹299) through the
+  wizard on the dev server. The row came back as `FS-000005`, `pricing_model fixed`,
+  `quoted_or_base_amount 299.00` (= `services.base_price`), `pending`, no professional (none
+  available, so no job). Deleted afterwards; counts back to 5 bookings / 4 jobs / 0 payments.
+- **Not verified live: checkout.** `RAZORPAY_KEY_SECRET` (and the webhook secret) in
+  `.env.local` are placeholders, so `orders.create` cannot succeed and no pending payment can be
+  recorded from the browser. The only completed job (TEST-001) also has no price, and the
+  page hides the pay section in that case. Covered by the SQL and unit tests only.
+- **Open: pay section ignores approved quotes.** `customer/bookings/[id]/page.tsx` shows
+  checkout only when `bookings.quoted_or_base_amount > 0`, so a `quote_after_inspection` job
+  with an approved quote can never be paid from the UI, although `job_payment_amount` would
+  charge the quote. Fix in Phase 5 by asking `job_payment_amount` instead.
+- **Open: nested `<button>` in `BookingWizard`.** The service card is a `<button>` that contains
+  the option chips (also buttons): React logs a hydration error on the service step.
 - Side effect: each run of the 005 test advances `booking_reference_seq` (sequences are not
   rolled back), leaving gaps in booking references.
