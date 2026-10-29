@@ -22,7 +22,7 @@ Notably, `middleware.ts` is deprecated in favour of `proxy.ts`.
 - `src/app/{customer,professional,admin,support,auth,api}` — role-scoped routes; each has `layout.tsx` guard
 - `src/lib/services/*` — data-access layer; add queries here, not inline in pages
 - `src/lib/supabase/{server,client,admin}.ts` — pick the right client (see below)
-- `src/lib/payments/*` — provider interface + Mock/Razorpay
+- `src/lib/payments/*` — Razorpay order creation (`createUPIIntentPayment`); webhook in `api/webhooks/razorpay`
 - `src/components/ui` — shared primitives, import from `@/components/ui`
 - `supabase/migrations/` — schema, RLS, `transition_job_state()`
 - `docs/` — specs; verify against code, some are stale

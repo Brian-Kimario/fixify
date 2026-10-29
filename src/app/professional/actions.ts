@@ -194,39 +194,6 @@ export async function getServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
 }
 
 /**
- * Transition a job state (accept/decline/complete, etc.)
- * Calls the RPC function that enforces valid state transitions
- * RLS ensures only assigned professional can transition
- */
-export async function transitionJobState(
-  jobId: string,
-  newState: "accepted" | "on_the_way" | "arrived" | "in_progress" | "completed" | "closed"
-) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  // Call RPC function to validate and transition state
-  const { data, error } = await supabase.rpc("transition_job_state", {
-    p_job_id: jobId,
-    p_new_state: newState,
-    p_actor_user_id: user.id,
-  });
-
-  if (error) {
-    throw new Error(`Failed to transition job: ${error.message}`);
-  }
-
-  return data;
-}
-
-/**
  * Get earnings data for the last 6 weeks
  * Calculated from completed jobs and approved quotes/bookings
  */

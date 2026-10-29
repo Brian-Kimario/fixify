@@ -256,3 +256,13 @@ Code that depends on the missing objects and is therefore broken today:
   admin client stays untyped for now; the webhook casts it to `SupabaseClient<Database>`.
 - Minor: `transition_job_state()` sets `closed_at` when a job becomes `completed` or
   `cancelled`, not when it becomes `closed`.
+
+## G. Dead code removed (Phase 0 step 7)
+
+- `src/components/shared/AppNavbar.tsx`: no importers.
+- `src/app/api/payments/create/route.ts` and the provider abstraction (`get-provider.ts`,
+  `provider.ts`, `providers/mock-provider.ts`, `providers/razorpay-provider.ts`): the route had
+  no callers and was the abstraction's only user. Checkout uses `createUPIIntentPayment`.
+- `transitionJobState` in `src/app/professional/actions.ts`: no callers; state changes go
+  through `StateTransitionButtons` and the typed actions.
+- Availability toggle: see section E (direct update guarded by the 20261030_003 trigger).
