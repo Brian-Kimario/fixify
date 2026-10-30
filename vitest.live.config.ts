@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/oauth-e2e.test.ts', 'tests/phase3-state-machine.test.ts'],
+    include: ['tests/oauth-e2e.test.ts', 'tests/phase3-state-machine.test.ts', 'tests/security/r0-live.test.ts'],
     testTimeout: 30000,
   },
   resolve: {
