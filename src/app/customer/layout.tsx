@@ -94,7 +94,7 @@ export default async function CustomerLayout({ children }: { children: React.Rea
               Book a service
             </LinkButton>
           </div>
-          <NotificationBell userId={user.id} items={feed.items} unread={feed.unread} failed={feed.failed} />
+          <NotificationBell items={feed.items} unread={feed.unread} failed={feed.failed} />
           <UserMenu
             displayName={displayName}
             email={user.email ?? null}

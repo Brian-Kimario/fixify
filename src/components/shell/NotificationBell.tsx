@@ -7,7 +7,7 @@ import { Bell, CheckCheck } from 'lucide-react';
 import { Popover } from './Popover';
 import { markAllNotificationsReadAction, markNotificationReadAction } from '@/lib/inapp-notifications/actions';
 import { notificationAge, notificationTarget, type NotificationKind } from '@/lib/inapp-notifications/rules';
-import { useRealtimeRefresh } from '@/lib/realtime/useRealtimeRefresh';
+import { useRouteRefreshPoll } from '@/lib/realtime/useRouteRefreshPoll';
 import { formatSlot } from '@/lib/shell/rules';
 
 export interface BellNotification {
@@ -24,15 +24,13 @@ export interface BellNotification {
 /**
  * The signed-in user's stored notifications. The list and unread count come from the database
  * on every render; marking read goes through server actions that only touch the caller's own
- * rows. Realtime (see useRealtimeRefresh) just asks the route to refetch.
+ * rows. The route is refetched by polling (see useRouteRefreshPoll).
  */
 export function NotificationBell({
-  userId,
   items,
   unread,
   failed,
 }: {
-  userId: string;
   items: BellNotification[];
   /** Total unread, or null if it could not be read. */
   unread: number | null;
@@ -44,11 +42,7 @@ export function NotificationBell({
   // Ids marked read in this browser before the refreshed list arrives, so the badge responds at once.
   const [locallyRead, setLocallyRead] = useState<ReadonlySet<string>>(new Set());
 
-  useRealtimeRefresh({
-    channel: `notifications:${userId}`,
-    table: 'notifications',
-    filter: `user_id=eq.${userId}`,
-  });
+  useRouteRefreshPoll();
 
   // The server list is the truth again as soon as it changes (state adjusted during render, not in an effect).
   const [seen, setSeen] = useState({ items, unread });
@@ -102,6 +96,8 @@ export function NotificationBell({
   return (
     <Popover
       triggerLabel={label}
+      // On a phone the bell is not at the screen edge, so anchoring to it pushes the panel off the left.
+      panelClassName="max-sm:fixed max-sm:inset-x-4 max-sm:top-16 max-sm:w-auto"
       triggerClassName="relative flex h-11 w-11 items-center justify-center rounded-full text-ink-2 transition-colors hover:bg-paper-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       trigger={
         <>
