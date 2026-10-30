@@ -163,3 +163,9 @@ Admin mutating actions through the UI; no-show happy path; pro cancel at `arrive
 **Fixture added:** AUDITR3-R0 booking `468a7afe-947f-4c57-8149-d15deb4c5ad5` / job `d8f11c77-dbde-4eda-9654-b40ee239d6e8` — job cancelled via the RPC, booking set `cancelled` by exact id; retained.
 
 **Staging requirements (no resources provisioned):** a second Supabase project (free tier is enough for synthetic data; Pro if PITR is wanted), all `supabase/migrations/` applied in order, Auth settings mirrored (redirect URLs, leaked-password protection), synthetic users with a fresh password, storage buckets `job-media` with the same size/MIME rules, Razorpay test keys and a staging webhook secret, pg_cron/queue jobs disabled or pointed at staging, Vercel Preview env vars scoped to Preview only, deployment protection on.
+
+### Preview deployment (R0 push)
+- Vercel Authentication enabled for **Preview deployments only** (`ssoProtection.deploymentType = preview`). A first attempt with `all_except_custom_domains` was reverted immediately because Production is served from `fixify-amber.vercel.app`; Production was verified still public (HTTP 200).
+- **The Preview uses the shared Supabase project and the same Razorpay keys as Production** (all env vars are scoped Production + Preview). The owner confirmed the Razorpay keys are test mode. Use synthetic test data only on the Preview.
+- No Vercel crons are defined and the `/api/cron/*` routes fail closed (401) because `CRON_SECRET` is not set in Vercel; the database's pg_cron queue is unchanged by a Preview.
+- Only `audit/preproduction-remediation` is pushed; `main` is untouched and nothing is deployed to Production.
