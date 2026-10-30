@@ -123,7 +123,11 @@ export default async function BookingsPage({
               : 'Follow work in progress, see what’s coming up and look back at past jobs.'}
           </p>
         </div>
-        <LinkButton href={property ? `/customer/bookings/new?propertyId=${property.id}` : '/customer/bookings/new'}>
+        {/* Unscoped, this repeats the header's Book button on desktop; scoped, it pre-selects the property. */}
+        <LinkButton
+          href={property ? `/customer/bookings/new?propertyId=${property.id}` : '/customer/bookings/new'}
+          className={property ? '' : 'md:hidden'}
+        >
           <CalendarPlus className="h-4 w-4" aria-hidden="true" />
           Book a service
         </LinkButton>
@@ -169,7 +173,7 @@ export default async function BookingsPage({
                     href={hrefFor(t)}
                     aria-current={current ? 'page' : undefined}
                     scroll={false}
-                    className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal ${
+                    className={`flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 text-sm font-semibold sm:gap-2 sm:px-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal ${
                       current ? 'bg-paper text-ink shadow-sm' : 'text-ink-3 hover:text-ink'
                     }`}
                   >
@@ -387,17 +391,26 @@ function BookingRow({ booking, showProperty, flat }: { booking: CustomerBooking;
         </span>
         <span className="block truncate font-semibold text-ink">{booking.serviceName}</span>
         <Meta booking={booking} showProperty={showProperty} />
+        <span className="mt-2 flex items-center gap-2 sm:hidden">
+          <StatusPill tone={s.tone}>{s.label}</StatusPill>
+          <RowAmount amount={booking.amount} />
+        </span>
       </span>
-      <span className="flex shrink-0 flex-col items-end gap-1.5">
+      <span className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
         <StatusPill tone={s.tone}>{s.label}</StatusPill>
-        {booking.amount != null && (
-          <span className="text-sm font-semibold tabular-nums text-ink">
-            <span className="sr-only">Booking amount </span>
-            {money(booking.amount)}
-          </span>
-        )}
+        <RowAmount amount={booking.amount} />
       </span>
     </Link>
+  );
+}
+
+function RowAmount({ amount }: { amount: number | null }) {
+  if (amount == null) return null;
+  return (
+    <span className="text-sm font-semibold tabular-nums text-ink">
+      <span className="sr-only">Booking amount </span>
+      {money(amount)}
+    </span>
   );
 }
 

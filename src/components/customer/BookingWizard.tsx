@@ -206,8 +206,16 @@ function StepBar({ current, onJump }: { current: number; onJump: (step: number) 
                   active ? 'text-ink' : done ? 'text-teal group-hover:text-teal-deep' : 'text-ink-4'
                 }`}
               >
-                {done && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
-                <span className="truncate">{label}</span>
+                {done && <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+                {label === 'When & where' ? (
+                  <>
+                    {/* The full label doesn't fit a quarter of a phone screen. */}
+                    <span className="truncate sm:hidden" aria-hidden="true">When</span>
+                    <span className="sr-only sm:not-sr-only sm:truncate">{label}</span>
+                  </>
+                ) : (
+                  <span className="truncate">{label}</span>
+                )}
               </span>
             </button>
           </li>
@@ -771,7 +779,7 @@ function PriceCard({ service }: { service: WizardService }) {
     info.amount != null
       ? {
           icon: IndianRupee,
-          title: `${money(info.amount)} when you book`,
+          title: `Booked at ${money(info.amount)}`,
           body: service.pricing_model === 'fixed' ? 'The price for the job as described.' : 'Covers the visit and diagnosis.',
         }
       : { icon: IndianRupee, title: 'No price yet', body: 'The professional prices the job after seeing it.' },
