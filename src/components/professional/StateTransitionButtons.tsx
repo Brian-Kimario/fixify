@@ -60,6 +60,8 @@ interface Toast {
 interface StateTransitionButtonsProps {
   jobId: string;
   currentState: string;
+  /** Targets that stay disabled until the matching code is verified, with the reason shown under the button. */
+  lockedTargets?: Partial<Record<string, string>>;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -76,6 +78,7 @@ interface StateTransitionButtonsProps {
 export function StateTransitionButtons({
   jobId,
   currentState,
+  lockedTargets = {},
 }: StateTransitionButtonsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -165,7 +168,8 @@ export function StateTransitionButtons({
         {nextStates.map((targetState) => {
           const isCancellation = targetState === 'cancelled';
           const isThisButtonPending = pendingState === targetState;
-          const isAnyPending = isPending || pendingState !== null;
+          const lockedReason = lockedTargets[targetState];
+          const isAnyPending = isPending || pendingState !== null || Boolean(lockedReason);
 
           return (
             <div key={targetState}>
@@ -214,6 +218,7 @@ export function StateTransitionButtons({
                   TRANSITION_LABELS[targetState] ?? targetState
                 )}
               </button>
+              {lockedReason && <p className="text-xs text-ink-3 text-center mt-1">{lockedReason}</p>}
               {isCancellation && !isAnyPending && (
                 <p className="text-xs text-[#7C8681] text-center mt-1">
                   This cannot be undone

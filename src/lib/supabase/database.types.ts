@@ -341,6 +341,130 @@ export type Database = {
           },
         ]
       }
+      job_code_attempts: {
+        Row: {
+          actor_user_id: string | null
+          code_id: string
+          created_at: string
+          id: string
+          job_id: string
+          purpose: string
+          succeeded: boolean
+        }
+        Insert: {
+          actor_user_id?: string | null
+          code_id: string
+          created_at?: string
+          id?: string
+          job_id: string
+          purpose: string
+          succeeded: boolean
+        }
+        Update: {
+          actor_user_id?: string | null
+          code_id?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          purpose?: string
+          succeeded?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_code_attempts_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_code_attempts_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "job_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_code_attempts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_code_secrets: {
+        Row: {
+          id: number
+          pepper: string
+        }
+        Insert: {
+          id: number
+          pepper: string
+        }
+        Update: {
+          id?: number
+          pepper?: string
+        }
+        Relationships: []
+      }
+      job_codes: {
+        Row: {
+          expires_at: string
+          id: string
+          is_reissue: boolean
+          issued_at: string
+          job_id: string
+          locked_at: string | null
+          nonce: string
+          purpose: string
+          status: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          expires_at: string
+          id?: string
+          is_reissue?: boolean
+          issued_at?: string
+          job_id: string
+          locked_at?: string | null
+          nonce: string
+          purpose: string
+          status?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          expires_at?: string
+          id?: string
+          is_reissue?: boolean
+          issued_at?: string
+          job_id?: string
+          locked_at?: string | null
+          nonce?: string
+          purpose?: string
+          status?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_codes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_codes_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_events: {
         Row: {
           actor_user_id: string
@@ -385,6 +509,80 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_exceptions: {
+        Row: {
+          id: string
+          job_id: string
+          kind: string
+          preference: string
+          professional_id: string | null
+          reported_at: string
+          reported_by: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          scheduled_start: string
+          status: string
+        }
+        Insert: {
+          id?: string
+          job_id: string
+          kind: string
+          preference: string
+          professional_id?: string | null
+          reported_at?: string
+          reported_by: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scheduled_start: string
+          status?: string
+        }
+        Update: {
+          id?: string
+          job_id?: string
+          kind?: string
+          preference?: string
+          professional_id?: string | null
+          reported_at?: string
+          reported_by?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scheduled_start?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_exceptions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_exceptions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_exceptions_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_exceptions_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1934,6 +2132,26 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      _issue_job_code: {
+        Args: {
+          p_actor: string
+          p_job_id: string
+          p_purpose: string
+          p_reissue: boolean
+        }
+        Returns: string
+      }
+      _job_code_event: {
+        Args: {
+          p_actor: string
+          p_job_id: string
+          p_metadata: Json
+          p_type: string
+        }
+        Returns: undefined
+      }
+      _job_code_purpose: { Args: { p_state: string }; Returns: string }
+      _job_code_value: { Args: { p_code_id: string }; Returns: string }
       _job_payment_amount: {
         Args: { p_customer: string; p_job_id: string }
         Returns: Record<string, unknown>
@@ -2027,6 +2245,7 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: Json
       }
+      get_job_code_state: { Args: { p_job_id: string }; Returns: Json }
       get_job_customer_contact: {
         Args: { p_job_id: string }
         Returns: {
@@ -2070,6 +2289,7 @@ export type Database = {
       mark_notification_read: { Args: { p_id: string }; Returns: boolean }
       process_assignment_queue: { Args: never; Returns: Json }
       reconcile_notifications: { Args: never; Returns: number }
+      reissue_job_code: { Args: { p_job_id: string }; Returns: Json }
       report_job_eta: {
         Args: {
           p_earliest_minutes: number
@@ -2079,7 +2299,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      report_professional_no_show: {
+        Args: { p_job_id: string; p_preference: string }
+        Returns: Json
+      }
       request_job_media_sweep: { Args: never; Returns: number }
+      resolve_job_exception: {
+        Args: { p_exception_id: string; p_note: string; p_status: string }
+        Returns: undefined
+      }
       respond_to_quote: {
         Args: { p_decision: string; p_quote_id: string; p_reason?: string }
         Returns: boolean
@@ -2116,6 +2344,10 @@ export type Database = {
           p_provider_reference: string
         }
         Returns: string
+      }
+      verify_job_code: {
+        Args: { p_code: string; p_job_id: string; p_purpose: string }
+        Returns: Json
       }
     }
     Enums: {

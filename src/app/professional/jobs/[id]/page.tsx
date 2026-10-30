@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, MapPin, MessageSquare, Phone, User } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { getProfessionalCase } from '@/lib/services/job-case';
+import { getJobCodeState } from '@/lib/services/job-codes';
 import { STATE_META, isJobState } from '@/lib/jobs/states';
 import { formatSlot, offerLocalityLabel, offerPayBasis, propertyTypeLabel } from '@/lib/shell/rules';
 import { PageContainer, Panel, StatusPill } from '@/components/shell/primitives';
@@ -19,6 +20,7 @@ import {
   arrivalWindowText,
 } from '@/components/case/CaseFile';
 import { StateTransitionButtons } from '@/components/professional/StateTransitionButtons';
+import { JobCodeEntry } from '@/components/professional/JobCodeEntry';
 import { RequestCardActions } from '@/components/professional/RequestCardActions';
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
 import { ArrivalWindowForm } from '@/components/professional/ArrivalWindowForm';
@@ -58,6 +60,16 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   if (!kase) notFound();
 
   const { job, booking, contact, property } = kase;
+  // Only the stages that need a code ask for one: the start code on site, the finish code during the work.
+  const codeState = job.state === 'arrived' || job.state === 'in_progress' ? await getJobCodeState(id) : null;
+  const codeVerified = codeState?.status === 'used';
+  const lockedTargets: Partial<Record<string, string>> = codeVerified
+    ? {}
+    : job.state === 'arrived'
+      ? { in_progress: 'Enter the start code from the customer first.' }
+      : job.state === 'in_progress'
+        ? { completed: 'Enter the finish code from the customer first.' }
+        : {};
   const meta = isJobState(job.state) ? STATE_META[job.state] : null;
   const isOffer = job.state === 'assigned';
   const payBasis = offerPayBasis({
@@ -108,7 +120,10 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
               {isOffer ? (
                 <RequestCardActions jobId={job.id} serviceName={kase.serviceName} afterDeclineHref="/professional/requests" />
               ) : ACTIONABLE.has(job.state) ? (
-                <StateTransitionButtons jobId={job.id} currentState={job.state} />
+                <div className="space-y-4">
+                  {codeState && <JobCodeEntry jobId={job.id} state={codeState} />}
+                  <StateTransitionButtons jobId={job.id} currentState={job.state} lockedTargets={lockedTargets} />
+                </div>
               ) : (
                 <p className="text-sm text-ink-3">{paidCopy ?? IDLE_COPY[job.state] ?? 'No actions available.'}</p>
               )}

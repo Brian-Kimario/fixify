@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, CircleCheck, Clock, PartyPopper, SearchX } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { getCustomerCase } from '@/lib/services/job-case';
+import { getJobCodeState, getNoShowReportedAt } from '@/lib/services/job-codes';
+import { noShowEligibility } from '@/lib/job-codes/rules';
 import { toPanelQuote } from '@/lib/quotes/panel';
 import { bookingStatusDisplay, formatSlot, missingProfessional, propertyTypeLabel } from '@/lib/shell/rules';
 import { formatCurrency } from '@/lib/currency';
@@ -21,6 +23,8 @@ import {
 } from '@/components/case/CaseFile';
 import { ProfessionalCard } from '@/components/customer/ProfessionalCard';
 import { QuoteReviewButton } from '@/components/customer/QuoteReviewButton';
+import { JobCodeCard } from '@/components/customer/JobCodeCard';
+import { NoShowReport } from '@/components/customer/NoShowReport';
 import { JobMessages } from '@/components/messages/JobMessages';
 import { UPIIntentCheckout } from '@/components/customer/UPIIntentCheckout';
 
@@ -52,6 +56,18 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
 
   const { booking, service, property, job, professional } = kase;
   const jobState = job?.state ?? null;
+  const codeState =
+    job && ['on_the_way', 'arrived', 'in_progress'].includes(job.state) ? await getJobCodeState(job.id) : null;
+  const noShowReport = job && ['accepted', 'on_the_way'].includes(job.state) ? await getNoShowReportedAt(job.id) : null;
+  const noShow = job
+    ? noShowEligibility({
+        state: job.state,
+        arrivedAt: job.arrivedAt,
+        scheduledStart: booking.scheduledStart,
+        now: new Date(),
+        reported: noShowReport != null,
+      })
+    : null;
   const isOpen = booking.status !== 'cancelled' && booking.status !== 'completed';
   // The matcher only offers bookings whose start is still ahead, so don't promise matching after it.
   const startPassed = new Date(booking.scheduledStart) < new Date();
@@ -230,6 +246,11 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
                 </div>
               </div>
             </Panel>
+          )}
+
+          {job && codeState && <JobCodeCard jobId={job.id} state={codeState} />}
+          {job && (noShow?.status === 'eligible' || noShow?.status === 'already_reported') && (
+            <NoShowReport jobId={job.id} reportedAt={noShowReport?.reportedAt ?? null} />
           )}
 
           {showProfessional && professional && (

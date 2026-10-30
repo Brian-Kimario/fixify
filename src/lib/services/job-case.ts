@@ -310,7 +310,7 @@ export interface CustomerCase extends CaseRecords {
   };
   service: { id: string; name: string; description: string | null; categoryName: string | null } | null;
   property: { id: string; name: string; propertyType: string; address: string | null } | null;
-  job: { id: string; state: string } | null;
+  job: { id: string; state: string; arrivedAt: string | null } | null;
   professional: BookingProfessional | null;
   /** What job_payment_amount says is owed, in paise. Set only while payment is due. */
   amountDuePaise: number | null;
@@ -396,7 +396,7 @@ export async function getCustomerCase(userId: string, bookingId: string): Promis
       propertyType: property.property_type,
       address: address ? [address.address_line_1, address.area, address.city].filter(Boolean).join(', ') : null,
     },
-    job: job && { id: job.id, state: job.current_state },
+    job: job && { id: job.id, state: job.current_state, arrivedAt: job.arrived_at },
     professional,
     amountDuePaise,
     noPayableAmount,

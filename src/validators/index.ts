@@ -7,3 +7,4 @@ export * from './messages';
 export * from './professional';
 export * from './property';
 export * from './professional-profile';
+export * from './job-codes';
