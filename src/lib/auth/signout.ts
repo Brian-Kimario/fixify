@@ -10,6 +10,7 @@
  */
 
 import { createClient as createServerSupabase } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { cookies } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -128,13 +129,17 @@ export async function logSignOutEvent(
   reason: string = 'user_initiated'
 ): Promise<void> {
   try {
-    const supabase = await createServerSupabase();
+    // audit_logs is service-role write only. userId comes from the server-side session in
+    // signOut(); this function must never be called with a client-supplied id.
+    const admin = await createAdminClient();
 
-    await supabase.from('audit_logs').insert({
+    const { error } = await admin.from('audit_logs').insert({
       user_id: userId,
       created_by: userId,
       action: allDevices ? 'logout_all_devices' : 'logout',
-    });
+      changes: { reason },
+    } as never);
+    if (error) throw error;
 
     console.log(`[AuditLog] Logged sign-out event for user ${userId}`);
   } catch (error) {
