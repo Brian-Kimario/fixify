@@ -46,7 +46,8 @@ test.describe('professional job page', () => {
       mimeType: 'text/plain',
       buffer: Buffer.from('not a photo'),
     });
-    await expect(page.getByRole('alert')).toHaveText('Use a JPG, PNG or WebP photo, or a PDF.');
+    // Next's route announcer is also role=alert, so match the message itself.
+    await expect(page.getByRole('alert').filter({ hasText: 'Use a JPG' })).toHaveText('Use a JPG, PNG or WebP photo, or a PDF.');
   });
 
   test('no arrival form once on site', async ({ page }) => {
