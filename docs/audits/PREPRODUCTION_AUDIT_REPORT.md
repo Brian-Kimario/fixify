@@ -143,3 +143,23 @@ Admin mutating actions through the UI; no-show happy path; pro cancel at `arrive
 3. Capacity rule: may a professional hold only one open offer?
 4. Cancellation fees and mandatory reasons for customers and professionals.
 5. Expected lifecycle for unmatched bookings past start time.
+
+## 10. R0 remediation status (branch `audit/preproduction-remediation`)
+
+| Item | Status | Evidence |
+|---|---|---|
+| R0-01 `audit_logs` integrity | **Closed** (migration `20261030_102_r0_security_hardening.sql`, applied to the shared DB) | Forged inserts rejected for customer A/B, pro A/B, admin and anon (live suite); UPDATE/DELETE affect 0 rows; TRUNCATE blocked; users read only their own rows; forged evidence row `699783ed-…` retained; logout events still written (service role, session-derived user id) — browser sign-out as customer.b produced a `logout` row. |
+| R0-02 debug / test-login | **Closed** | `/auth/debug`, `/auth/test-login`, `/api/auth/test`, `debug-check` deleted (not just hidden); 404 on dev server; absent from the production build output. |
+| R0-03 SECURITY DEFINER review | **Closed for known issues** | Only `on_job_state_transition()` and `sync_profile_email()` were executable by anon/authenticated without need; EXECUTE revoked, `sync_profile_email` search_path pinned. Internal `_*` helpers are not executable by anon/authenticated. Legitimate flow (booking → assign → accept → cancel) still writes `job_events` and `notification_logs`. |
+| R0-04 auth hardening | **Partly closed; owner actions remain** | Hard-coded test password removed from the working tree (scripts use `E2E_TEST_PASSWORD`; report redacted). Login/logout verified in browser. Open redirects are handled by `validateNextParam`. **Owner:** rotate the shared test password (it remains in git history of earlier commits) and enable leaked-password protection in the Supabase dashboard (not settable by SQL). GET `/auth/logout` bypass stays R3 (F-14). |
+| R0-05 regression tests | **Done** | `src/__tests__/r0-security.test.ts` (7, static) and `tests/security/r0-live.test.ts` (16, live, skipped without credentials). |
+
+**Verification:** `pnpm tsc --noEmit` clean; production build passes (`CI=1`, run with `NODE_ENV` unset — see risk below); full Vitest 196 passed, 16 skipped (live); live suite 16/16; eslint on changed files 0 errors, 2 pre-existing warnings in `signout.ts` (unused `SupabaseClient`, `CACHE_PATTERNS`). Repo-wide lint was not run to completion and is not claimed to pass.
+
+**Remaining risks:** shared DB for any Preview; password still in git history; leaked-password protection off; `.env.local` sets `NODE_ENV`, which breaks `next build` with a prerender error when exported into the shell — never set it in Vercel env; F-18/F-19/F-20 (cancellation RPC missing, orphan jobs, booking/job status drift) are open and are the first R1 priority.
+
+**Payment `0c6b82fa-…` (₹349):** row is `pending`, `paid_at` null, `provider_reference` `AUDITR2-fake-order` — no Razorpay order exists behind it, so no funds can have been captured. The webhook verifies an HMAC signature and matches on `provider_reference`, so a real Razorpay event cannot complete it. Job FS-000013 is `completed` while the payment is `pending`: an intentional audit fixture, not production drift.
+
+**Fixture added:** AUDITR3-R0 booking `468a7afe-947f-4c57-8149-d15deb4c5ad5` / job `d8f11c77-dbde-4eda-9654-b40ee239d6e8` — job cancelled via the RPC, booking set `cancelled` by exact id; retained.
+
+**Staging requirements (no resources provisioned):** a second Supabase project (free tier is enough for synthetic data; Pro if PITR is wanted), all `supabase/migrations/` applied in order, Auth settings mirrored (redirect URLs, leaked-password protection), synthetic users with a fresh password, storage buckets `job-media` with the same size/MIME rules, Razorpay test keys and a staging webhook secret, pg_cron/queue jobs disabled or pointed at staging, Vercel Preview env vars scoped to Preview only, deployment protection on.
