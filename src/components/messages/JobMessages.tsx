@@ -21,6 +21,7 @@ export async function JobMessages({
   if (thread.availability === 'not_open') return null;
 
   return (
+    <div id="messages" className="scroll-mt-24">
     <CaseCard title={thread.unread > 0 ? `Messages (${thread.unread} new)` : 'Messages'}>
       <MessageThread
         jobId={jobId}
@@ -33,5 +34,6 @@ export async function JobMessages({
         loadFailed={thread.error}
       />
     </CaseCard>
+    </div>
   );
 }

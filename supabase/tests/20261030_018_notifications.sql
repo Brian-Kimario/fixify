@@ -83,7 +83,6 @@ BEGIN
   PERFORM pg_temp._event('media_added', 'in_progress', f.professional_id);
   PERFORM pg_temp._event('state_transition', 'on_the_way', f.professional_id);
   PERFORM pg_temp._event('state_transition', 'in_progress', f.professional_id);
-  PERFORM pg_temp._event('state_transition', 'completed', f.professional_id);
   PERFORM pg_temp._event('state_transition', 'closed', f.professional_id);
   INSERT INTO _results VALUES ('map: unmapped events create no notifications',
     (SELECT count(*) FROM public.notifications) = before_n);

@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getProfessionalShell } from '@/lib/services/shell';
+import { getNotificationFeed } from '@/lib/services/notifications';
+import { getUnreadMessageCount } from '@/lib/services/messages';
 import { stateLabel } from '@/lib/jobs/states';
-import { formatSlot, initialsOf, isLiveState, verificationNotice } from '@/lib/shell/rules';
+import { initialsOf, isLiveState, verificationNotice } from '@/lib/shell/rules';
 import { RoleShell } from '@/components/shell/RoleShell';
 import { UserMenu } from '@/components/shell/UserMenu';
-import { NotificationBell, type BellItem } from '@/components/shell/NotificationBell';
+import { NotificationBell } from '@/components/shell/NotificationBell';
 import { ActiveJobChip, ActiveJobStrip, type ActiveJob } from '@/components/shell/ActiveJobChip';
 import { AvailabilitySwitch } from '@/components/shell/AvailabilitySwitch';
 import { VerificationBanner } from '@/components/shell/primitives';
@@ -33,7 +35,11 @@ export default async function ProLayout({ children }: { children: React.ReactNod
     .single();
   if (!profile || profile.role !== 'professional') redirect('/customer');
 
-  const shell = await getProfessionalShell(user.id);
+  const [shell, feed, unreadMessages] = await Promise.all([
+    getProfessionalShell(user.id),
+    getNotificationFeed(),
+    getUnreadMessageCount(),
+  ]);
   const displayName =
     shell.displayName?.trim() || profile.full_name?.trim() || user.email?.split('@')[0] || 'Professional';
 
@@ -53,19 +59,10 @@ export default async function ProLayout({ children }: { children: React.ReactNod
     { href: '/professional', label: 'Today', icon: 'today', exact: true },
     requestsItem,
     { href: '/professional/jobs', label: 'Jobs', icon: 'jobs' },
+    { href: '/professional/messages', label: 'Messages', icon: 'messages', count: unreadMessages ?? 0, countLabel: 'unread' },
     { href: '/professional/earnings', label: 'Earnings', icon: 'earnings' },
   ];
   const bottomItems: NavItem[] = [...topItems, { href: '/professional/profile', label: 'Account', icon: 'account' }];
-
-  const bellItems: BellItem[] = locked
-    ? []
-    : shell.requests.map((job) => ({
-        id: job.id,
-        href: '/professional/requests',
-        title: `New request · ${job.serviceName}`,
-        detail: formatSlot(job.scheduledStart) ?? 'Time not set',
-        tone: 'clay',
-      }));
 
   const live = shell.liveJob;
   const liveCount = shell.upcoming.filter((j) => isLiveState(j.state)).length;
@@ -90,7 +87,7 @@ export default async function ProLayout({ children }: { children: React.ReactNod
         <>
           {activeJob && <ActiveJobChip job={activeJob} />}
           <AvailabilitySwitch initial={shell.isAvailable} lockedReason={notice?.title ?? null} compact />
-          <NotificationBell items={bellItems} emptyText="No requests waiting for you." />
+          <NotificationBell userId={user.id} items={feed.items} unread={feed.unread} failed={feed.failed} />
           <UserMenu
             displayName={displayName}
             email={user.email ?? null}

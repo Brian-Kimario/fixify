@@ -61,3 +61,43 @@ export async function getUnreadNotificationCount(): Promise<number | null> {
   }
   return count ?? 0;
 }
+
+export interface NotificationFeed {
+  items: AppNotification[];
+  /** Unread notifications in total (can exceed what is listed). Null if it could not be read. */
+  unread: number | null;
+  /** True when the list or the count could not be read; the bell then says so instead of showing "nothing". */
+  failed: boolean;
+}
+
+export async function getNotificationFeed(limit = 30): Promise<NotificationFeed> {
+  const supabase = await createClient();
+  const [list, count] = await Promise.all([
+    supabase
+      .from('notifications')
+      .select('id, kind, title, body, link, job_id, created_at, read_at')
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    supabase.from('notifications').select('id', { count: 'exact', head: true }).is('read_at', null),
+  ]);
+  if (list.error) console.error('getNotificationFeed list:', list.error.message);
+  if (count.error) console.error('getNotificationFeed count:', count.error.message);
+
+  const items = (list.data ?? []).flatMap((row) =>
+    isNotificationKind(row.kind)
+      ? [
+          {
+            id: row.id,
+            kind: row.kind,
+            title: row.title,
+            body: row.body,
+            href: safeNotificationLink(row.link),
+            jobId: row.job_id,
+            createdAt: row.created_at,
+            read: row.read_at != null,
+          },
+        ]
+      : [],
+  );
+  return { items, unread: count.error ? null : (count.count ?? 0), failed: Boolean(list.error || count.error) };
+}

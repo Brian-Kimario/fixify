@@ -5,6 +5,7 @@ import {
   House,
   IndianRupee,
   Inbox,
+  MessageSquare,
   Plus,
   Sun,
   UserRound,
@@ -22,6 +23,7 @@ export const NAV_ICONS = {
   requests: Inbox,
   jobs: BriefcaseBusiness,
   earnings: IndianRupee,
+  messages: MessageSquare,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconName = keyof typeof NAV_ICONS;

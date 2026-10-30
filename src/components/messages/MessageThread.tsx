@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { markThreadReadAction, sendMessageAction } from '@/lib/messages/actions';
 import type { MessageLimits, ThreadMessage } from '@/lib/services/messages';
 import type { ThreadAvailability } from '@/lib/messages/rules';
+import { useRealtimeRefresh } from '@/lib/realtime/useRealtimeRefresh';
 import { formatSlot } from '@/lib/shell/rules';
 
 /**
@@ -39,6 +40,9 @@ export function MessageThread({
   const [body, setBody] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  // A nudge to refetch when this job's messages change; the thread works without it.
+  useRealtimeRefresh({ channel: `messages:${jobId}`, table: 'job_messages', filter: `job_id=eq.${jobId}` });
 
   // Keep the newest message in view.
   useEffect(() => {

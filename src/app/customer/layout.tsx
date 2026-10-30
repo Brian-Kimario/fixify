@@ -3,12 +3,13 @@ import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getCustomerShell } from '@/lib/services/shell';
-import { formatCurrency } from '@/lib/currency';
+import { getNotificationFeed } from '@/lib/services/notifications';
+import { getUnreadMessageCount } from '@/lib/services/messages';
 import { stateLabel } from '@/lib/jobs/states';
 import { initialsOf } from '@/lib/shell/rules';
 import { RoleShell } from '@/components/shell/RoleShell';
 import { UserMenu } from '@/components/shell/UserMenu';
-import { NotificationBell, type BellItem } from '@/components/shell/NotificationBell';
+import { NotificationBell } from '@/components/shell/NotificationBell';
 import { ActiveJobChip, ActiveJobStrip, type ActiveJob } from '@/components/shell/ActiveJobChip';
 import { LinkButton } from '@/components/shell/primitives';
 import type { NavItem } from '@/components/shell/nav';
@@ -34,32 +35,37 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     .single();
   if (!profile || profile.role !== 'customer') redirect('/');
 
-  const shell = await getCustomerShell(user.id);
+  const [shell, feed, unreadMessages] = await Promise.all([
+    getCustomerShell(user.id),
+    getNotificationFeed(),
+    getUnreadMessageCount(),
+  ]);
   const displayName = profile.full_name?.trim() || user.email?.split('@')[0] || 'Customer';
 
   const activeCount = shell.bookings.filter((b) => b.tab === 'active').length;
+
+  const messagesItem: NavItem = {
+    href: '/customer/messages',
+    label: 'Messages',
+    icon: 'messages',
+    count: unreadMessages ?? 0,
+    countLabel: 'unread',
+  };
 
   const topItems: NavItem[] = [
     { href: '/customer', label: 'Home', icon: 'home', exact: true },
     { href: '/customer/bookings', label: 'Bookings', icon: 'bookings', count: activeCount, countLabel: 'active' },
     { href: '/customer/properties', label: 'Properties', icon: 'properties' },
+    messagesItem,
   ];
   const bottomItems: NavItem[] = [
     { href: '/customer', label: 'Home', icon: 'home', exact: true },
     { href: '/customer/bookings', label: 'Bookings', icon: 'bookings', count: activeCount, countLabel: 'active' },
     { href: '/customer/bookings/new', label: 'Book', icon: 'book', primary: true },
     { href: '/customer/properties', label: 'Properties', icon: 'properties' },
+    messagesItem,
     { href: '/customer/profile', label: 'Account', icon: 'account' },
   ];
-
-  const bellItems: BellItem[] = shell.inbox.map((item) => ({
-    id: item.id,
-    href: item.href,
-    title: item.title,
-    detail: item.detail,
-    meta: item.amount == null ? undefined : formatCurrency(item.amount, { minimumFractionDigits: 0 }),
-    tone: item.kind === 'quote' ? 'clay' : item.kind === 'unmatched' ? 'blue' : 'ochre',
-  }));
 
   const first = shell.activeJobs[0];
   const activeJob: ActiveJob | null = first?.job
@@ -88,7 +94,7 @@ export default async function CustomerLayout({ children }: { children: React.Rea
               Book a service
             </LinkButton>
           </div>
-          <NotificationBell items={bellItems} emptyText="Nothing needs your attention right now." />
+          <NotificationBell userId={user.id} items={feed.items} unread={feed.unread} failed={feed.failed} />
           <UserMenu
             displayName={displayName}
             email={user.email ?? null}

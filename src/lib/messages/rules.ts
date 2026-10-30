@@ -17,3 +17,14 @@ export function threadAvailability(jobState: string): ThreadAvailability {
   if (MESSAGING_OPEN_STATES.has(jobState)) return 'open';
   return jobState === 'assigned' ? 'not_open' : 'read_only';
 }
+
+/** Conversations with the newest message first; open ones with no messages yet follow, newest job first. */
+export function compareInbox(
+  a: { lastMessageAt: string | null; jobCreatedAt: string },
+  b: { lastMessageAt: string | null; jobCreatedAt: string },
+): number {
+  if (a.lastMessageAt && b.lastMessageAt) return Date.parse(b.lastMessageAt) - Date.parse(a.lastMessageAt);
+  if (a.lastMessageAt) return -1;
+  if (b.lastMessageAt) return 1;
+  return Date.parse(b.jobCreatedAt) - Date.parse(a.jobCreatedAt);
+}

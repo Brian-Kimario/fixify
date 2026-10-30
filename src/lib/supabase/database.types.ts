@@ -776,6 +776,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_failures: {
+        Row: {
+          attempts: number
+          created_at: string
+          error_code: string
+          id: string
+          last_attempt_at: string
+          resolved_at: string | null
+          source_id: string
+          source_type: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          error_code: string
+          id?: string
+          last_attempt_at?: string
+          resolved_at?: string | null
+          source_id: string
+          source_type: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error_code?: string
+          id?: string
+          last_attempt_at?: string
+          resolved_at?: string | null
+          source_id?: string
+          source_type?: string
+        }
+        Relationships: []
+      }
       notification_logs: {
         Row: {
           channel_attempted: string | null
@@ -1916,6 +1949,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      _notify_for_event: { Args: { p_event_id: string }; Returns: undefined }
+      _notify_for_message: {
+        Args: { p_message_id: string }
+        Returns: undefined
+      }
       _offer_next: {
         Args: { p_actor: string; p_booking_id: string }
         Returns: string
@@ -1930,6 +1968,14 @@ export type Database = {
           professional_id: string
           score: number
         }[]
+      }
+      _record_notification_failure: {
+        Args: {
+          p_error_code: string
+          p_source_id: string
+          p_source_type: string
+        }
+        Returns: undefined
       }
       _release_offer: {
         Args: {
@@ -2023,6 +2069,7 @@ export type Database = {
       mark_job_thread_read: { Args: { p_job_id: string }; Returns: undefined }
       mark_notification_read: { Args: { p_id: string }; Returns: boolean }
       process_assignment_queue: { Args: never; Returns: Json }
+      reconcile_notifications: { Args: never; Returns: number }
       report_job_eta: {
         Args: {
           p_earliest_minutes: number
