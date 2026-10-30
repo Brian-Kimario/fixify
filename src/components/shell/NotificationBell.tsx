@@ -96,6 +96,8 @@ export function NotificationBell({
   return (
     <Popover
       triggerLabel={label}
+      // On a phone the bell is not at the screen edge, so anchoring to it pushes the panel off the left.
+      panelClassName="max-sm:fixed max-sm:inset-x-4 max-sm:top-16 max-sm:w-auto"
       triggerClassName="relative flex h-11 w-11 items-center justify-center rounded-full text-ink-2 transition-colors hover:bg-paper-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       trigger={
         <>
