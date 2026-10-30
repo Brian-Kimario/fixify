@@ -827,6 +827,63 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          job_id: string
+          kind: string
+          link: string
+          read_at: string | null
+          source_id: string
+          source_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          job_id: string
+          kind: string
+          link: string
+          read_at?: string | null
+          source_id: string
+          source_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          kind?: string
+          link?: string
+          read_at?: string | null
+          source_id?: string
+          source_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_events: {
         Row: {
           created_at: string
@@ -1849,6 +1906,16 @@ export type Database = {
         Returns: Record<string, unknown>
       }
       _matching_setting: { Args: { p_key: string }; Returns: number }
+      _notify: {
+        Args: {
+          p_job: Database["public"]["Tables"]["jobs"]["Row"]
+          p_kind: string
+          p_source_id: string
+          p_source_type: string
+          p_user: string
+        }
+        Returns: undefined
+      }
       _offer_next: {
         Args: { p_actor: string; p_booking_id: string }
         Returns: string
@@ -1952,7 +2019,9 @@ export type Database = {
         Args: { p_older_than?: string }
         Returns: string[]
       }
+      mark_all_notifications_read: { Args: never; Returns: number }
       mark_job_thread_read: { Args: { p_job_id: string }; Returns: undefined }
+      mark_notification_read: { Args: { p_id: string }; Returns: boolean }
       process_assignment_queue: { Args: never; Returns: Json }
       report_job_eta: {
         Args: {

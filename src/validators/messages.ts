@@ -17,3 +17,6 @@ export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 
 export const markThreadReadSchema = z.object({ jobId: uuid });
 export type MarkThreadReadInput = z.infer<typeof markThreadReadSchema>;
+
+export const markNotificationReadSchema = z.object({ notificationId: uuid });
+export type MarkNotificationReadInput = z.infer<typeof markNotificationReadSchema>;
