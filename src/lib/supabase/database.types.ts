@@ -1839,6 +1839,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      request_job_media_sweep: { Args: never; Returns: number }
       respond_to_quote: {
         Args: { p_decision: string; p_quote_id: string; p_reason?: string }
         Returns: boolean
