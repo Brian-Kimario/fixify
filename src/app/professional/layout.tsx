@@ -95,7 +95,6 @@ export default async function ProLayout({ children }: { children: React.ReactNod
             roleLabel="Professional"
             links={[
               { label: 'Profile', href: '/professional/profile' },
-              { label: 'Edit profile', href: '/professional/profile/edit' },
               { label: 'Help & support', href: '/professional/support' },
             ]}
           />
