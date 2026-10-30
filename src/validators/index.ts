@@ -5,3 +5,5 @@ export * from './booking';
 export * from './customer';
 export * from './messages';
 export * from './professional';
+export * from './property';
+export * from './professional-profile';

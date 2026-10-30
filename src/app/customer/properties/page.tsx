@@ -1,42 +1,32 @@
-import { getCustomerProperties, getCustomerAddresses } from "./actions";
-import { AddressListSection } from "./AddressListSection";
-import { PropertiesSection } from "./PropertiesSection";
+import { redirect } from 'next/navigation';
+import { CircleAlert } from 'lucide-react';
+import { getCurrentUser } from '@/lib/auth';
+import { getCustomerPropertiesOverview } from '@/lib/services/customer-properties';
+import { PageContainer } from '@/components/shell/primitives';
+import { PropertiesManager } from './PropertiesManager';
+
+export const metadata = {
+  title: 'Properties — Feasy',
+};
 
 export default async function PropertiesPage() {
-  try {
-    const [properties, addresses] = await Promise.all([
-      getCustomerProperties(),
-      getCustomerAddresses(),
-    ]);
+  const user = await getCurrentUser();
+  if (!user) redirect('/auth/login?next=/customer/properties');
 
-    return (
-      <div className="pb-20 md:pb-0">
-        {/* Header */}
-        <div className="px-4 md:px-6 py-8 md:py-10">
-          <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-2">YOUR SPACES</div>
-          <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">My Properties</h1>
-          <p className="text-[#5A6661] max-w-2xl">Manage all your registered properties and addresses. Keep track of service history for each space.</p>
+  const overview = await getCustomerPropertiesOverview(user.id);
+
+  return (
+    <PageContainer>
+      {overview.error && (
+        <div
+          role="alert"
+          className="mb-6 flex items-start gap-2.5 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger"
+        >
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>Some of your property details didn’t load. Refresh the page to try again.</p>
         </div>
-
-        {/* Properties Section */}
-        <PropertiesSection initialProperties={properties} addresses={addresses} />
-
-        {/* Addresses Section */}
-        <AddressListSection initialAddresses={addresses} />
-      </div>
-    );
-  } catch (error) {
-    return (
-      <div className="pb-20 md:pb-0">
-        <div className="px-4 md:px-6 py-8">
-          <div className="bg-[#F3E1DA] border border-[#DFC0B7] rounded-lg p-6">
-            <h2 className="text-lg font-bold text-[#A9523D] mb-2">Error Loading Properties</h2>
-            <p className="text-[#8B4A31]">
-              {error instanceof Error ? error.message : "An unexpected error occurred"}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+      )}
+      <PropertiesManager properties={overview.properties} looseAddresses={overview.looseAddresses} />
+    </PageContainer>
+  );
 }

@@ -1,401 +1,195 @@
-"use server";
+'use server';
 
-import { createClient } from "@/lib/supabase/server";
-import type { Property, Address } from "./types";
+import { revalidatePath } from 'next/cache';
+import { createClient } from '@/lib/supabase/server';
+import { fail, ok, parseInput, type ActionResult } from '@/lib/actions/result';
+import {
+  deleteAddressSchema,
+  deletePropertySchema,
+  propertyFormSchema,
+  updatePropertySchema,
+  type PropertyFormValues,
+} from '@/validators';
 
 /**
- * Get all properties for the authenticated customer
- * RLS ensures only the customer's properties are returned
+ * Property and address writes for the signed-in customer. RLS limits every statement to
+ * the customer's own rows; ownership is never taken from the client.
  */
-export async function getCustomerProperties(): Promise<Property[]> {
-  // Create authenticated Supabase client (respects RLS)
-  const supabase = await createClient();
 
-  // Get the current user from the session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  // Query properties - RLS will filter to only this user's properties
-  // Note: status column may not exist in older schemas, so we try with it first
-  
-  const { data, error } = await supabase
-    .from("properties")
-    .select(
-      `
-      id,
-      name,
-      property_type,
-      address:addresses(id, label, city, address_line_1, state_region, postal_code, latitude, longitude),
-      created_at,
-      updated_at
-    `
-    )
-    .eq("owner_customer_id", user.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(`Failed to fetch properties: ${error.message}`);
-  }
-
-  // Ensure all properties have a status (default to 'active' if missing)
-  const propertiesWithStatus = (data || []).map((prop: any) => ({
-    ...prop,
-    status: 'active',
-  }));
-
-  return propertiesWithStatus as unknown as Property[];
+function addressColumns(v: PropertyFormValues) {
+  return {
+    label: v.name,
+    address_line_1: v.addressLine1,
+    address_line_2: v.addressLine2,
+    area: v.area,
+    city: v.city,
+    state_region: v.stateRegion,
+    postal_code: v.postalCode,
+    access_notes: v.accessNotes,
+    latitude: v.latitude ?? null,
+    longitude: v.longitude ?? null,
+  };
 }
 
-/**
- * Get all addresses for the authenticated customer
- */
-export async function getCustomerAddresses(): Promise<Address[]> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  const { data, error } = await supabase
-    .from("addresses")
-    .select("id, label, city, address_line_1, state_region, postal_code, latitude, longitude, created_at")
-    .eq("customer_id", user.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(`Failed to fetch addresses: ${error.message}`);
-  }
-
-  return data || [];
+function revalidate() {
+  revalidatePath('/customer/properties');
+  revalidatePath('/customer');
 }
 
-/**
- * Create a new address for the customer
- */
-export async function createAddress(addressData: {
-  label: string;
-  address_line_1: string;
-  city: string;
-  state_region?: string;
-  postal_code?: string;
-  latitude?: number;
-  longitude?: number;
-}) {
-  const supabase = await createClient();
+export async function createPropertyAction(input: unknown): Promise<ActionResult<{ propertyId: string }>> {
+  const parsed = parseInput(propertyFormSchema, input);
+  if (parsed.success === false) return parsed;
+  const values = parsed.data;
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Please sign in again.');
 
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  const { data, error } = await supabase
-    .from("addresses")
-    .insert({
-      customer_id: user.id,
-      ...addressData,
-    })
-    .select()
+  const { data: address, error: addressError } = await supabase
+    .from('addresses')
+    .insert({ ...addressColumns(values), customer_id: user.id })
+    .select('id')
     .single();
+  if (addressError || !address) return fail('failed', 'We couldn’t save the address. Please try again.');
 
-  if (error) {
-    throw new Error(`Failed to create address: ${error.message}`);
-  }
-
-  return data;
-}
-
-/**
- * Delete an address for the customer
- * Requires confirmation from client before executing
- */
-export async function deleteAddress(addressId: string) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  // Verify ownership before deleting (RLS will also enforce this)
-  const { data: address, error: fetchError } = await supabase
-    .from("addresses")
-    .select("id, customer_id")
-    .eq("id", addressId)
-    .eq("customer_id", user.id)
-    .single();
-
-  if (fetchError || !address) {
-    throw new Error("Address not found or does not belong to your account.");
-  }
-
-  const { error: deleteError } = await supabase
-    .from("addresses")
-    .delete()
-    .eq("id", addressId);
-
-  if (deleteError) {
-    throw new Error(`Failed to delete address: ${deleteError.message}`);
-  }
-
-  return { success: true };
-}
-
-/**
- * Create a new property for the customer
- */
-export async function createProperty(propertyData: {
-  name: string;
-  property_type: string;
-  address_id: string;
-  notes?: string;
-}) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  const { data, error } = await supabase
-    .from("properties")
+  const { data: property, error: propertyError } = await supabase
+    .from('properties')
     .insert({
       owner_customer_id: user.id,
-      ...propertyData,
+      name: values.name,
+      property_type: values.propertyType,
+      notes: values.notes,
+      address_id: address.id,
     })
-    .select()
+    .select('id')
     .single();
 
-  if (error) {
-    throw new Error(`Failed to create property: ${error.message}`);
+  if (propertyError || !property) {
+    // Don't leave an address behind for a property that was never created.
+    await supabase.from('addresses').delete().eq('id', address.id);
+    return fail('failed', 'We couldn’t save the property. Please try again.');
   }
 
-  return data;
+  revalidate();
+  return ok({ propertyId: property.id });
 }
 
-/**
- * Update an address for the customer
- * Requires ownership verification
- */
-export async function updateAddress(
-  addressId: string,
-  addressData: {
-    label?: string;
-    address_line_1?: string;
-    city?: string;
-    state_region?: string;
-    postal_code?: string;
-    latitude?: number;
-    longitude?: number;
-  }
-) {
-  const supabase = await createClient();
+export async function updatePropertyAction(input: unknown): Promise<ActionResult> {
+  const parsed = parseInput(updatePropertySchema, input);
+  if (parsed.success === false) return parsed;
+  const { propertyId, values } = parsed.data;
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Please sign in again.');
 
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
+  const { data: existing, error: loadError } = await supabase
+    .from('properties')
+    .select('id, address_id')
+    .eq('id', propertyId)
+    .eq('owner_customer_id', user.id)
+    .maybeSingle();
+  if (loadError) return fail('failed', 'We couldn’t load that property. Please try again.');
+  if (!existing) return fail('not_found', 'That property isn’t on your account.');
 
-  // Verify ownership before updating (RLS will also enforce this)
-  const { data: address, error: fetchError } = await supabase
-    .from("addresses")
-    .select("id, customer_id")
-    .eq("id", addressId)
-    .eq("customer_id", user.id)
-    .single();
+  const { error: addressError } = await supabase
+    .from('addresses')
+    .update(addressColumns(values))
+    .eq('id', existing.address_id)
+    .eq('customer_id', user.id);
+  if (addressError) return fail('failed', 'We couldn’t update the address. Please try again.');
 
-  if (fetchError || !address) {
-    throw new Error("Address not found or does not belong to your account.");
-  }
+  const { error: propertyError } = await supabase
+    .from('properties')
+    .update({ name: values.name, property_type: values.propertyType, notes: values.notes })
+    .eq('id', propertyId)
+    .eq('owner_customer_id', user.id);
+  if (propertyError) return fail('failed', 'We couldn’t update the property. Please try again.');
 
-  const { data, error } = await supabase
-    .from("addresses")
-    .update(addressData)
-    .eq("id", addressId)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to update address: ${error.message}`);
-  }
-
-  return data;
+  revalidate();
+  return ok();
 }
 
 /**
- * Update a property for the customer
- * Requires ownership verification
+ * Removing a property cascades to its bookings and jobs in the database, so a property
+ * with any booking history is kept. Only properties that were never booked can go.
  */
-export async function updateProperty(
-  propertyId: string,
-  propertyData: {
-    name?: string;
-    property_type?: string;
-    address_id?: string;
-    notes?: string;
-  }
-) {
-  const supabase = await createClient();
+export async function deletePropertyAction(input: unknown): Promise<ActionResult> {
+  const parsed = parseInput(deletePropertySchema, input);
+  if (parsed.success === false) return parsed;
+  const { propertyId } = parsed.data;
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Please sign in again.');
 
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
+  const { data: property, error: loadError } = await supabase
+    .from('properties')
+    .select('id, address_id')
+    .eq('id', propertyId)
+    .eq('owner_customer_id', user.id)
+    .maybeSingle();
+  if (loadError) return fail('failed', 'We couldn’t load that property. Please try again.');
+  if (!property) return fail('not_found', 'That property isn’t on your account.');
 
-  // Verify ownership before updating (RLS will also enforce this)
-  const { data: property, error: fetchError } = await supabase
-    .from("properties")
-    .select("id, owner_customer_id")
-    .eq("id", propertyId)
-    .eq("owner_customer_id", user.id)
-    .single();
-
-  if (fetchError || !property) {
-    throw new Error("Property not found or does not belong to your account.");
-  }
-
-  const { data, error } = await supabase
-    .from("properties")
-    .update(propertyData)
-    .eq("id", propertyId)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to update property: ${error.message}`);
-  }
-
-  return data;
-}
-
-/**
- * Delete a property for the customer
- * Verify ownership and check if property has active jobs before deleting
- */
-export async function deleteProperty(propertyId: string) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  // Verify ownership before deleting (RLS will also enforce this)
-  const { data: property, error: fetchError } = await supabase
-    .from("properties")
-    .select("id, owner_customer_id")
-    .eq("id", propertyId)
-    .eq("owner_customer_id", user.id)
-    .single();
-
-  if (fetchError || !property) {
-    throw new Error("Property not found or does not belong to your account.");
-  }
-
-  // Check if property has active bookings
-  const { data: bookings, error: bookingError } = await supabase
-    .from("bookings")
-    .select("id")
-    .eq("property_id", propertyId)
-    .neq("booking_status", "completed")
-    .neq("booking_status", "cancelled");
-
-  if (bookingError) {
-    throw new Error(`Failed to check active jobs: ${bookingError.message}`);
-  }
-
-  if (bookings && bookings.length > 0) {
-    throw new Error(
-      "Cannot delete property with active jobs. Please cancel or complete all jobs first."
-    );
+  const { count, error: countError } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('property_id', propertyId);
+  if (countError || count === null) return fail('failed', 'We couldn’t check this property’s bookings. Please try again.');
+  if (count > 0) {
+    return fail('rejected', 'This property has booking history, so it can’t be removed. You can still edit its details.');
   }
 
   const { error: deleteError } = await supabase
-    .from("properties")
+    .from('properties')
     .delete()
-    .eq("id", propertyId);
+    .eq('id', propertyId)
+    .eq('owner_customer_id', user.id);
+  if (deleteError) return fail('failed', 'We couldn’t remove the property. Please try again.');
 
-  if (deleteError) {
-    throw new Error(`Failed to delete property: ${deleteError.message}`);
-  }
+  // The address goes too unless another property still uses it.
+  const { count: sharing } = await supabase
+    .from('properties')
+    .select('id', { count: 'exact', head: true })
+    .eq('address_id', property.address_id);
+  if (sharing === 0) await supabase.from('addresses').delete().eq('id', property.address_id).eq('customer_id', user.id);
 
-  return { success: true };
+  revalidate();
+  return ok();
 }
 
-/**
- * Update property status for the customer
- * Requires ownership verification
- */
-export async function updatePropertyStatus(
-  propertyId: string,
-  status: 'active' | 'inactive' | 'maintenance'
-) {
-  const supabase = await createClient();
+/** Deletes a saved address that no property uses. */
+export async function deleteAddressAction(input: unknown): Promise<ActionResult> {
+  const parsed = parseInput(deleteAddressSchema, input);
+  if (parsed.success === false) return parsed;
+  const { addressId } = parsed.data;
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'Please sign in again.');
 
-  if (!user) {
-    throw new Error("Not authenticated");
-  }
-
-  // Verify ownership before updating (RLS will also enforce this)
-  const { data: property, error: fetchError } = await supabase
-    .from("properties")
-    .select("id, owner_customer_id")
-    .eq("id", propertyId)
-    .eq("owner_customer_id", user.id)
-    .single();
-
-  if (fetchError || !property) {
-    throw new Error("Property not found or does not belong to your account.");
-  }
-
-  // Try to update with status column - use type assertion to bypass schema mismatch
-  const result = await (supabase
-    .from("properties")
-    .update({ status } as any)
-    .eq("id", propertyId)
-    .select()
-    .single() as any);
-
-  const { data, error } = result;
-
+  const { data, error } = await supabase
+    .from('addresses')
+    .delete()
+    .eq('id', addressId)
+    .eq('customer_id', user.id)
+    .select('id');
   if (error) {
-    // If error mentions status column doesn't exist, log it and return gracefully
-    if (error.message && error.message.includes("status")) {
-      console.warn(`Status column does not exist yet. Returning property without updating status.`);
-      return { id: propertyId, status };
-    }
-    throw new Error(`Failed to update property status: ${error.message}`);
+    // 23503: a property still points at this address (ON DELETE RESTRICT).
+    if (error.code === '23503') return fail('rejected', 'A property still uses this address.');
+    return fail('failed', 'We couldn’t remove the address. Please try again.');
   }
+  if (!data || data.length === 0) return fail('not_found', 'That address isn’t on your account.');
 
-  return data || { id: propertyId, status };
+  revalidate();
+  return ok();
 }

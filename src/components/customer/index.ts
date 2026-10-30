@@ -1,7 +1,5 @@
 export * from './SettingToggle';
 export * from './SettingsSection';
-export * from './PropertyCard';
-export * from './PropertyForm';
 export * from './VerificationBadge';
 export * from './ProblemIntake';
 export * from './ActiveJobPanel';

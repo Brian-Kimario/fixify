@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, Phone, User } from 'lucide-react';
+import { ArrowLeft, MapPin, MessageSquare, Phone, User } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { getProfessionalCase } from '@/lib/services/job-case';
 import { STATE_META, isJobState } from '@/lib/jobs/states';
@@ -170,7 +170,16 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                         {contact.phone}
                       </a>
                     ) : (
-                      <p className="mt-1 text-sm text-ink-3">No phone number on file</p>
+                      <>
+                        <p className="mt-1 text-sm text-ink-3">No phone number on file</p>
+                        <a
+                          href="#messages"
+                          className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-teal hover:underline"
+                        >
+                          <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                          Message the customer
+                        </a>
+                      </>
                     )}
                   </div>
                 </div>
