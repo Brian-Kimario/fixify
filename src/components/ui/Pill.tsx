@@ -29,38 +29,3 @@ export function Pill({ children, tone = 'neutral', className = '' }: PillProps) 
     </span>
   );
 }
-
-/**
- * StatusPill - Specialized variant that determines tone based on state
- * Useful for displaying job states, payment states, or other status strings
- */
-interface StatusPillProps {
-  state: string;
-}
-
-export function StatusPill({ state }: StatusPillProps) {
-  let tone: PillTone = 'neutral';
-
-  if (state.includes('FAILED') || state.includes('DISPUTED') || state.includes('DANGER')) {
-    tone = 'danger';
-  } else if (
-    state.includes('PENDING') ||
-    state.includes('ASSIGNED') ||
-    state.includes('REVIEW') ||
-    state.includes('AMBER')
-  ) {
-    tone = 'amber';
-  } else if (
-    state.includes('PAID') ||
-    state.includes('CLOSED') ||
-    state.includes('DELIVERED') ||
-    state.includes('SUCCESS') ||
-    state.includes('COMPLETED')
-  ) {
-    tone = 'success';
-  } else if (state.includes('TEAL')) {
-    tone = 'teal';
-  }
-
-  return <Pill tone={tone}>{state.replace(/_/g, ' ')}</Pill>;
-}

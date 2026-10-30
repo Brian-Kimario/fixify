@@ -1,16 +1,171 @@
-
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
-import { type User } from '@supabase/supabase-js';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Symbol } from '@/components/brand/Symbol';
-interface SiteHeaderProps { user?: User | null; profile?: { role?: string; full_name?: string } | null; }
-export function SiteHeader({}: SiteHeaderProps) {
-  const [scrolled, setScrolled] = useState(false); const [open, setOpen] = useState(false); const pathname = usePathname();
-  useEffect(() => { const onScroll = () => setScrolled(window.scrollY > 20); window.addEventListener('scroll', onScroll, { passive: true }); return () => window.removeEventListener('scroll', onScroll); }, []);
+
+interface SiteHeaderProps {
+  /** Role of the signed-in user, if any. Swaps the sign-in actions for a dashboard link. */
+  role?: string | null;
+}
+
+const LINKS: ReadonlyArray<readonly [string, string]> = [
+  ['Services', '/#services'],
+  ['How it works', '/#how'],
+  ['Property record', '/#property'],
+  ['For professionals', '/#professionals'],
+  ['Help', '/help'],
+];
+
+const DASHBOARDS: Record<string, string> = {
+  admin: '/admin',
+  professional: '/professional',
+  support: '/support',
+};
+
+const btnBase =
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] border px-4 text-[13px] font-semibold transition-colors';
+const btnPrimary = `${btnBase} border-transparent bg-teal text-white shadow-[0_10px_24px_rgba(23,107,91,0.16)] hover:bg-teal-deep`;
+const btnGhost = `${btnBase} border-line bg-paper/60 text-ink hover:bg-paper`;
+
+export function SiteHeader({ role }: SiteHeaderProps) {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Close on navigation, and keep the page behind the menu from scrolling.
+  const [menuPath, setMenuPath] = useState(pathname);
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
+    setOpen(false);
+  }
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   if (pathname?.startsWith('/auth')) return null;
-  const links = [['Services','#services'],['How it works','#how'],['Property record','#property'],['For professionals','#professionals'],['Help','#footer']];
-  return <header id="siteHeader" className={`site-header ${scrolled || open ? 'site-header-scrolled' : ''}`}><div className="header-wrap"><div className="header-row"><Link href="/" className="brand" onClick={() => setOpen(false)}><Symbol size="md" className="brand-mark" /><span>Fixify</span></Link><nav className="nav-links">{links.map(([label, href]) => <a key={label} href={href}>{label}</a>)}</nav><div className="nav-actions"><a href="/auth/login" className="btn btn-ghost sign-in">Sign in</a><a href="/auth/register" className="btn btn-primary">Get started <span>↗</span></a><button className="menu" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}>{open ? <X size={20}/> : <Menu size={20}/>}</button></div></div>{open && <div className="mobile-menu">{links.map(([label, href]) => <a key={label} href={href} onClick={() => setOpen(false)}>{label}<span>↗</span></a>)}<div className="mobile-menu-actions"><a href="/auth/login" className="btn btn-ghost">Sign in</a><a href="/auth/register" className="btn btn-primary">Get started <span>↗</span></a></div></div>}</div><style jsx>{` .site-header{position:fixed;left:0;right:0;top:0;z-index:100;background:transparent;border-bottom:1px solid transparent;transition:background .25s,border-color .25s,box-shadow .25s}.site-header-scrolled{background:rgba(247,244,236,.82);backdrop-filter:blur(18px);border-color:rgba(217,222,216,.82);box-shadow:0 8px 30px rgba(24,33,31,.05)}.header-wrap{width:min(var(--max),calc(100% - 48px));margin:0 auto}.header-row{height:76px;display:flex;align-items:center;gap:26px}.brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.035em;font-size:19px;color:var(--color-ink);text-decoration:none;flex-shrink:0}.brand-mark{width:31px;height:31px;color:var(--color-teal);stroke:currentColor}.nav-links{display:flex;gap:26px;margin-left:auto}.nav-links a{font-size:13px;color:var(--color-ink-3);text-decoration:none;position:relative;padding:8px 0}.nav-links a:after{content:'';position:absolute;left:0;bottom:1px;width:100%;height:1px;background:var(--color-teal);transform:scaleX(0);transform-origin:left;transition:transform .25s}.nav-links a:hover{color:var(--color-ink)}.nav-links a:hover:after{transform:scaleX(1)}.nav-actions{display:flex;gap:8px;margin-left:8px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 15px;border:1px solid transparent;border-radius:11px;font-size:13px;font-weight:650;transition:transform .24s,background .24s,border-color .24s;text-decoration:none}.btn:hover{transform:translateY(-2px)}.btn-primary{background:var(--color-teal);color:white;box-shadow:0 10px 24px rgba(23,107,91,.16)}.btn-primary:hover{background:var(--color-teal-deep)}.btn-ghost{border-color:var(--color-line-strong);background:rgba(255,254,250,.58);color:var(--color-ink)}.btn-ghost:hover{background:var(--color-paper)}.menu{display:none;width:44px;height:44px;border:1px solid var(--color-line-strong);background:var(--color-paper);border-radius:11px;place-items:center;cursor:pointer;color:var(--color-ink)}.mobile-menu{display:none}@media(max-width:1000px){.nav-links{display:none}.menu{display:grid}.mobile-menu{display:flex;flex-direction:column;gap:3px;padding:14px 0 20px;border-top:1px solid var(--color-line)}.mobile-menu>a{display:flex;justify-content:space-between;padding:12px 2px;color:var(--color-ink);font-size:15px;text-decoration:none}.mobile-menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:14px;border-top:1px solid var(--color-line)}.mobile-menu-actions .btn{width:100%}}@media(max-width:520px){.header-wrap{width:min(var(--max),calc(100% - 36px))}.header-row{height:68px;gap:10px}.sign-in{display:none}.nav-actions{margin-left:auto}.brand{font-size:18px}.btn-primary{min-height:44px;padding:0 13px}.mobile-menu-actions{grid-template-columns:1fr}} `}</style></header>;
+
+  const signedIn = Boolean(role);
+  const dashboard = DASHBOARDS[role ?? ''] ?? '/customer';
+  const close = () => setOpen(false);
+
+  return (
+    <header
+      id="siteHeader"
+      className={`fixed inset-x-0 top-0 z-[100] border-b transition-[background,border-color,box-shadow] duration-200 ${
+        open
+          ? 'border-line bg-porcelain'
+          : scrolled
+            ? 'border-line/80 bg-porcelain/90 shadow-[0_8px_30px_rgba(24,33,31,0.05)] backdrop-blur-lg'
+            : 'border-transparent bg-transparent'
+      }`}
+    >
+      <div className="mx-auto w-[min(1240px,calc(100%-36px))] sm:w-[min(1240px,calc(100%-48px))]">
+        <div className="flex h-[68px] items-center gap-3 sm:h-[76px] sm:gap-6">
+          <Link
+            href="/"
+            onClick={close}
+            className="inline-flex shrink-0 items-center gap-2.5 text-ink"
+          >
+            <Symbol size="md" className="size-[31px] text-teal" />
+            <span className="font-editorial text-[24px] font-normal tracking-[-0.02em]">Feasy</span>
+          </Link>
+
+          <nav aria-label="Primary" className="ml-auto hidden gap-7 lg:flex">
+            {LINKS.map(([label, href]) => (
+              <Link key={label} href={href} className="py-2 text-[13px] text-ink-3 transition-colors hover:text-ink">
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-2 lg:ml-2">
+            {signedIn ? (
+              <Link href={dashboard} className={btnPrimary}>
+                Dashboard <ArrowUpRight size={14} aria-hidden="true" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/login?as=professional" className={`${btnGhost} max-xl:hidden`}>
+                  Professional sign in
+                </Link>
+                <Link href="/auth/login?as=customer" className={`${btnGhost} max-sm:hidden`}>
+                  Sign in
+                </Link>
+                <Link href="/auth/register?as=customer" className={`${btnPrimary} whitespace-nowrap`}>
+                  Get started <ArrowUpRight size={14} aria-hidden="true" />
+                </Link>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-[11px] border border-line bg-paper text-ink lg:hidden"
+            >
+              {open ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {open && (
+        <div
+          id="mobile-menu"
+          className="max-h-[calc(100dvh-68px)] overflow-y-auto border-t border-line lg:hidden"
+        >
+          <nav aria-label="Mobile" className="mx-auto flex w-[calc(100%-36px)] flex-col pb-6 pt-2 sm:w-[calc(100%-48px)]">
+            {LINKS.map(([label, href]) => (
+              <Link
+                key={label}
+                href={href}
+                onClick={close}
+                className="flex items-center justify-between border-b border-line/60 py-4 text-[16px] text-ink"
+              >
+                {label}
+                <ArrowUpRight size={16} className="text-ink-3" aria-hidden="true" />
+              </Link>
+            ))}
+            {!signedIn && (
+              <div className="mt-6 grid gap-3">
+                <div className="rounded-2xl border border-line bg-paper p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-4">I need a repair</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2.5">
+                    <Link href="/auth/register?as=customer" onClick={close} className={`${btnPrimary} w-full`}>Get started</Link>
+                    <Link href="/auth/login?as=customer" onClick={close} className={`${btnGhost} w-full`}>Sign in</Link>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-line bg-ink p-4 text-porcelain">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-porcelain/55">I fix things for a living</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2.5">
+                    <Link href="/auth/register?as=professional" onClick={close} className={`${btnBase} w-full border-transparent bg-porcelain text-ink`}>Apply</Link>
+                    <Link href="/auth/login?as=professional" onClick={close} className={`${btnBase} w-full border-porcelain/30 text-porcelain`}>Sign in</Link>
+                  </div>
+                </div>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
+    </header>
+  );
 }

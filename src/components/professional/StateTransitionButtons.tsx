@@ -9,7 +9,8 @@ import { SuccessState } from '@/components/ui/SuccessState';
 
 /** States a professional can trigger from any given current state */
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  assigned:      ['accepted', 'cancelled'],
+  // An open offer is answered with RequestCardActions, which asks for a decline reason.
+  assigned:      [],
   accepted:      ['on_the_way', 'cancelled'],
   on_the_way:    ['arrived', 'cancelled'],
   arrived:       ['in_progress', 'cancelled'],
@@ -27,6 +28,7 @@ const TRANSITION_LABELS: Record<string, string> = {
   in_progress:'Start Work',
   completed:  'Mark Complete',
   cancelled:  'Cancel Job',
+  declined:   'Decline Job',
 };
 
 const TRANSITION_STYLES: Record<string, string> = {
@@ -36,6 +38,7 @@ const TRANSITION_STYLES: Record<string, string> = {
   in_progress: 'bg-[#176B5B] text-white hover:bg-[#0D5144] focus-visible:ring-[#176B5B]',
   completed:   'bg-[#2F7D5B] text-white hover:bg-[#226048] focus-visible:ring-[#2F7D5B]',
   cancelled:   'border border-[#DFC0C0] text-[#9B3535] hover:bg-[#F5E6E6] focus-visible:ring-[#DFC0C0]',
+  declined:    'border border-[#DFC0C0] text-[#9B3535] hover:bg-[#F5E6E6] focus-visible:ring-[#DFC0C0]',
 };
 
 /** States that require an explicit confirmation dialog before proceeding */
@@ -43,7 +46,7 @@ const REQUIRES_CONFIRMATION = new Set(['cancelled', 'declined', 'completed']);
 
 const CONFIRMATION_MESSAGES: Record<string, string> = {
   cancelled: 'Are you sure you want to cancel this job? This cannot be undone.',
-  declined: 'Decline this request? It will be offered to other professionals.',
+  declined: 'Decline this request? It will be offered to another professional.',
   completed: 'Mark this job as complete? Please confirm all work has been finished.',
 };
 
@@ -57,6 +60,8 @@ interface Toast {
 interface StateTransitionButtonsProps {
   jobId: string;
   currentState: string;
+  /** Targets that stay disabled until the matching code is verified, with the reason shown under the button. */
+  lockedTargets?: Partial<Record<string, string>>;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -73,6 +78,7 @@ interface StateTransitionButtonsProps {
 export function StateTransitionButtons({
   jobId,
   currentState,
+  lockedTargets = {},
 }: StateTransitionButtonsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -105,7 +111,9 @@ export function StateTransitionButtons({
       try {
         const result = await updateJobState(jobId, targetState);
 
-        if (result.success) {
+        if (result.success === false) {
+          showToast('error', ('error' in result ? result.error : 'State transition failed.'));
+        } else {
           const label = TRANSITION_LABELS[targetState] ?? targetState;
           
           // Show success state for job acceptance
@@ -117,8 +125,6 @@ export function StateTransitionButtons({
           
           // For other transitions, show toast
           showToast('success', `✓ ${label} — job updated successfully.`);
-        } else {
-          showToast('error', ('error' in result ? result.error : 'State transition failed.'));
         }
       } catch {
         showToast('error', 'An unexpected error occurred. Please try again.');
@@ -162,7 +168,8 @@ export function StateTransitionButtons({
         {nextStates.map((targetState) => {
           const isCancellation = targetState === 'cancelled';
           const isThisButtonPending = pendingState === targetState;
-          const isAnyPending = isPending || pendingState !== null;
+          const lockedReason = lockedTargets[targetState];
+          const isAnyPending = isPending || pendingState !== null || Boolean(lockedReason);
 
           return (
             <div key={targetState}>
@@ -211,6 +218,7 @@ export function StateTransitionButtons({
                   TRANSITION_LABELS[targetState] ?? targetState
                 )}
               </button>
+              {lockedReason && <p className="text-xs text-ink-3 text-center mt-1">{lockedReason}</p>}
               {isCancellation && !isAnyPending && (
                 <p className="text-xs text-[#7C8681] text-center mt-1">
                   This cannot be undone

@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        /* Fixify Light-First Semantic Palette */
+        /* Feasy Light-First Semantic Palette */
         porcelain: '#F7F4EC',
         paper: '#FFFEFA',
         'paper-2': '#F1EEE5',

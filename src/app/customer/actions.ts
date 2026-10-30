@@ -4,6 +4,14 @@ import { createClient } from '@/lib/supabase/server';
 import { clearSessionCookies } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { ACTIVE_STATES } from '@/lib/jobs/states';
+import { fail, ok, parseInput, type ActionResult } from '@/lib/actions/result';
+import {
+  problemIntakeSchema,
+  respondToQuoteSchema,
+  type ProblemIntakeInput,
+  type RespondToQuoteInput,
+} from '@/validators';
 
 // OWNERSHIP CHECK: Every fetch action verifies customer_id = auth.getUser().id via RLS policy jobs_select_own
 
@@ -136,143 +144,96 @@ export async function logoutUser() {
 
 /**
  * Server Action: Submit Problem Intake
- * Inserts a new service request record for the customer
+ * Inserts a service_requests row for the customer. `requestId` is null when the customer
+ * has no property yet: service_requests.property_id is NOT NULL, so nothing is saved and
+ * the booking wizard collects the property instead.
  */
-export async function submitProblemIntakeAction(payload: {
-  inputText: string;
-  propertyId?: string;
-  detectedCategory?: string;
-  hasMedia?: boolean;
-}) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+export async function submitProblemIntakeAction(
+  payload: ProblemIntakeInput
+): Promise<ActionResult<{ requestId: string | null }>> {
+  const parsed = parseInput(problemIntakeSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
 
-    if (!user) {
-      return { success: false, error: 'User is not authenticated' };
-    }
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'User is not authenticated');
 
-    let targetPropertyId = payload.propertyId;
+  let targetPropertyId = input.propertyId;
 
-    // If property was not explicitly provided, look up the user's primary property
-    if (!targetPropertyId) {
-      const { data: properties } = await supabase
-        .from('properties')
-        .select('id')
-        .eq('owner_customer_id', user.id)
-        .limit(1);
-
-      if (properties && properties.length > 0) {
-        targetPropertyId = properties[0].id;
-      }
-    }
-
-    // If still no property exists, we can still record or prepare the intake
-    const { data: requestData, error } = await supabase
-      .from('service_requests')
-      .insert({
-        customer_id: user.id,
-        property_id: targetPropertyId,
-        input_text: payload.inputText,
-        normalized_summary: payload.inputText.slice(0, 160),
-        intake_source: payload.hasMedia ? 'media' : 'manual',
-        classification_confidence: payload.detectedCategory ? 'high' : 'low',
-        status: 'draft',
-      })
+  if (targetPropertyId) {
+    const { data: owned } = await supabase
+      .from('properties')
       .select('id')
-      .single();
-
-    if (error) {
-      console.warn('Could not persist to service_requests (table might require property):', error.message);
-      // Return success gracefully so customer flow continues smoothly
-      return { success: true, requestId: `draft-${Date.now()}` };
-    }
-
-    revalidatePath('/customer');
-    return { success: true, requestId: requestData.id };
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Unknown error during problem intake';
-    console.error('submitProblemIntakeAction error:', errorMsg);
-    return { success: true, requestId: `client-draft-${Date.now()}` };
+      .eq('id', targetPropertyId)
+      .eq('owner_customer_id', user.id)
+      .maybeSingle();
+    if (!owned) return fail('not_found', 'Property not found');
+  } else {
+    const { data: properties } = await supabase
+      .from('properties')
+      .select('id')
+      .eq('owner_customer_id', user.id)
+      .limit(1);
+    targetPropertyId = properties?.[0]?.id;
   }
+
+  if (!targetPropertyId) return ok({ requestId: null });
+
+  const { data: requestData, error } = await supabase
+    .from('service_requests')
+    .insert({
+      customer_id: user.id,
+      property_id: targetPropertyId,
+      input_text: input.inputText,
+      normalized_summary: input.inputText.slice(0, 160),
+      intake_source: input.hasMedia ? 'media' : 'manual',
+      classification_confidence: input.detectedCategory ? 'high' : 'low',
+      status: 'draft',
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('submitProblemIntakeAction insert failed:', error.message);
+    return fail('failed', 'We could not save your request. Please try again.');
+  }
+
+  revalidatePath('/customer');
+  return ok({ requestId: requestData.id });
 }
 
 /**
  * Server Action: Respond to Quote (Approve or Decline)
- * Updates the quotes row, then uses transition_job_state() RPC to change job state.
- * This ensures the state machine enforces valid transitions and records audit events.
+ * Delegates to the respond_to_quote() RPC, which checks ownership, quote/job state and
+ * expiry, updates the quote and moves the job back to in_progress in one transaction
+ * (approve = extra work authorised, decline = professional continues the original scope).
  */
-export async function respondToQuoteAction(payload: {
-  quoteId: string;
-  jobId: string;
-  decision: 'approved' | 'declined';
-  reason?: string;
-}) {
+export async function respondToQuoteAction(
+  payload: RespondToQuoteInput
+): Promise<ActionResult> {
+  const parsed = parseInput(respondToQuoteSchema, payload);
+  if (parsed.success === false) return parsed;
+  const input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('unauthenticated', 'User not authenticated');
 
-  if (!user) {
-    return { success: false, error: 'User not authenticated' };
-  }
-
-  // Skip non-real job IDs (e.g. sample/demo IDs used in UI previews)
-  if (!payload.jobId || payload.jobId.startsWith('sample')) {
-    return { success: false, error: 'Invalid job ID' };
-  }
-
-  // Verify the customer owns this job before any mutation
-  const { data: job, error: jobFetchError } = await supabase
-    .from('jobs')
-    .select('id, current_state, customer_id')
-    .eq('id', payload.jobId)
-    .eq('customer_id', user.id)
-    .single();
-
-  if (jobFetchError || !job) {
-    return { success: false, error: 'Job not found or access denied' };
-  }
-
-  if (job.current_state !== 'quote_pending') {
-    return { success: false, error: `Job is in state '${job.current_state}', not 'quote_pending'. Cannot respond to quote.` };
-  }
-
-  const newQuoteStatus = payload.decision === 'approved' ? 'approved' : 'declined';
-  // Approved quote → in_progress; declined quote → back to assigned (awaiting reassign)
-  const newJobState = payload.decision === 'approved' ? 'in_progress' : 'assigned';
-
-  // Update quote status (RLS ensures ownership via job→customer_id)
-  const { error: quoteError } = await supabase
-    .from('quotes')
-    .update({
-      status: newQuoteStatus,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', payload.quoteId);
-
-  if (quoteError) {
-    console.error('respondToQuoteAction — quote update error:', quoteError.message);
-    return { success: false, error: 'Failed to update quote status' };
-  }
-
-  // Use the authoritative state machine RPC instead of direct .update()
-  const { error: rpcError } = await supabase.rpc('transition_job_state', {
-    p_job_id: payload.jobId,
-    p_new_state: newJobState,
-    p_actor_user_id: user.id,
-    p_metadata: {
-      event_type: payload.decision === 'approved' ? 'quote_approved' : 'quote_declined',
-      quote_id: payload.quoteId,
-      reason: payload.reason || null,
-    },
+  const { error: rpcError } = await supabase.rpc('respond_to_quote', {
+    p_quote_id: input.quoteId,
+    p_decision: input.decision,
+    p_reason: input.reason ?? null,
   });
 
   if (rpcError) {
-    console.error('respondToQuoteAction — transition_job_state RPC error:', rpcError.message);
-    return { success: false, error: 'Failed to transition job state: ' + rpcError.message };
+    console.error('respondToQuoteAction respond_to_quote RPC error:', rpcError.message);
+    return fail('rejected', rpcError.message);
   }
 
-  revalidatePath('/customer');
-  return { success: true };
+  // The quote also drives the top-bar bell and the action inbox, so refresh the layout.
+  revalidatePath('/customer', 'layout');
+  return ok();
 }
 
 /**
@@ -380,7 +341,7 @@ export async function fetchCustomerJobs(): Promise<{
         )
       `)
       .eq('customer_id', user.id)
-      .not('current_state', 'in', '("CLOSED","COMPLETED","cancelled")')
+      .in('current_state', [...ACTIVE_STATES])
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -395,7 +356,11 @@ export async function fetchCustomerJobs(): Promise<{
         ? service?.service_categories[0]?.name
         : service?.service_categories?.name;
       const pro = Array.isArray(job.professional_profiles) ? job.professional_profiles[0] : job.professional_profiles;
-      const quote = Array.isArray(job.quotes) ? job.quotes[0] : job.quotes;
+      const quotesList: { status?: string; total?: number | string }[] = Array.isArray(job.quotes) ? job.quotes : job.quotes ? [job.quotes] : [];
+      // Prefer the quote that matters to the customer: pending first, then approved
+      const quote =
+        quotesList.find((q) => q.status === 'pending_customer') ??
+        quotesList.find((q) => q.status === 'approved');
 
       return {
         id: job.id,
@@ -671,7 +636,9 @@ export async function fetchJobTimeline(): Promise<{
         : service?.service_categories?.name;
       const property = Array.isArray(job.properties) ? job.properties[0] : job.properties;
       const pro = Array.isArray(job.professional_profiles) ? job.professional_profiles[0] : job.professional_profiles;
-      const quote = Array.isArray(job.quotes) ? job.quotes[0] : job.quotes;
+      const quotesList: { status?: string; total?: number | string }[] = Array.isArray(job.quotes) ? job.quotes : job.quotes ? [job.quotes] : [];
+      // History shows what was actually agreed
+      const quote = quotesList.find((q) => q.status === 'approved');
 
       const completedDate = new Date(job.completed_at || job.created_at);
       const warrantyDate = new Date(completedDate);

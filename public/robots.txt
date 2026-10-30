@@ -1,4 +1,4 @@
-# Fixify robots.txt
+# Feasy robots.txt
 # https://fixify-amber.vercel.app/robots.txt
 
 User-agent: *

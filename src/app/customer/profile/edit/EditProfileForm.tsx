@@ -112,7 +112,7 @@ export function EditProfileForm({ initialProfile }: EditProfileFormProps) {
         <FormInput
           type="text"
           name="fullName"
-          placeholder="John Doe"
+          placeholder="Your full name"
           value={formData.fullName}
           onChange={handleChange}
           error={errors.fullName}

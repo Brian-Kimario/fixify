@@ -1,15 +1,14 @@
-import { getCurrentProfile } from '@/lib/auth';
-import { Card, Button } from '@/components/ui';
-import { VerificationBadge } from '@/components/customer/VerificationBadge';
-import { MobileSignOutButton } from '@/components/shared/MobileSignOutButton';
+import { getCurrentProfile, getCurrentUser } from '@/lib/auth';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Profile - Fixify',
+  title: 'Profile - Feasy',
 };
 
 export default async function ProfilePage() {
-  const profile = await getCurrentProfile();
+  const [profile, user] = await Promise.all([getCurrentProfile(), getCurrentUser()]);
+  const email = user?.email ?? null;
+  const displayName = profile?.full_name || email?.split('@')[0] || 'Customer';
 
   const memberSinceDate = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', {
@@ -20,162 +19,185 @@ export default async function ProfilePage() {
     : 'Recently';
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-200">
-      {/* Back Navigation */}
-      <Link
-        href="/customer"
-        className="text-xs font-semibold text-teal hover:underline inline-flex items-center gap-1"
-      >
-        ← Back to Residence Console
-      </Link>
+    <div className="min-h-screen bg-[#F7F4EC]">
+      {/* Main Content */}
+      <main id="main-content" className="px-4 md:px-6 py-8">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7C8681] block">ACCOUNT</span>
+            <h1 className="text-2xl font-bold tracking-tight text-[#18211F] mt-0.5">Your profile</h1>
+          </div>
+          
+          {/* Profile Header Card */}
+          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-lg p-6 md:p-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+              {/* Avatar */}
+              <div className="flex-shrink-0 relative">
+                <div className="w-24 h-24 rounded-lg bg-[#E2EEE9] flex items-center justify-center text-3xl font-bold text-[#176B5B] border-2 border-[#176B5B]">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt={displayName}
+                      className="w-full h-full rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span>{displayName.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+              </div>
 
-      {/* Profile Header Card */}
-      <Card className="bg-gradient-to-br from-paper to-paper-2">
-        <div className="space-y-6">
-          {/* Avatar and Basic Info */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            {/* Avatar */}
-            <div className="flex-shrink-0">
-              <div className="w-20 h-20 rounded-full bg-teal/10 border-2 border-teal/20 flex items-center justify-center flex-shrink-0">
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile?.full_name || 'Profile'}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-2xl font-display font-bold text-teal">
-                    {profile?.full_name?.charAt(0).toUpperCase() || 'C'}
+              {/* Profile Info */}
+              <div className="flex-1">
+                <h2 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">
+                  {displayName}
+                </h2>
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <span className="text-sm text-[#5A6661]">
+                    Member since {memberSinceDate}
                   </span>
-                )}
+                </div>
+                <Link
+                  href="/customer/profile/edit"
+                  className="inline-block px-5 py-2 bg-[#176B5B] text-white rounded-lg font-medium hover:bg-[#0D5144] transition text-sm"
+                >
+                  ✎ Edit Profile
+                </Link>
               </div>
             </div>
-
-            {/* Name and Status */}
-            <div className="flex-1 min-w-0">
-              <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink truncate">
-                {profile?.full_name || 'Customer'}
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <VerificationBadge status="not_verified" size="sm" />
-                <span className="text-xs text-ink-4 font-mono uppercase tracking-wider">
-                  Member since {memberSinceDate}
-                </span>
-              </div>
-            </div>
-
-            {/* Edit Button */}
-            <Link href="/customer/profile/edit" className="w-full sm:w-auto">
-              <Button variant="primary" size="sm" className="w-full sm:w-auto">
-                Edit Profile
-              </Button>
-            </Link>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-line" />
-
-          {/* Contact Information Grid */}
-          <div>
-            <h2 className="font-display font-bold text-sm text-ink-4 uppercase tracking-wider mb-4">
+          {/* Contact Information Card */}
+          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-lg p-6 md:p-8">
+            <h3 className="text-lg font-bold text-[#18211F] mb-6 flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#176B5B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
               Contact Information
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {/* Email */}
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-ink-4 uppercase tracking-wider">
-                  Email
+              <div className="p-4 bg-[#F7F4EC] rounded-lg border border-[#E0E0E0]">
+                <p className="text-xs font-bold text-[#5A6661] uppercase tracking-wider mb-1">
+                  Email Address
                 </p>
-                <p className="text-sm font-medium text-ink">
-                  {profile?.id ? `customer@${profile.id.substring(0, 8)}...fixify.local` : 'Loading...'}
+                <p className="text-sm font-medium text-[#18211F] mb-1">
+                  {email || '—'}
                 </p>
-                <p className="text-xs text-ink-4">Primary contact email</p>
+                <p className="text-xs text-[#5A6661]">Primary contact for updates</p>
               </div>
 
               {/* Phone */}
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-ink-4 uppercase tracking-wider">
-                  Phone
+              <div className="p-4 bg-[#F7F4EC] rounded-lg border border-[#E0E0E0]">
+                <p className="text-xs font-bold text-[#5A6661] uppercase tracking-wider mb-1">
+                  Phone Number
                 </p>
-                <p className="text-sm font-medium text-ink">
-                  {profile?.phone || 'Not set'}
+                <p className="text-sm font-medium text-[#18211F] mb-1">
+                  {profile?.phone || '—'}
                 </p>
-                <p className="text-xs text-ink-4">Used for service updates</p>
+                <p className="text-xs text-[#5A6661]">Used for service notifications</p>
               </div>
             </div>
-          </div>
-        </div>
-      </Card>
 
-      {/* Personal Information Card */}
-      <Card>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-ink">
-              Personal Information
-            </h2>
-            <Link href="/customer/profile/edit">
-              <Button variant="ghost" size="sm">
-                Edit
-              </Button>
+            <Link
+              href="/customer/profile/edit"
+              className="block w-full px-4 py-2.5 border border-[#D9DED8] text-[#176B5B] font-medium rounded-lg hover:bg-[#F7F4EC] transition text-sm text-center"
+            >
+              Update Contact Info
             </Link>
           </div>
 
-          <div className="space-y-4">
-            {/* Role */}
-            <div className="flex items-center justify-between pb-4 border-b border-line">
-              <span className="font-medium text-ink-3">Account Role</span>
-              <span className="font-semibold text-ink capitalize">
-                {profile?.role || 'Customer'}
-              </span>
-            </div>
-
-            {/* Member Since */}
-            <div className="flex items-center justify-between pb-4 border-b border-line">
-              <span className="font-medium text-ink-3">Member Since</span>
-              <span className="font-semibold text-ink">{memberSinceDate}</span>
-            </div>
-
-            {/* Verification Status */}
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-ink-3">Verification Status</span>
-              <VerificationBadge status="not_verified" size="sm" />
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Account Settings Link */}
-      <Card className="bg-teal-soft/30 border-teal/20">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h3 className="font-display font-bold text-ink mb-1">
-              Account Settings
+          {/* Account Details Card */}
+          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-lg p-6 md:p-8">
+            <h3 className="text-lg font-bold text-[#18211F] mb-6 flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#176B5B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6m0 0v6" />
+              </svg>
+              Account Details
             </h3>
-            <p className="text-sm text-ink-3">
-              Manage email, privacy, security, and communication preferences
-            </p>
-          </div>
-          <Link href="/customer/settings" className="w-full sm:w-auto flex-shrink-0">
-            <Button variant="outline" size="sm" className="w-full sm:w-auto">
-              Go to Settings →
-            </Button>
-          </Link>
-        </div>
-      </Card>
 
-      {/* Sign Out — shown on mobile since the header SignOutMenu is desktop-only */}
-      <div className="md:hidden">
-        <Card>
-          <div className="space-y-3">
-            <h3 className="font-display font-bold text-ink">Session</h3>
-            <p className="text-sm text-[#5A6661]">
-              Sign out of your account on this device.
-            </p>
-            <MobileSignOutButton />
+            <div className="space-y-4">
+              {/* Full Name */}
+              <div className="flex items-center justify-between pb-4 border-b border-[#E0E0E0]">
+                <div>
+                  <p className="font-medium text-[#18211F]">Full Name</p>
+                  <p className="text-xs text-[#5A6661] mt-0.5">Your registered name</p>
+                </div>
+                <p className="font-medium text-[#18211F] text-right">{profile?.full_name || '—'}</p>
+              </div>
+
+              {/* Account Type */}
+              <div className="flex items-center justify-between pb-4 border-b border-[#E0E0E0]">
+                <div>
+                  <p className="font-medium text-[#18211F]">Account Type</p>
+                  <p className="text-xs text-[#5A6661] mt-0.5">Your account role</p>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-[#E2EEE9] text-[#176B5B] text-sm font-medium rounded">
+                  <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                  {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'Customer'}
+                </div>
+              </div>
+
+              {/* Member Since */}
+              <div className="flex items-center justify-between pb-0">
+                <div>
+                  <p className="font-medium text-[#18211F]">Member Since</p>
+                  <p className="text-xs text-[#5A6661] mt-0.5">Account creation date</p>
+                </div>
+                <p className="font-medium text-[#18211F]">{memberSinceDate}</p>
+              </div>
+            </div>
           </div>
-        </Card>
-      </div>
+
+          {/* Quick Actions Card */}
+          <div className="bg-[#E2EEE9] border border-[#BFD4CD] rounded-lg p-6 md:p-8">
+            <h3 className="text-lg font-bold text-[#18211F] mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Link
+                href="/customer/profile/edit"
+                className="px-4 py-2.5 bg-[#176B5B] text-white font-medium rounded-lg hover:bg-[#0D5144] transition text-sm text-center flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Profile
+              </Link>
+              <Link
+                href="/customer/settings"
+                className="px-4 py-2.5 bg-white text-[#176B5B] font-medium rounded-lg hover:bg-[#F7F4EC] transition text-sm text-center flex items-center justify-center gap-2 border border-[#BFD4CD]"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24" />
+                </svg>
+                Settings
+              </Link>
+              <Link
+                href="/customer/properties"
+                className="px-4 py-2.5 bg-white text-[#176B5B] font-medium rounded-lg hover:bg-[#F7F4EC] transition text-sm text-center flex items-center justify-center gap-2 border border-[#BFD4CD]"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="m4 10 8-6 8 6v9H4zM9 19v-5h6v5" />
+                </svg>
+                My Properties
+              </Link>
+              <Link
+                href="/customer/support"
+                className="px-4 py-2.5 bg-white text-[#176B5B] font-medium rounded-lg hover:bg-[#F7F4EC] transition text-sm text-center flex items-center justify-center gap-2 border border-[#BFD4CD]"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 6h14v10H9l-4 4z" />
+                </svg>
+                Support
+              </Link>
+            </div>
+          </div>
+
+        </div>
+      </main>
     </div>
   );
 }

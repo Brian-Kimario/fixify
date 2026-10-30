@@ -1,33 +1,42 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { ArrowLeft, CircleCheck, Clock, PartyPopper, SearchX } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
+import { getCustomerCase } from '@/lib/services/job-case';
+import { getJobCodeState, getNoShowReportedAt } from '@/lib/services/job-codes';
+import { noShowEligibility } from '@/lib/job-codes/rules';
+import { toPanelQuote } from '@/lib/quotes/panel';
+import { bookingStatusDisplay, formatSlot, missingProfessional, propertyTypeLabel } from '@/lib/shell/rules';
+import { formatCurrency } from '@/lib/currency';
+import { PageContainer, Panel, StatusPill } from '@/components/shell/primitives';
+import {
+  CaseCard,
+  CaseProgress,
+  CaseTimeline,
+  FactList,
+  IncompleteNotice,
+  InspectionList,
+  MediaGallery,
+  QuoteSummary,
+  arrivalWindowText,
+} from '@/components/case/CaseFile';
+import { ProfessionalCard } from '@/components/customer/ProfessionalCard';
+import { QuoteReviewButton } from '@/components/customer/QuoteReviewButton';
+import { JobCodeCard } from '@/components/customer/JobCodeCard';
+import { NoShowReport } from '@/components/customer/NoShowReport';
+import { JobMessages } from '@/components/messages/JobMessages';
 import { UPIIntentCheckout } from '@/components/customer/UPIIntentCheckout';
 
-export const metadata = {
-  title: 'Booking Confirmed — Fixify',
+export const metadata: Metadata = {
+  title: 'Booking — Feasy',
 };
 
-const BOOKING_STATUS_LABEL: Record<string, string> = {
-  pending:      'Pending',
-  accepted:     'Accepted',
-  in_progress:  'In Progress',
-  completed:    'Completed',
-  cancelled:    'Cancelled',
-};
-
-const BOOKING_STATUS_STYLE: Record<string, string> = {
-  pending:     'bg-[#FFF4E0] text-[#9B6700] border-[#E8D5A3]',
-  accepted:    'bg-[#E2EEE9] text-[#176B5B] border-[#B8D5CB]',
-  in_progress: 'bg-[#FFF4E0] text-[#9B6700] border-[#E8D5A3]',
-  completed:   'bg-[#E3F0E8] text-[#2F7D5B] border-[#C7DCCF]',
-  cancelled:   'bg-[#F5E6E6] text-[#9B3535] border-[#DFC0C0]',
-};
-
+/** bookings.pricing_model, copied from the service at booking time. */
 const PRICING_MODEL_NOTE: Record<string, string> = {
-  fixed:                 'Fixed price — amount confirmed at booking.',
-  inspection:            'Inspection fee collected on visit. Additional work quoted separately and approved by you.',
-  quote_after_inspection:'Professional will visit and provide a quote. No work starts without your approval.',
+  fixed: 'Fixed price, set when you booked.',
+  inspection: 'Priced by inspection. Any further work is quoted and needs your approval.',
+  quote_after_inspection: 'The professional inspects first and sends a quote. Quoted work needs your approval.',
 };
 
 interface BookingDetailPageProps {
@@ -42,273 +51,303 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
   const { id } = await params;
   const { new: isNew } = await searchParams;
 
-  const supabase = await createClient();
+  const kase = await getCustomerCase(user.id, id);
+  if (!kase) notFound();
 
-  const { data, error } = await supabase
-    .from('bookings')
-    .select(`
-      id,
-      booking_reference,
-      scheduled_start,
-      pricing_model,
-      quoted_or_base_amount,
-      booking_status,
-      created_at,
-      service:services (
-        id, name, description, pricing_model,
-        category:service_categories ( name )
-      ),
-      property:properties (
-        id, name, property_type,
-        address:addresses ( address_line_1, city, area )
-      ),
-      jobs (
-        id,
-        current_state,
-        payments ( id, status )
-      )
-    `)
-    .eq('id', id)
-    .eq('customer_id', user.id)
-    .single();
-
-  if (error || !data) {
-    notFound();
-  }
-
-  const booking = data;
-  const service  = booking.service as unknown as { id: string; name: string; description: string | null; pricing_model: string; category: { name: string } | null } | null;
-  const property = booking.property as unknown as { id: string; name: string; property_type: string; address: { address_line_1: string; city: string; area?: string } | null } | null;
-
-  // ── Payment state ─────────────────────────────────────────────────────────
-  // jobs is 1:1 with booking (UNIQUE constraint on booking_id)
-  const jobRow = Array.isArray(booking.jobs)
-    ? booking.jobs[0]
-    : (booking.jobs as { id: string; current_state: string; payments: { id: string; status: string }[] } | null);
-
-  const existingPayments = (jobRow?.payments ?? []) as { id: string; status: string }[];
-  const alreadyPaid      = existingPayments.some((p) => p.status === 'paid');
-
-  // Show the Pay section only when:
-  //  - The job is complete (professional finished work)
-  //  - There's no existing paid payment
-  //  - There's a known amount to charge
-  const showPaySection =
-    jobRow?.current_state === 'completed' &&
-    !alreadyPaid &&
-    booking.quoted_or_base_amount != null &&
-    Number(booking.quoted_or_base_amount) > 0;
-
-  // ── Display values ────────────────────────────────────────────────────────
-  const statusLabel = BOOKING_STATUS_LABEL[booking.booking_status] ?? booking.booking_status;
-  const statusStyle = BOOKING_STATUS_STYLE[booking.booking_status] ?? BOOKING_STATUS_STYLE['pending'];
-
-  const formattedDate = new Date(booking.scheduled_start).toLocaleString('en-IN', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  const { booking, service, property, job, professional } = kase;
+  const jobState = job?.state ?? null;
+  const codeState =
+    job && ['on_the_way', 'arrived', 'in_progress'].includes(job.state) ? await getJobCodeState(job.id) : null;
+  const noShowReport = job && ['accepted', 'on_the_way'].includes(job.state) ? await getNoShowReportedAt(job.id) : null;
+  const noShow = job
+    ? noShowEligibility({
+        state: job.state,
+        arrivedAt: job.arrivedAt,
+        scheduledStart: booking.scheduledStart,
+        now: new Date(),
+        reported: noShowReport != null,
+      })
+    : null;
+  const isOpen = booking.status !== 'cancelled' && booking.status !== 'completed';
+  // The matcher only offers bookings whose start is still ahead, so don't promise matching after it.
+  const startPassed = new Date(booking.scheduledStart) < new Date();
+  const missing = missingProfessional({
+    bookingStatus: booking.status,
+    jobState,
+    unmatchedSince: booking.unmatchedSince,
+    startPassed,
+  });
+  // An offer still open at the start is about to expire unanswered, so it counts as overdue.
+  const unmatched = missing === 'overdue' || (missing === 'unmatched' && !professional);
+  const status = bookingStatusDisplay({
+    bookingStatus: booking.status,
+    jobState,
+    unmatchedSince: booking.unmatchedSince,
+    startPassed,
   });
 
-  const formattedAmount = booking.quoted_or_base_amount != null
-    ? `₹${Number(booking.quoted_or_base_amount).toLocaleString('en-IN')}`
-    : 'Quote after inspection';
-
-  const pricingNote = PRICING_MODEL_NOTE[booking.pricing_model] ?? '';
+  const showProfessional =
+    professional != null && jobState !== 'cancelled' && (isOpen ? missing !== 'overdue' : booking.status === 'completed');
+  const pricingNote = PRICING_MODEL_NOTE[booking.pricingModel];
+  const hasActivity = kase.quotes.length > 0 || kase.inspections.length > 0 || kase.media.length > 0;
+  const proName = professional?.displayName ?? 'Your professional';
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC] pb-24">
-      <div className="px-4 md:px-8 pt-6 max-w-2xl">
+    <PageContainer className="pb-24">
+      <Link
+        href="/customer/bookings"
+        className="mb-5 inline-flex min-h-11 items-center gap-1.5 text-sm text-ink-3 transition-colors hover:text-teal"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        Bookings
+      </Link>
 
-        {/* Back link */}
-        <Link
-          href="/customer"
-          className="inline-flex items-center gap-1.5 text-sm text-[#5A6661] hover:text-[#176B5B] transition-colors mb-6"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M19 12H5M12 5l-7 7 7 7" />
-          </svg>
-          Back to dashboard
-        </Link>
-
-        {/* Confirmation banner — only on fresh bookings */}
-        {isNew === '1' && (
-          <div className="mb-6 flex items-start gap-3 px-4 py-4 bg-[#E2EEE9] border border-[#B8D5CB] rounded-2xl">
-            <span className="text-2xl" aria-hidden="true">🎉</span>
-            <div>
-              <p className="font-bold text-[#176B5B] text-sm">Booking confirmed!</p>
-              <p className="text-sm text-[#2F7D5B] mt-0.5">
-                Your booking <span className="font-mono">{booking.booking_reference}</span> is submitted.
-                We&apos;ll notify you once a professional is assigned.
-              </p>
-            </div>
+      {isNew === '1' && (
+        <div role="status" className="mb-5 flex items-start gap-3 rounded-2xl border border-teal/25 bg-teal-soft px-4 py-4">
+          <PartyPopper className="mt-0.5 h-5 w-5 shrink-0 text-teal" aria-hidden="true" />
+          <div className="text-sm">
+            <p className="font-semibold text-teal-deep">Booking confirmed</p>
+            <p className="mt-0.5 text-ink-2">
+              Booking <span className="font-mono">{booking.reference}</span> is submitted. We&apos;ll let you know
+              when a professional accepts.
+            </p>
           </div>
-        )}
-
-        {/* Paid banner */}
-        {alreadyPaid && (
-          <div className="mb-6 flex items-start gap-3 px-4 py-4 bg-[#E3F0E8] border border-[#C7DCCF] rounded-2xl">
-            <span className="text-2xl" aria-hidden="true">✅</span>
-            <div>
-              <p className="font-bold text-[#2F7D5B] text-sm">Payment received</p>
-              <p className="text-sm text-[#2F7D5B] mt-0.5">
-                This job has been paid. Your invoice is being generated.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Page heading */}
-        <div className="mb-6">
-          <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
-            BOOKING DETAIL
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-[#18211F]">
-              {service?.name ?? 'Booking'}
-            </h1>
-            <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg border ${statusStyle}`}>
-              {statusLabel}
-            </span>
-          </div>
-          <p className="text-xs font-mono text-[#7C8681] mt-1">{booking.booking_reference}</p>
         </div>
+      )}
 
-        {/* Detail cards */}
-        <div className="space-y-3">
+      <header className="mb-6">
+        {service?.categoryName && <p className="text-sm font-medium text-ink-3">{service.categoryName}</p>}
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <h1 className="font-editorial text-3xl font-semibold leading-tight tracking-[-0.02em] text-ink">
+            {service?.name ?? 'Booking'}
+          </h1>
+          <StatusPill tone={status.tone}>{status.label}</StatusPill>
+        </div>
+        <p className="mt-1 font-mono text-xs text-ink-4">{booking.reference}</p>
+      </header>
 
-          {/* Service */}
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-2">Service</p>
-            <p className="font-bold text-[#18211F]">{service?.name}</p>
-            {service?.category && (
-              <p className="text-xs text-[#5A6661] mt-0.5">{service.category.name}</p>
-            )}
-            {service?.description && (
-              <p className="text-sm text-[#5A6661] mt-2 leading-relaxed">{service.description}</p>
-            )}
-          </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          {kase.incomplete && <IncompleteNotice />}
 
-          {/* Scheduled time */}
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-2">Scheduled for</p>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-[#176B5B] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8"  y1="2" x2="8"  y2="6"/>
-                <line x1="3"  y1="10" x2="21" y2="10"/>
-              </svg>
-              <p className="font-bold text-[#18211F] text-sm">{formattedDate}</p>
+          {/* What needs the customer now: a quote, a payment, or a new time. */}
+          {kase.pendingQuote && (
+            <Panel className="border-clay/30 p-5">
+              <p className="text-sm font-semibold text-ink">Your approval is needed</p>
+              <p className="mt-1 text-sm text-ink-3">
+                {kase.pendingQuote.proName} sent a quote of {formatCurrency(kase.pendingQuote.total)}. Work on it
+                starts only if you approve.
+              </p>
+              <div className="mt-4">
+                <QuoteReviewButton quote={toPanelQuote(kase.pendingQuote)} />
+              </div>
+            </Panel>
+          )}
+
+          {kase.amountDuePaise != null && job && (
+            <Panel className="border-teal/40 p-5">
+              <p className="text-sm font-semibold text-teal-deep">Payment due</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-ink">
+                {formatCurrency(kase.amountDuePaise / 100)}
+              </p>
+              <p className="mt-1 text-sm text-ink-3">The work is complete. Pay securely with UPI.</p>
+              <div className="mt-4">
+                <UPIIntentCheckout jobId={job.id} displayAmountRupees={kase.amountDuePaise / 100} />
+              </div>
+            </Panel>
+          )}
+
+          {kase.noPayableAmount && (
+            <Panel className="p-5">
+              <p className="text-sm font-semibold text-ink">Payment not available yet</p>
+              <p className="mt-1 text-sm text-ink-3">
+                The work is complete, but this job has no approved quote or booking price to pay against.
+              </p>
+            </Panel>
+          )}
+
+          {kase.paidAt && (
+            <div role="status" className="flex items-start gap-3 rounded-2xl border border-success/25 bg-success-soft px-4 py-4">
+              <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-hidden="true" />
+              <div className="text-sm">
+                <p className="font-semibold text-success">Payment received</p>
+                <p className="mt-0.5 text-ink-2">Paid {formatSlot(kase.paidAt)}.</p>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Property */}
-          {property && (
-            <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-2">Property</p>
-              <div className="flex items-start gap-2">
-                <svg className="w-4 h-4 text-[#176B5B] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9 22 9 12 15 12 15 22"/>
-                </svg>
+          {unmatched && (
+            <Panel className="border-ochre/30 bg-ochre-soft p-5">
+              <div className="flex items-start gap-3">
+                <SearchX className="mt-0.5 h-5 w-5 shrink-0 text-ochre" aria-hidden="true" />
                 <div>
-                  <p className="font-bold text-[#18211F]">{property.name}</p>
-                  <p className="text-xs text-[#5A6661] capitalize">{property.property_type}</p>
-                  {property.address && (
-                    <p className="text-xs text-[#5A6661] mt-1">
-                      {property.address.address_line_1}
-                      {property.address.area ? `, ${property.address.area}` : ''}
-                      {`, ${property.address.city}`}
-                    </p>
+                  {missing === 'overdue' ? (
+                    <>
+                      <p className="font-semibold text-ink">No professional was assigned</p>
+                      <p className="mt-1 text-sm text-ink-2">
+                        The start time passed before a professional confirmed this visit. Our team can see this
+                        booking. You can book a new time.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-ink">No professional available yet</p>
+                      <p className="mt-1 text-sm text-ink-2">
+                        None of our verified professionals for this service can take this time slot right now. We
+                        keep trying until the start time, and our team can see it. You can also book a different
+                        time.
+                      </p>
+                    </>
+                  )}
+                  {service && property && (
+                    <Link
+                      href={`/customer/bookings/new?service=${service.id}&propertyId=${property.id}`}
+                      className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-teal px-4 text-sm font-semibold text-paper hover:bg-teal-deep"
+                    >
+                      {missing === 'overdue' ? 'Book a new time' : 'Book another time'}
+                    </Link>
                   )}
                 </div>
               </div>
-            </div>
+            </Panel>
           )}
 
-          {/* Pricing */}
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-2">Price</p>
-            <p className="font-bold text-[#18211F] text-lg">{formattedAmount}</p>
-            {pricingNote && (
-              <p className="text-xs text-[#5A6661] mt-1">{pricingNote}</p>
-            )}
-          </div>
-
-          {/* ── Pay section — only shown when job is complete and unpaid ── */}
-          {showPaySection && jobRow && (
-            <div className="bg-[#FFFEFA] border border-[#176B5B] rounded-xl p-5 space-y-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#176B5B] mb-0.5">
-                  Payment due
-                </p>
-                <p className="text-2xl font-bold text-[#18211F]">{formattedAmount}</p>
-                <p className="text-xs text-[#5A6661] mt-1">
-                  Work has been completed. Pay securely via UPI to close this job.
-                </p>
+          {(kase.eta || kase.lateReportedAt) && (
+            <Panel className={`p-5 ${kase.lateReportedAt || kase.eta?.passed ? 'border-ochre/30 bg-ochre-soft' : 'border-teal/30'}`}>
+              <div className="flex items-start gap-3">
+                <Clock
+                  className={`mt-0.5 h-5 w-5 shrink-0 ${kase.lateReportedAt || kase.eta?.passed ? 'text-ochre' : 'text-teal'}`}
+                  aria-hidden="true"
+                />
+                <div className="text-sm">
+                  {kase.lateReportedAt && (
+                    <p className="font-semibold text-ink">
+                      {proName} said they are running late ({formatSlot(kase.lateReportedAt)}).
+                    </p>
+                  )}
+                  {kase.eta && (
+                    <>
+                      <p className={kase.lateReportedAt ? 'mt-1 text-ink-2' : 'font-semibold text-ink'}>
+                        {kase.lateReportedAt ? 'New expected arrival' : 'Expected arrival'}: {arrivalWindowText(kase.eta)}
+                      </p>
+                      {kase.eta.sharedAt && !kase.lateReportedAt && (
+                        <p className="mt-0.5 text-xs text-ink-3">Shared {formatSlot(kase.eta.sharedAt)}</p>
+                      )}
+                      {kase.eta.passed && (
+                        <p className="mt-1 text-ink-2">
+                          This window has passed and {proName} has not marked arrival yet.
+                        </p>
+                      )}
+                    </>
+                  )}
+                  <p className="mt-1 text-xs text-ink-3">
+                    This is the professional&apos;s own estimate. Feasy does not track live location.
+                  </p>
+                </div>
               </div>
-              <UPIIntentCheckout
-                jobId={jobRow.id}
-                displayAmountRupees={Number(booking.quoted_or_base_amount)}
-              />
-            </div>
+            </Panel>
           )}
 
-          {/* Booking created */}
-          <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7C8681] mb-1">Booked on</p>
-            <p className="text-sm text-[#18211F]">
-              {new Date(booking.created_at).toLocaleDateString('en-IN', {
-                day: 'numeric', month: 'long', year: 'numeric',
-              })}
-            </p>
-          </div>
+          {job && codeState && <JobCodeCard jobId={job.id} state={codeState} />}
+          {job && (noShow?.status === 'eligible' || noShow?.status === 'already_reported') && (
+            <NoShowReport jobId={job.id} reportedAt={noShowReport?.reportedAt ?? null} />
+          )}
 
+          {showProfessional && professional && (
+            <ProfessionalCard
+              professional={professional}
+              awaitingAcceptance={jobState === 'assigned'}
+              phone={isOpen ? professional.phone : null}
+            />
+          )}
+
+          {job && professional && (
+            <JobMessages userId={user.id} jobId={job.id} jobState={job.state} otherName={proName} />
+          )}
+
+          <CaseCard title="Booking">
+            <FactList
+              facts={[
+                { label: 'Scheduled for', value: formatSlot(booking.scheduledStart) ?? '—' },
+                ...(property
+                  ? [
+                      {
+                        label: 'Property',
+                        value: (
+                          <>
+                            {property.name}
+                            <span className="text-ink-3"> · {propertyTypeLabel(property.propertyType)}</span>
+                            {property.address && <span className="block text-xs text-ink-3">{property.address}</span>}
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
+                {
+                  label: 'Price at booking',
+                  value: (
+                    <>
+                      {booking.bookedAmount != null ? formatCurrency(booking.bookedAmount) : 'Quote after inspection'}
+                      {pricingNote && <span className="block text-xs text-ink-3">{pricingNote}</span>}
+                    </>
+                  ),
+                },
+                ...(booking.createdAt ? [{ label: 'Booked on', value: formatSlot(booking.createdAt) ?? '—' }] : []),
+              ]}
+            />
+            {(booking.problemSummary || booking.intakeOptions.length > 0) && (
+              <div className="mt-4 border-t border-line pt-4">
+                <p className="text-xs text-ink-4">Your description</p>
+                {booking.problemSummary && (
+                  <p className="mt-1 whitespace-pre-line text-sm leading-6 text-ink">{booking.problemSummary}</p>
+                )}
+                {booking.intakeOptions.length > 0 && (
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {booking.intakeOptions.map((option) => (
+                      <li key={option} className="rounded-full border border-line bg-porcelain px-2.5 py-0.5 text-xs text-ink-2">
+                        {option}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </CaseCard>
+
+          {hasActivity && (
+            <>
+              {kase.inspections.length > 0 && (
+                <CaseCard title="Inspection notes">
+                  <InspectionList inspections={kase.inspections} />
+                </CaseCard>
+              )}
+              {kase.media.length > 0 && (
+                <CaseCard title="Photos and receipts">
+                  <MediaGallery media={kase.media} />
+                </CaseCard>
+              )}
+              {kase.quotes.length > 0 && (
+                <CaseCard title={kase.quotes.length > 1 ? 'Quotes' : 'Quote'}>
+                  <div className="space-y-3">
+                    {kase.quotes.map((quote) => (
+                      <QuoteSummary key={quote.id} quote={quote} role="customer" jobState={jobState} />
+                    ))}
+                  </div>
+                </CaseCard>
+              )}
+            </>
+          )}
         </div>
 
-        {/* What happens next */}
-        {!showPaySection && !alreadyPaid && (
-          <div className="mt-6 bg-[#F1F7F4] border border-[#C5D8CF] rounded-xl p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#176B5B] mb-3">What happens next?</p>
-            <ol className="space-y-2 text-sm text-[#18211F]">
-              <li className="flex gap-2">
-                <span className="font-bold text-[#176B5B] flex-shrink-0">1.</span>
-                We match your booking with a verified professional in your area.
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold text-[#176B5B] flex-shrink-0">2.</span>
-                You&apos;ll receive a notification when they&apos;re assigned and confirmed.
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold text-[#176B5B] flex-shrink-0">3.</span>
-                {booking.pricing_model === 'quote_after_inspection'
-                  ? 'The professional will inspect and send you a quote for approval before starting.'
-                  : 'The professional will arrive at your scheduled time and complete the service.'}
-              </li>
-            </ol>
-          </div>
-        )}
-
-        {/* CTAs */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/customer/bookings/new"
-            className="flex-1 text-center px-4 py-3 border border-[#D9DED8] text-[#176B5B] font-bold text-sm rounded-xl hover:bg-[#F1F7F4] transition"
-          >
-            Book another service
-          </Link>
-          <Link
-            href="/customer"
-            className="flex-1 text-center px-4 py-3 bg-[#176B5B] text-white font-bold text-sm rounded-xl hover:bg-[#0D5144] transition"
-          >
-            Go to dashboard
-          </Link>
-        </div>
-
+        <aside className="space-y-4">
+          <CaseCard title="Progress">
+            <CaseProgress steps={kase.progress} />
+          </CaseCard>
+          <CaseCard title="Timeline">
+            <CaseTimeline entries={kase.timeline} />
+          </CaseCard>
+        </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }

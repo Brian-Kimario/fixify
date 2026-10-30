@@ -1,306 +1,382 @@
-import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
-import { getProfessionalEarningsLedger } from '@/app/professional/actions';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { z } from 'zod';
+import {
+  BadgeCheck,
+  Briefcase,
+  ChevronRight,
+  CircleAlert,
+  Clock3,
+  FileText,
+  Hourglass,
+  Info,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react';
+import { getCurrentUser } from '@/lib/auth';
+import { getProfessionalEarnings, type EarningsBucket, type EarningsJob } from '@/lib/services/earnings';
+import { formatCurrency } from '@/lib/currency';
+import { STATE_META } from '@/lib/jobs/states';
+import { PLATFORM_TIME_ZONE } from '@/lib/shell/rules';
+import { EmptyState, PageContainer, PageHeader, Panel, StatusPill } from '@/components/shell/primitives';
 
 export const metadata = {
-  title: 'Earnings Ledger — Fixify Professional',
+  title: 'Earnings — Feasy Professional',
 };
 
-export default async function EarningsPage() {
+const VIEWS = ['all', 'paid', 'awaiting_payment', 'in_hand'] as const;
+type View = (typeof VIEWS)[number];
+
+const searchParamsSchema = z.object({ view: z.enum(VIEWS).optional() });
+
+const VIEW_LABEL: Record<View, string> = {
+  all: 'All',
+  paid: 'Paid',
+  awaiting_payment: 'Payment due',
+  in_hand: 'In hand',
+};
+
+const VIEW_EMPTY: Record<View, string> = {
+  all: 'Jobs you accept show up here with their agreed price.',
+  paid: 'Jobs the customer has paid for through the app show up here.',
+  awaiting_payment: 'Finished jobs waiting for the customer to pay show up here.',
+  in_hand: 'Accepted jobs you have not finished yet show up here.',
+};
+
+const money = (amount: number) => formatCurrency(amount, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+const shortDate = (iso: string | null) =>
+  iso
+    ? new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: PLATFORM_TIME_ZONE }).format(
+        new Date(iso),
+      )
+    : null;
+
+export default async function EarningsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await getCurrentUser();
-  const profile = await getCurrentProfile();
+  if (!user) redirect('/auth/login?next=/professional/earnings');
 
-  if (!user) {
-    redirect('/auth/login');
+  const parsed = searchParamsSchema.safeParse(await searchParams);
+  const view: View = (parsed.success && parsed.data.view) || 'all';
+
+  const earnings = await getProfessionalEarnings(user.id);
+
+  if (!earnings) {
+    return (
+      <PageContainer>
+        <PageHeader eyebrow="Earnings" title="Your job value" />
+        <div
+          role="alert"
+          className="flex items-start gap-2.5 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger"
+        >
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>We couldn’t load your jobs just now. Refresh the page to try again.</p>
+        </div>
+      </PageContainer>
+    );
   }
 
-  let ledger;
-  try {
-    ledger = await getProfessionalEarningsLedger();
-  } catch (err) {
-    console.error('Error loading earnings ledger:', err);
-    ledger = {
-      totalEarned: 0,
-      completedJobsCount: 0,
-      averageRate: 0,
-      thisMonthEarned: 0,
-      thisWeekEarned: 0,
-      pendingPayouts: 0,
-      monthlyBreakdown: [],
-      recentTransactions: [],
-    };
-  }
-
-  const hasEarnings = ledger.totalEarned > 0 || ledger.recentTransactions.length > 0;
+  const { paid, awaitingPayment, inHand, months, jobs } = earnings;
+  const finished = { value: paid.value + awaitingPayment.value, count: paid.count + awaitingPayment.count };
+  const paidShare = finished.value > 0 ? Math.round((paid.value / finished.value) * 100) : 0;
+  const counts: Record<View, number> = {
+    all: jobs.length,
+    paid: paid.count,
+    awaiting_payment: awaitingPayment.count,
+    in_hand: inHand.count,
+  };
+  const list = view === 'all' ? jobs : jobs.filter((j) => j.bucket === view);
+  const maxMonth = Math.max(...months.map((m) => m.value), 0);
+  const thisMonth = months[months.length - 1];
 
   return (
-    <div className="pb-24 md:pb-12 px-4 md:px-6 max-w-6xl mx-auto space-y-8">
-      {/* Back Link */}
-      <div>
-        <Link
-          href="/professional"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5A6661] hover:text-[#176B5B] transition-colors"
-        >
-          ← Back to Operations Dashboard
-        </Link>
-      </div>
+    <PageContainer>
+      <PageHeader
+        eyebrow="Earnings"
+        title="Your job value"
+        description="The agreed price of every job you have taken on — the approved quote, or the booking price when there is none. These are job prices, not payouts."
+      />
 
-      {/* Header */}
-      <div>
-        <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-2">
-          FINANCIAL OPERATIONS
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">
-          Earnings & Settlement Ledger
-        </h1>
-        <p className="text-[#5A6661] max-w-2xl">
-          Real-time record of all verified work, approved quotes, and completed service payouts.
-        </p>
-      </div>
+      {jobs.length === 0 ? (
+        <EmptyState
+          icon={Wallet}
+          title="No jobs yet"
+          body="Once you accept a job, its agreed price shows up here and follows it through to payment."
+          action={{ href: '/professional/requests', label: 'See open requests' }}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+            {/* Finished work hero */}
+            <section
+              aria-label="Finished work"
+              className="relative overflow-hidden rounded-3xl bg-teal-deep p-6 text-paper lg:col-span-3 md:p-8"
+            >
+              <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-teal/40" />
+              <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-teal/25" />
+              <div className="relative">
+                <p className="text-sm font-medium text-teal-soft">Finished work</p>
+                <p className="mt-2 font-editorial text-4xl font-semibold tracking-[-0.02em] tabular-nums md:text-5xl">
+                  {money(finished.value)}
+                </p>
+                <p className="mt-1 text-sm text-teal-soft">
+                  {finished.count} {finished.count === 1 ? 'job' : 'jobs'} completed
+                </p>
 
-      {/* Top Summary Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-        {/* Total Earned */}
-        <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 shadow-sm hover:border-[#176B5B] transition">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
-                Total Completed Value
-              </p>
-              <p className="text-3xl md:text-4xl font-bold text-[#176B5B]">
-                ₹{ledger.totalEarned.toLocaleString('en-IN')}
-              </p>
-              <p className="text-xs text-[#7C8681] mt-2">
-                All-time verified job completions
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-[#E2EEE9] flex items-center justify-center flex-shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-[#176B5B]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                <path d="M1 10h22" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Jobs Completed */}
-        <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 shadow-sm hover:border-[#176B5B] transition">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
-                Completed Jobs
-              </p>
-              <p className="text-3xl md:text-4xl font-bold text-[#18211F]">
-                {ledger.completedJobsCount}
-              </p>
-              <p className="text-xs text-[#7C8681] mt-2">
-                Closed with signed completion
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-[#E2EEE9] flex items-center justify-center flex-shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-[#176B5B]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Average Rate */}
-        <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 shadow-sm hover:border-[#176B5B] transition">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
-                Average Value / Job
-              </p>
-              <p className="text-3xl md:text-4xl font-bold text-[#18211F]">
-                ₹{Math.round(ledger.averageRate).toLocaleString('en-IN')}
-              </p>
-              <p className="text-xs text-[#7C8681] mt-2">
-                Including approved parts & labour
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-[#E2EEE9] flex items-center justify-center flex-shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-[#176B5B]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 17" />
-                <polyline points="17 6 23 6 23 12" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Monthly Breakdown & Quick Payout Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Monthly Breakdown (2 cols) */}
-        <div className="lg:col-span-2 bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] block mb-1">
-                HISTORY
-              </span>
-              <h2 className="text-lg md:text-xl font-bold text-[#18211F]">
-                Monthly Breakdown
-              </h2>
-            </div>
-            <span className="text-xs text-[#5A6661]">Last 4 Months</span>
-          </div>
-
-          {!hasEarnings ? (
-            <div className="p-8 text-center text-[#5A6661] text-xs">
-              No historical billing data yet. Once you complete scheduled jobs, monthly earnings trends will display here.
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {ledger.monthlyBreakdown.map((m) => (
-                <div key={m.month} className="space-y-1.5">
-                  <div className="flex justify-between items-center text-sm">
-                    <div>
-                      <span className="font-semibold text-[#18211F]">{m.month}</span>
-                      <span className="text-xs text-[#7C8681] ml-2">({m.jobs} {m.jobs === 1 ? 'job' : 'jobs'})</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-bold text-[#176B5B]">₹{m.earned.toLocaleString('en-IN')}</span>
-                      <span className="text-xs text-[#7C8681] ml-2">{m.rate}</span>
-                    </div>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="w-full bg-[#E2EEE9] rounded-full h-2 overflow-hidden">
+                {finished.value > 0 && (
+                  <div className="mt-6">
                     <div
-                      className="bg-[#176B5B] h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.max(4, m.percentage)}%` }}
-                    />
+                      className="flex h-2.5 overflow-hidden rounded-full bg-paper/15"
+                      role="img"
+                      aria-label={`${paidShare}% of finished work has been paid through the app`}
+                    >
+                      <span className="h-full bg-paper" style={{ width: `${paidShare}%` }} />
+                    </div>
+                    <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <dt className="flex items-center gap-1.5 text-teal-soft">
+                          <span className="h-2 w-2 rounded-full bg-paper" aria-hidden="true" />
+                          Paid through the app
+                        </dt>
+                        <dd className="mt-1 text-lg font-semibold tabular-nums">{money(paid.value)}</dd>
+                      </div>
+                      <div>
+                        <dt className="flex items-center gap-1.5 text-teal-soft">
+                          <span className="h-2 w-2 rounded-full bg-paper/30" aria-hidden="true" />
+                          Waiting on customer
+                        </dt>
+                        <dd className="mt-1 text-lg font-semibold tabular-nums">{money(awaitingPayment.value)}</dd>
+                      </div>
+                    </dl>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                )}
+              </div>
+            </section>
 
-        {/* Quick Settlement Card (1 col) */}
-        <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-5 md:p-6 shadow-sm space-y-4">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] block mb-1">
-              CURRENT CYCLE
-            </span>
-            <h2 className="text-lg font-bold text-[#18211F]">
-              Settlement Status
-            </h2>
-          </div>
-
-          <div className="p-3.5 bg-[#E2EEE9]/70 rounded-xl space-y-1">
-            <span className="text-xs font-semibold text-[#176B5B] block">This Month's Completed</span>
-            <span className="text-2xl font-bold text-[#176B5B]">
-              ₹{ledger.thisMonthEarned.toLocaleString('en-IN')}
-            </span>
-          </div>
-
-          <div className="p-3.5 bg-[#F7F4EC] rounded-xl space-y-1">
-            <span className="text-xs font-semibold text-[#5A6661] block">In-Progress / Pending Authorization</span>
-            <span className="text-xl font-bold text-[#18211F]">
-              ₹{ledger.pendingPayouts.toLocaleString('en-IN')}
-            </span>
-          </div>
-
-          <div className="pt-3 border-t border-[#D9DED8] space-y-2 text-xs text-[#5A6661]">
-            <div className="flex justify-between">
-              <span>Payout Schedule:</span>
-              <span className="font-semibold text-[#18211F]">Weekly (Every Friday)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Platform Fee:</span>
-              <span className="font-semibold text-[#18211F]">Standard 5%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Disbursement:</span>
-              <span className="font-semibold text-[#176B5B]">Direct Bank / UPI</span>
+            <div className="grid grid-cols-2 gap-4 lg:col-span-2 lg:grid-cols-1">
+              <MetricCard
+                icon={Hourglass}
+                tone="ochre"
+                label="Payment due"
+                value={money(awaitingPayment.value)}
+                hint={
+                  awaitingPayment.count > 0
+                    ? `${awaitingPayment.count} finished ${awaitingPayment.count === 1 ? 'job' : 'jobs'} waiting for the customer to pay`
+                    : 'Nothing waiting on payment'
+                }
+              />
+              <MetricCard
+                icon={Briefcase}
+                tone="blue"
+                label="Work in hand"
+                value={money(inHand.value)}
+                hint={
+                  inHand.count > 0
+                    ? `${inHand.count} accepted ${inHand.count === 1 ? 'job' : 'jobs'} not finished yet`
+                    : 'No open jobs right now'
+                }
+              />
             </div>
           </div>
-        </div>
 
-      </div>
-
-      {/* Real Transactions Ledger */}
-      <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 md:px-6 py-4 md:py-5 border-b border-[#D9DED8] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] block mb-0.5">
-              AUDIT TRAIL
-            </span>
-            <h2 className="text-lg md:text-xl font-bold text-[#18211F]">
-              Recent Job Transactions
-            </h2>
-          </div>
-          <span className="text-xs text-[#7C8681]">
-            {ledger.recentTransactions.length} RECORDED
-          </span>
-        </div>
-
-        {ledger.recentTransactions.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-12 h-12 rounded-full bg-[#E2EEE9] flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-[#176B5B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="2" y="5" width="20" height="14" rx="2" />
-                <line x1="2" y1="10" x2="22" y2="10" />
-              </svg>
+          {/* Monthly chart */}
+          <Panel className="mt-4 p-5 md:p-6">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-base font-semibold text-ink">Finished work by month</h2>
+                <p className="mt-0.5 text-sm text-ink-3">Agreed price of jobs completed in each of the last six months.</p>
+              </div>
+              <p className="text-sm text-ink-3">
+                This month <span className="font-semibold tabular-nums text-ink">{money(thisMonth.value)}</span>
+              </p>
             </div>
-            <h3 className="text-sm font-bold text-[#18211F] mb-1">No transaction records yet</h3>
-            <p className="text-xs text-[#5A6661] max-w-sm mx-auto">
-              When you accept and complete service visits or submit approved quotes, each transaction will be recorded here with timestamps.
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-[#D9DED8]">
-            {ledger.recentTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="px-5 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-[#F9FAF8] transition"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#18211F] text-sm md:text-base">
-                      {tx.jobTitle}
+
+            <ol className="mt-6 grid h-48 grid-cols-6 items-end gap-2 sm:gap-4" aria-label="Finished work by month">
+              {months.map((m, i) => {
+                const height = maxMonth > 0 ? Math.max((m.value / maxMonth) * 100, m.value > 0 ? 6 : 0) : 0;
+                const current = i === months.length - 1;
+                return (
+                  <li key={m.key} className="flex h-full flex-col items-center justify-end gap-2">
+                    <span className="sr-only">
+                      {m.label}: {money(m.value)} from {m.count} {m.count === 1 ? 'job' : 'jobs'}
+                    </span>
+                    <span aria-hidden="true" className="text-[11px] font-medium tabular-nums text-ink-3">
+                      {m.value > 0 ? money(m.value) : ''}
                     </span>
                     <span
-                      className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
-                        tx.status === 'completed'
-                          ? 'bg-[#E2EEE9] text-[#176B5B] border-[#B8D5CB]'
-                          : tx.status === 'pending'
-                          ? 'bg-[#F5EBD7] text-[#9B6A1E] border-[#DDCCAB]'
-                          : 'bg-[#FFF4E0] text-[#9B6700] border-[#E8D5A3]'
-                      }`}
-                    >
-                      {tx.status === 'completed' ? 'Completed' : tx.status === 'pending' ? 'Quote Pending' : 'In Progress'}
+                      aria-hidden="true"
+                      className={`w-full max-w-14 rounded-t-lg ${current ? 'bg-teal' : 'bg-teal-soft'} ${m.value === 0 ? 'h-1 rounded-b-lg bg-paper-2' : ''}`}
+                      style={m.value > 0 ? { height: `${height}%` } : undefined}
+                    />
+                    <span aria-hidden="true" className={`text-xs ${current ? 'font-semibold text-ink' : 'text-ink-3'}`}>
+                      {m.label}
                     </span>
-                  </div>
-                  <div className="text-xs text-[#5A6661] mt-0.5">
-                    Customer: <span className="font-medium text-[#18211F]">{tx.customerName}</span> · Date: {tx.date}
-                  </div>
-                </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </Panel>
 
-                <div className="flex items-center gap-4 self-end md:self-auto">
-                  <div className="text-right">
-                    <span className="text-base md:text-lg font-bold text-[#176B5B]">
-                      +₹{tx.amount.toLocaleString('en-IN')}
-                    </span>
-                    <span className="block text-[11px] text-[#7C8681]">
-                      ID: {tx.id.slice(0, 8)}…
-                    </span>
-                  </div>
-                  <Link
-                    href={`/professional/jobs/${tx.id}`}
-                    className="px-3 py-1.5 border border-[#D9DED8] rounded-lg text-xs font-semibold text-[#5A6661] hover:bg-[#E2EEE9] hover:text-[#176B5B] hover:border-[#B8D5CB] transition"
-                  >
-                    View Job →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Job ledger */}
+          <section aria-labelledby="ledger-heading" className="mt-8">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+              <h2 id="ledger-heading" className="text-base font-semibold text-ink">
+                Jobs
+              </h2>
+            </div>
+
+            <nav aria-label="Filter jobs" className="mb-4">
+              <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+                {VIEWS.map((v) => {
+                  const current = v === view;
+                  return (
+                    <li key={v}>
+                      <Link
+                        href={v === 'all' ? '/professional/earnings' : `/professional/earnings?view=${v}`}
+                        scroll={false}
+                        aria-current={current ? 'page' : undefined}
+                        className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal ${
+                          current ? 'border-ink bg-ink text-paper' : 'border-line bg-paper text-ink-2 hover:border-line-strong'
+                        }`}
+                      >
+                        {VIEW_LABEL[v]}
+                        <span
+                          className={`rounded-full px-1.5 text-xs leading-5 tabular-nums ${current ? 'bg-paper/20' : 'bg-paper-2 text-ink-3'}`}
+                        >
+                          {counts[v]}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {list.length === 0 ? (
+              <EmptyState compact icon={FileText} title={`No ${VIEW_LABEL[view].toLowerCase()} jobs`} body={VIEW_EMPTY[view]} />
+            ) : (
+              <Panel className="divide-y divide-line overflow-hidden">
+                {list.map((job) => (
+                  <LedgerRow key={job.id} job={job} />
+                ))}
+              </Panel>
+            )}
+          </section>
+
+          {/* How it works */}
+          <Panel className="mt-8 bg-paper-2/60 p-5 md:p-6">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
+              <Info className="h-4 w-4 text-ink-3" aria-hidden="true" />
+              How these numbers work
+            </h2>
+            <ul className="mt-3 grid gap-3 text-sm leading-6 text-ink-2 md:grid-cols-3">
+              <li>
+                <span className="font-semibold text-ink">Agreed price.</span> The latest quote the customer approved, or
+                the booking price when you have not sent one. A quote still waiting for approval is not counted.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Paid vs. payment due.</span> A job moves to paid once the customer
+                pays through the app. Until then a finished job shows as payment due.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Not a payout.</span> Platform fees and payouts are not tracked in
+                the app yet, so these figures are job prices only.
+              </li>
+            </ul>
+          </Panel>
+        </>
+      )}
+    </PageContainer>
+  );
+}
+
+const METRIC_TONE = {
+  ochre: 'bg-ochre-soft text-ochre',
+  blue: 'bg-blue-soft text-blue',
+} as const;
+
+function MetricCard({
+  icon: Icon,
+  tone,
+  label,
+  value,
+  hint,
+}: {
+  icon: LucideIcon;
+  tone: keyof typeof METRIC_TONE;
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <Panel className="flex flex-col p-5">
+      <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${METRIC_TONE[tone]}`}>
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </span>
+      <div className="mt-4">
+        <p className="text-sm text-ink-3">{label}</p>
+        <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-ink">{value}</p>
+        <p className="mt-1 text-xs leading-5 text-ink-3">{hint}</p>
+      </div>
+    </Panel>
+  );
+}
+
+const BUCKET_PILL: Record<Exclude<EarningsBucket, 'in_hand'>, { label: string; tone: 'success' | 'ochre' }> = {
+  paid: { label: 'Paid', tone: 'success' },
+  awaiting_payment: { label: 'Payment due', tone: 'ochre' },
+};
+
+const BUCKET_ICON: Record<EarningsBucket, { Icon: LucideIcon; box: string }> = {
+  paid: { Icon: BadgeCheck, box: 'bg-success-soft text-success' },
+  awaiting_payment: { Icon: Hourglass, box: 'bg-ochre-soft text-ochre' },
+  in_hand: { Icon: Clock3, box: 'bg-blue-soft text-blue' },
+};
+
+function LedgerRow({ job }: { job: EarningsJob }) {
+  const pill =
+    job.bucket === 'in_hand'
+      ? { label: STATE_META[job.state].label, tone: STATE_META[job.state].tone }
+      : BUCKET_PILL[job.bucket];
+  const { Icon, box } = BUCKET_ICON[job.bucket];
+  const date = shortDate(job.date);
+  const dateLabel = job.bucket === 'paid' ? 'Paid' : job.bucket === 'awaiting_payment' ? 'Finished' : 'Scheduled';
+
+  return (
+    <Link
+      href={`/professional/jobs/${job.id}`}
+      className="flex items-center gap-3 px-4 py-4 transition-colors hover:bg-paper-2/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal md:gap-4 md:px-5"
+    >
+      <span className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex ${box}`}>
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="truncate font-semibold text-ink">{job.serviceName}</p>
+          <StatusPill tone={pill.tone}>{pill.label}</StatusPill>
+        </div>
+        <p className="mt-0.5 truncate text-sm text-ink-3">
+          {[job.categoryName, date ? `${dateLabel} ${date}` : null].filter(Boolean).join(' · ')}
+        </p>
+        {job.hasPendingQuote && (
+          <p className="mt-1 text-xs font-medium text-clay">Revised quote waiting for the customer — not counted yet</p>
         )}
       </div>
-    </div>
+      <div className="shrink-0 text-right">
+        {job.basis === 'unpriced' ? (
+          <p className="text-sm font-medium text-ink-3">No price set</p>
+        ) : (
+          <>
+            <p className="font-semibold tabular-nums text-ink">{money(job.amount)}</p>
+            <p className="text-xs text-ink-4">{job.basis === 'approved_quote' ? 'Approved quote' : 'Booking price'}</p>
+          </>
+        )}
+      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 text-ink-4" aria-hidden="true" />
+    </Link>
   );
 }

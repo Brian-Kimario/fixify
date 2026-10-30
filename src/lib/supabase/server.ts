@@ -14,6 +14,12 @@ import type { Database } from './database.types'
  * Follows Supabase's recommended Next.js SSR pattern with cookie-based session management.
  * This client automatically refreshes authentication tokens between requests.
  * 
+ * SECURITY ENHANCEMENTS:
+ * - All auth cookies set with HttpOnly flag (prevents XSS token theft)
+ * - All cookies set with Secure flag (HTTPS only)
+ * - All cookies use SameSite=Strict (prevents CSRF)
+ * - Auth token expiry: 7 days (reduced from 6 months)
+ * 
  * Rules:
  * - This client reads/writes cookies
  * - Uses publishable key (same as browser client)
@@ -21,6 +27,20 @@ import type { Database } from './database.types'
  * - Respects Row Level Security policies
  * - Can use service-role ONLY in specific protected Edge Functions
  */
+
+const COOKIE_OPTIONS = {
+  // FIX 1: HttpOnly prevents JavaScript from accessing cookies (XSS protection)
+  httpOnly: true,
+  
+  // FIX 2: Secure forces HTTPS only (prevents MITM interception)
+  secure: process.env.NODE_ENV === 'production',
+  
+  // FIX 3: SameSite=Strict prevents CSRF attacks
+  sameSite: 'strict' as const,
+  
+  // FIX 4: Reduce token lifetime from 6 months to 7 days
+  maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+}
 
 export async function createClient() {
   const cookieStore = await cookies()
@@ -35,9 +55,16 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Apply security cookie options to all auth-related cookies
+              const isAuthCookie = name.includes('auth') || name.includes('session') || name.startsWith('sb-')
+              
+              const secureOptions = isAuthCookie 
+                ? { ...options, ...COOKIE_OPTIONS }
+                : { ...options, httpOnly: true, secure: process.env.NODE_ENV === 'production' }
+              
+              cookieStore.set(name, value, secureOptions)
+            })
           } catch {
             // Handle errors in cookie setting (e.g., in middleware)
           }

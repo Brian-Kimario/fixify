@@ -29,7 +29,7 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
         <div style={{ width: 'min(1160px, calc(100% - 40px))' }} className="mx-auto flex items-center gap-5">
           <Link href="/" className="inline-flex items-center gap-2.5 text-sm font-bold tracking-[-0.04em] text-[#18211F] hover:text-[#176B5B]">
             <Symbol size="md" className="w-[30px] h-[30px]" />
-            <span>Fixify</span>
+            <span>Feasy</span>
           </Link>
 
           <div className="flex gap-6.25 ml-auto">
@@ -40,11 +40,11 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
           </div>
 
           <div className="flex gap-2">
-            <a href="/auth/login" className="px-3.75 py-2.75 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs font-bold text-[#18211F] hover:border-[#C7CEC8] transition">
+            <Link href="/auth/login" className="px-3.75 py-2.75 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs font-bold text-[#18211F] hover:border-[#C7CEC8] transition">
               Sign in
-            </a>
+            </Link>
             <a href="#intake" className="px-3.75 py-2.75 bg-[#176B5B] text-white rounded-[10px] text-xs font-bold hover:bg-[#0D5144] transition shadow-[0_10px_22px_rgba(23,107,91,0.13)]">
-              Describe a problem
+              Book a repair
             </a>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
           <div style={{ width: 'min(1160px, calc(100% - 40px))' }} className="mx-auto">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 0.82fr', gap: '70px', alignItems: 'center' }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#7C8681]">FIXIFY HELP CENTRE</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#7C8681]">FEASY HELP CENTRE</p>
                 <h1 style={{ fontSize: 'clamp(52px, 7vw, 82px)' }} className="font-bold tracking-[-0.04em] max-w-[9ch] mt-4.25">
                   Clear answers when something needs <em className="text-[#176B5B] not-italic">fixing.</em>
                 </h1>
@@ -71,7 +71,7 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search the Fixify help centre…"
+                    placeholder="Search the Feasy help centre…"
                     className="flex-1 min-w-0 border-0 outline-0 bg-transparent px-0.5 py-3 text-sm text-[#18211F] placeholder-[#7C8681]"
                   />
                   <button className="border-0 bg-[#176B5B] text-white rounded-[10px] px-3.5 py-2.75 text-xs font-bold flex-shrink-0 mr-1">
@@ -83,9 +83,9 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
                   <a href="#topics" className="px-3.75 py-2.75 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs font-bold text-[#18211F] hover:border-[#C7CEC8] transition">
                     Browse topics
                   </a>
-                  <a href="/support" className="px-3.75 py-2.75 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs font-bold text-[#18211F] hover:border-[#C7CEC8] transition">
+                  <Link href="/support" className="px-3.75 py-2.75 border border-[#D9DED8] bg-[#FFFEFA] rounded-[10px] text-xs font-bold text-[#18211F] hover:border-[#C7CEC8] transition">
                     Contact support
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -123,7 +123,7 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
             <div className="mb-[33px]">
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#7C8681] mb-1">BROWSE BY TOPIC</p>
               <h2 style={{ fontSize: 'clamp(35px, 5vw, 54px)' }} className="font-bold tracking-[-0.04em] max-w-[12ch]">
-                Find the part of Fixify you need.
+                Find the part of Feasy you need.
               </h2>
               <p className="text-[#5A6661] max-w-[55ch] mt-1.75">
                 Short answers first. Open support when the issue needs a person or job-level context.
@@ -196,15 +196,15 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
               </div>
 
               <div className="border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] rounded-[22px] p-5.75">
-                <strong className="block text-[20px]">Open Fixify support</strong>
+                <strong className="block text-[20px]">Open Feasy support</strong>
                 <p className="mt-2">Choose a topic, attach useful evidence and keep the conversation connected to your request.</p>
                 <div className="flex gap-2 flex-wrap mt-4.25">
-                  <a href="/support" className="px-3.75 py-2.75 bg-[#F7F4EC] text-[#18211F] rounded-[10px] text-xs font-bold hover:bg-white transition">
+                  <Link href="/support" className="px-3.75 py-2.75 bg-[#F7F4EC] text-[#18211F] rounded-[10px] text-xs font-bold hover:bg-white transition">
                     Go to support
-                  </a>
-                  <a href="/auth/login" className="px-3.75 py-2.75 bg-transparent text-white border border-[rgba(255,255,255,0.18)] rounded-[10px] text-xs font-bold hover:bg-[rgba(255,255,255,0.06)] transition">
+                  </Link>
+                  <Link href="/auth/login" className="px-3.75 py-2.75 bg-transparent text-white border border-[rgba(255,255,255,0.18)] rounded-[10px] text-xs font-bold hover:bg-[rgba(255,255,255,0.06)] transition">
                     Sign in
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -219,7 +219,7 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
             <div>
               <Link href="/" className="inline-flex items-center gap-2.5 text-sm font-bold tracking-[-0.04em] text-[#18211F] mb-2">
                 <Symbol size="md" className="w-[30px] h-[30px]" />
-                <span>Fixify</span>
+                <span>Feasy</span>
               </Link>
               <p className="text-xs text-[#5A6661] max-w-[33ch]">
                 Property maintenance, structured from the first message to the final record.
@@ -237,14 +237,14 @@ export function HelpPageClient({ FAQ_DATA, TOPICS }: { FAQ_DATA: FAQ[]; TOPICS: 
               <h4 className="text-xs text-[#7C8681] font-bold mb-2.5">SUPPORT</h4>
               <div className="space-y-1">
                 <a href="#topics" className="block text-xs text-[#5A6661] hover:text-[#18211F]">Help centre</a>
-                <a href="/support" className="block text-xs text-[#5A6661] hover:text-[#18211F]">Contact support</a>
-                <a href="/auth/login" className="block text-xs text-[#5A6661] hover:text-[#18211F]">Sign in</a>
+                <Link href="/support" className="block text-xs text-[#5A6661] hover:text-[#18211F]">Contact support</Link>
+                <Link href="/auth/login" className="block text-xs text-[#5A6661] hover:text-[#18211F]">Sign in</Link>
               </div>
             </div>
           </div>
 
           <div className="flex justify-between gap-4 py-5 border-t border-[#D9DED8] text-xs text-[#7C8681] font-bold tracking-[0.08em] uppercase">
-            <span>FIXIFY / HELP</span>
+            <span>FEASY / HELP</span>
             <span>V1 REFERENCE</span>
           </div>
         </div>

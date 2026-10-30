@@ -8,9 +8,11 @@ import type {
   WizardProperty,
 } from '@/components/customer/BookingWizard';
 import Link from 'next/link';
+import { ArrowLeft, TriangleAlert } from 'lucide-react';
+import { PageContainer } from '@/components/shell/primitives';
 
 export const metadata = {
-  title: 'Book a Service — Fixify',
+  title: 'Book a Service — Feasy',
 };
 
 interface NewBookingPageProps {
@@ -162,46 +164,36 @@ export default async function NewBookingPage({ searchParams }: NewBookingPagePro
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC] pb-24">
-      {/* Page header */}
-      <div className="px-4 md:px-8 pt-6 pb-4">
-        <Link
-          href="/customer"
-          className="inline-flex items-center gap-1.5 text-sm text-[#5A6661] hover:text-[#176B5B] transition-colors mb-4"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M19 12H5M12 5l-7 7 7 7" />
-          </svg>
-          Back to dashboard
-        </Link>
-        <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-1">
-          NEW BOOKING
-        </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-[#18211F]">Book a Service</h1>
-        <p className="text-sm text-[#5A6661] mt-1">
-          Tell us what you need, pick a time, and we&apos;ll match you with a verified professional.
-        </p>
-      </div>
+    <PageContainer className="max-w-6xl">
+      <Link
+        href="/customer/bookings"
+        className="mb-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-teal hover:text-teal-deep"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        Bookings
+      </Link>
+      <p className="text-sm font-medium text-ink-3">New booking</p>
+      <h1 className="mt-1 font-editorial text-3xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-4xl">
+        Book a service
+      </h1>
+      <p className="mt-2 max-w-xl text-ink-3">
+        Tell us what you need and when. We match you with a verified professional, and any change to the price needs
+        your approval.
+      </p>
 
-      {/* No properties guard */}
       {properties.length === 0 && (
-        <div className="mx-4 md:mx-8 mb-6 flex items-start gap-3 px-4 py-3 bg-[#FFF4E0] border border-[#E8D5A3] rounded-xl text-sm text-[#9B6700]">
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <span>
-            You need to add a property before booking.{' '}
-            <Link href="/customer/properties" className="font-bold underline">
-              Add a property →
+        <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-ochre/30 bg-ochre-soft px-4 py-3 text-sm text-ochre">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>
+            You need a property before you can book.{' '}
+            <Link href="/customer/properties" className="font-semibold underline underline-offset-2">
+              Add a property
             </Link>
-          </span>
+          </p>
         </div>
       )}
 
-      {/* Wizard */}
-      <div className="px-4 md:px-8 max-w-2xl">
+      <div className="mt-8">
         <BookingWizard
           categories={categories}
           servicesByCategory={servicesByCategory}
@@ -212,6 +204,6 @@ export default async function NewBookingPage({ searchParams }: NewBookingPagePro
           initialProblemNotes={preselectedProblem}
         />
       </div>
-    </div>
+    </PageContainer>
   );
 }

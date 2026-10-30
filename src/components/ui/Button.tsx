@@ -41,7 +41,7 @@ const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
 };
 
 /**
- * Button — Fixify design-system button
+ * Button — Feasy design-system button
  *
  * Variants: primary (teal), secondary (paper/border), outline (teal border),
  * ghost (text only), destructive (clay).

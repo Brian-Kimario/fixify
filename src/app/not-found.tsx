@@ -1,19 +1,19 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { NotFoundState } from '@/components/ui/ErrorState';
+import Link from 'next/link';
+import { StatusPage, statusBtnGhost, statusBtnPrimary } from '@/components/marketing/status-page';
 
 export default function NotFoundPage() {
-  const router = useRouter();
-
   return (
-    <div className="min-h-screen bg-[#F7F4EC] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <NotFoundState
-          onGoHome={() => router.push('/')}
-          onGoBack={() => router.back()}
-        />
-      </div>
-    </div>
+    <StatusPage
+      kicker="Error 404"
+      title="We couldn’t find that page."
+      actions={
+        <>
+          <Link href="/" className={statusBtnPrimary}>Back to home</Link>
+          <Link href="/help" className={statusBtnGhost}>Open help centre</Link>
+        </>
+      }
+    >
+      <p>The link may be old, or the page may have moved. Your jobs and property record are safe.</p>
+    </StatusPage>
   );
 }

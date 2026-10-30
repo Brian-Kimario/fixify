@@ -6,7 +6,7 @@
  * TRAI / DLT compliance notes:
  *  - All commercial SMS in India requires DLT (Distributed Ledger Technology)
  *    registration with TRAI.
- *  - The sender ID (header) must be registered. We use "FIXIFY" (6-char alpha).
+ *  - The sender ID (header) must be registered. We use "FEASY" (6-char alpha).
  *  - Every transactional SMS must include an opt-out instruction:
  *    "Reply STOP to unsubscribe" — already in all templates.
  *  - AWS SNS in ap-south-1 supports DLT sender IDs via MessageAttributes.
@@ -15,7 +15,7 @@
  *   AWS_ACCESS_KEY_ID         — IAM user with sns:Publish permission
  *   AWS_SECRET_ACCESS_KEY
  *   AWS_SNS_REGION            — default "ap-south-1"
- *   SMS_SENDER_ID             — default "FIXIFY" (must be DLT-registered)
+ *   SMS_SENDER_ID             — default "FEASY" (must be DLT-registered)
  *
  * @see https://docs.aws.amazon.com/sns/latest/dg/sns-send-sms.html
  * @see https://trai.gov.in/notifications/regulation/telecom-commercial-communications
@@ -49,7 +49,7 @@ export async function sendSMS(payload: SMSSendPayload): Promise<SMSSendResult> {
   const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
   const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
   const region = process.env.AWS_SNS_REGION ?? "ap-south-1";
-  const senderId = process.env.SMS_SENDER_ID ?? "FIXIFY";
+  const senderId = process.env.SMS_SENDER_ID ?? "FEASY";
 
   if (!accessKeyId || !secretAccessKey) {
     return {

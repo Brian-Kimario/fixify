@@ -1,9 +1,8 @@
 import { getProfessionalJobs } from '@/app/professional/actions';
 import { JobsFilterClient } from '@/components/professional/JobsFilterClient';
-import Link from 'next/link';
 
 export const metadata = {
-  title: 'My Jobs — Fixify Professional',
+  title: 'My Jobs — Feasy Professional',
 };
 
 export default async function JobsPage() {
@@ -18,7 +17,7 @@ export default async function JobsPage() {
   }
 
   return (
-    <div className="pb-24 md:pb-12 max-w-6xl mx-auto space-y-6">
+    <div className="pb-24 md:pb-12 px-4 md:px-6 pt-6 md:pt-8 max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -33,12 +32,6 @@ export default async function JobsPage() {
           </p>
         </div>
 
-        <Link
-          href="/professional"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#176B5B] hover:underline self-start sm:self-auto"
-        >
-          ← Back to Operations Board
-        </Link>
       </div>
 
       {/* Error banner */}

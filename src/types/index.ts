@@ -37,7 +37,7 @@ export interface Bid {
 // ─── Notification Types ───────────────────────────────────────────────────────
 
 /**
- * All notification event types supported by Fixify.
+ * All notification event types supported by Feasy.
  * Maps 1:1 to the CHECK constraint in notification_logs.notification_type.
  */
 export type NotificationType =

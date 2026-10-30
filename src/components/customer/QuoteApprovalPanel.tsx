@@ -5,13 +5,9 @@ import { useRouter } from 'next/navigation';
 import { animate } from 'animejs';
 import { 
   X, 
-  ShieldCheck, 
   AlertTriangle, 
   CheckCircle2, 
-  FileCheck, 
-  HelpCircle,
   Wrench,
-  Clock,
   ArrowRight
 } from 'lucide-react';
 import { respondToQuoteAction } from '@/app/customer/actions';
@@ -31,6 +27,8 @@ export interface QuoteLineItem {
 export interface QuoteApprovalData {
   id: string;
   jobId: string;
+  /** The booking the job belongs to; "View booking" links here. */
+  bookingId?: string;
   referenceNumber: string;
   serviceTitle: string;
   propertyName: string;
@@ -41,6 +39,9 @@ export interface QuoteApprovalData {
   lineItems: QuoteLineItem[];
   subtotal: number;
   partsTotal: number;
+  /** quotes.discount; shown only when non-zero. */
+  discount?: number;
+  /** quotes.taxes_or_fees. */
   platformFee: number;
   totalAmount: number;
   expiresInHours?: number;
@@ -102,7 +103,7 @@ export function QuoteApprovalPanel({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isPending, onClose]);
 
-  if (!isOpen && !panelRef.current) return null;
+  if (!isOpen) return null;
 
   // Show success state overlay when quote is approved
   if (showSuccessState && successData?.jobId) {
@@ -115,7 +116,7 @@ export function QuoteApprovalPanel({
             description="Work will begin soon. The professional will contact you with next steps."
             action={{
               label: 'View booking',
-              onClick: () => router.push(`/customer/bookings/${successData.jobId}`),
+              onClick: () => router.push(successData.bookingId ? `/customer/bookings/${successData.bookingId}` : '/customer/bookings'),
             }}
             secondaryAction={{
               label: 'Back to dashboard',
@@ -127,56 +128,77 @@ export function QuoteApprovalPanel({
     );
   }
 
-  const sampleQuote: QuoteApprovalData = {
-    id: 'sample-quote-1',
-    jobId: 'job-fx-4821',
-    referenceNumber: 'FX-4821',
-    serviceTitle: 'Kitchen Vanity Leak Repair',
-    propertyName: 'Oakwood Residence',
-    propertyAddress: '1428 Elm Creek Road, Apt 4B',
-    proName: 'Dario Venn (Master Plumber)',
-    reason: 'During vanity shutoff disassembly, discovered the supply collar fitting was severely corroded and fused. Requires cutting out the oxidized fitting and mounting a new compression quarter-turn valve to ensure water seal integrity.',
-    findings: 'Micro-leakage behind drywall had started soft wood deterioration. Replacing now prevents drywall replacement later.',
-    lineItems: [
-      { id: '1', type: 'labour', description: 'Fitting extraction & precision copper pipe prep', quantity: 1, unitPrice: 65.0, total: 65.0 },
-      { id: '2', type: 'material', description: 'Brasscraft 1/2" Compression Quarter-Turn Valve', quantity: 1, unitPrice: 28.5, total: 28.5 },
-      { id: '3', type: 'material', description: 'Stainless braided 3/8" x 20" lavatory supply tube', quantity: 1, unitPrice: 10.0, total: 10.0 },
-      { id: '4', type: 'fee', description: 'Fixify 12-Month Workmanship Warranty Guarantee', quantity: 1, unitPrice: 4.5, total: 4.5 },
-    ],
-    subtotal: 65.0,
-    partsTotal: 38.5,
-    platformFee: 4.5,
-    totalAmount: 108.0,
-    expiresInHours: 24,
-  };
+  // Use the quote data passed in props—it contains real backend data
+  // This component should only render when a quote is available
+  const displayQuote = quote;
 
-  // Use the quote data passed in props, or fall back to sample for display purposes
-  const displayQuote = quote || sampleQuote;
+  // Guard: if no quote, don't render content
+  if (!displayQuote && isOpen) {
+    return (
+      <div 
+        className={`fixed inset-0 z-50 overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          ref={backdropRef}
+          onClick={() => !isPending && onClose()}
+          className="fixed inset-0 bg-[#18211F]/50 backdrop-blur-sm transition-opacity"
+        />
+        <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+          <div
+            ref={panelRef}
+            className="w-screen max-w-lg bg-[#FFFEFA] border-l border-[#D9DED8] shadow-2xl flex flex-col h-full overflow-y-auto"
+          >
+            <div className="p-6 border-b border-[#D9DED8] bg-[#F7F4EC]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7C8681]">
+                  QUOTE UNAVAILABLE
+                </span>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-9 h-9 rounded-full border border-[#D9DED8] bg-white flex items-center justify-center text-[#5A6661] hover:text-[#18211F] hover:bg-[#F1EEE5] transition-colors"
+                  aria-label="Close quote drawer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 flex items-center justify-center p-6">
+              <p className="text-sm text-[#5A6661] text-center">Quote details could not be loaded. Please try again.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleDecision = (decision: 'approved' | 'declined') => {
+    if (!displayQuote) return; // Safety check
     setStatusMessage(null);
     startTransition(async () => {
       try {
-        // Use the quote data passed in props, or fall back to sample
-        const activeQuote = quote || sampleQuote;
         const res = await respondToQuoteAction({
-          quoteId: activeQuote.id,
-          jobId: activeQuote.jobId,
+          quoteId: displayQuote.id,
+          jobId: displayQuote.jobId,
           decision,
           reason: decision === 'declined' ? declineReason : undefined,
         });
 
-        if (res.success) {
+        if (res.success === false) {
+          setStatusMessage({ type: 'error', text: res.error || 'Failed to update quote decision.' });
+        } else {
           if (decision === 'approved') {
             // Show success state for quote approval
-            setSuccessData({ jobId: activeQuote.jobId, bookingId: activeQuote.jobId });
+            setSuccessData({ jobId: displayQuote.jobId, bookingId: displayQuote.bookingId });
             setShowSuccessState(true);
             setStatusMessage(null);
           } else {
             // For declined, show inline message and close
             setStatusMessage({
               type: 'success',
-              text: 'Quote declined. Technician will pause extra work.',
+              text: 'Quote declined. The professional will continue the original work.',
             });
             if (onDecisionCompleted) {
               onDecisionCompleted(decision);
@@ -185,8 +207,6 @@ export function QuoteApprovalPanel({
               onClose();
             }, 1200);
           }
-        } else {
-          setStatusMessage({ type: 'error', text: res.error || 'Failed to update quote decision.' });
         }
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : 'An error occurred';
@@ -274,7 +294,7 @@ export function QuoteApprovalPanel({
               </p>
               {displayQuote.findings && (
                 <div className="mt-2.5 pt-2.5 border-t border-[#D9DED8]/70 text-[11px] text-[#7C8681]">
-                  <strong className="text-[#18211F]">Preventive Value:</strong> {displayQuote.findings}
+                  <strong className="text-[#18211F]">Findings:</strong> {displayQuote.findings}
                 </div>
               )}
             </div>
@@ -285,7 +305,6 @@ export function QuoteApprovalPanel({
                 <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#7C8681]">
                   ITEMIZED BREAKDOWN
                 </span>
-                <span className="text-xs text-[#7C8681]">Parts & Labor Guaranteed</span>
               </div>
 
               <div className="border border-[#D9DED8] rounded-xl overflow-hidden divide-y divide-[#D9DED8]">
@@ -313,34 +332,31 @@ export function QuoteApprovalPanel({
             {/* Clear Visual Financial Hierarchy */}
             <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-xs text-[#5A6661]">
-                <span>Service Labor</span>
+                <span>Subtotal</span>
                 <span className="font-mono font-medium">{formatCurrency(displayQuote.subtotal)}</span>
               </div>
+              {displayQuote.partsTotal > 0 && (
+                <div className="flex justify-between pl-3 text-[11px] text-[#7C8681]">
+                  <span>Includes parts &amp; materials</span>
+                  <span className="font-mono">{formatCurrency(displayQuote.partsTotal)}</span>
+                </div>
+              )}
+              {(displayQuote.discount ?? 0) > 0 && (
+                <div className="flex justify-between text-xs text-[#5A6661]">
+                  <span>Discount</span>
+                  <span className="font-mono font-medium">−{formatCurrency(displayQuote.discount ?? 0)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-xs text-[#5A6661]">
-                <span>Parts & Materials</span>
-                <span className="font-mono font-medium">{formatCurrency(displayQuote.partsTotal)}</span>
-              </div>
-              <div className="flex justify-between text-xs text-[#5A6661]">
-                <span>Fixify Platform Guarantee & Coverage</span>
+                <span>Taxes or fees</span>
                 <span className="font-mono font-medium">{formatCurrency(displayQuote.platformFee)}</span>
               </div>
               <div className="pt-3 border-t border-[#D9DED8] flex justify-between items-baseline">
-                <div>
-                  <strong className="text-sm text-[#18211F] block">Total Authorization</strong>
-                  <span className="text-[11px] text-[#7C8681]">Billed only upon verified completion</span>
-                </div>
+                <strong className="text-sm text-[#18211F] block">Total</strong>
                 <strong className="text-2xl font-bold font-mono text-[#18211F]">
                   {formatCurrency(displayQuote.totalAmount)}
                 </strong>
               </div>
-            </div>
-
-            {/* Fixify Guarantee Notice */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#E2EEE9]/60 border border-[#BCD4CC] text-xs text-[#176B5B]">
-              <ShieldCheck className="w-5 h-5 flex-shrink-0 text-[#176B5B]" />
-              <span>
-                Protected by the <strong>Fixify 12-Month Guarantee</strong>. If anything fails related to this repair, we send a technician back for free.
-              </span>
             </div>
 
             {/* Optional Decline Explanation */}
@@ -405,6 +421,15 @@ export function QuoteApprovalPanel({
                 Decline quote or request clarification
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isPending}
+              className="w-full py-2.5 px-4 bg-white border border-[#D9DED8] text-[#5A6661] hover:text-[#18211F] text-xs font-semibold rounded-[10px] transition-colors"
+            >
+              Close
+            </button>
           </div>
 
         {/* Decline confirmation modal */}

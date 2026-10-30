@@ -1,6 +1,7 @@
 'use server';
 
 import Razorpay from 'razorpay';
+import type { Orders } from 'razorpay/dist/types/orders';
 import { createClient } from '@/lib/supabase/server';
 
 // ── SDK initialisation ────────────────────────────────────────────────────────
@@ -38,46 +39,6 @@ export interface UPIIntentPaymentError {
 
 export type CreateUPIIntentResult = UPIIntentPaymentCreated | UPIIntentPaymentError;
 
-// ── Amount resolution ─────────────────────────────────────────────────────────
-// Amount is ALWAYS read from the database. Never from client input.
-// Priority: approved quote total → booking base/fixed amount → error.
-
-async function resolveAmountPaise(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  jobId: string,
-  bookingId: string,
-): Promise<number> {
-  // 1. Approved quote (quote_after_inspection or additional-work flow)
-  const { data: quote } = await supabase
-    .from('quotes')
-    .select('total')
-    .eq('job_id', jobId)
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (quote && Number(quote.total) > 0) {
-    return Math.round(Number(quote.total) * 100);
-  }
-
-  // 2. Booking base amount (fixed / inspection pricing models)
-  const { data: booking } = await supabase
-    .from('bookings')
-    .select('quoted_or_base_amount')
-    .eq('id', bookingId)
-    .maybeSingle();
-
-  if (booking && Number(booking.quoted_or_base_amount) > 0) {
-    return Math.round(Number(booking.quoted_or_base_amount) * 100);
-  }
-
-  throw new Error(
-    'Unable to determine payment amount. ' +
-    'The job requires either an approved quote or a fixed booking price.'
-  );
-}
-
 // ── Main server action ────────────────────────────────────────────────────────
 
 /**
@@ -88,7 +49,8 @@ async function resolveAmountPaise(
  * Razorpay checkout.
  *
  * Security guarantees:
- *  - Amount resolved from DB (quote → booking), never from client.
+ *  - Amount computed in SQL (quote → booking) by job_payment_amount and re-checked by
+ *    create_pending_payment, never taken from the client.
  *  - Ownership verified: job.customer_id must match authenticated user.
  *  - Job must be in `completed` state before payment is accepted.
  *  - Idempotent: reuses a pending Razorpay order if one already exists.
@@ -161,14 +123,18 @@ export async function createUPIIntentPayment(
     };
   }
 
-  // ── 5. Resolve authoritative amount ─────────────────────────────────────────
-  let amountPaise: number;
-  try {
-    amountPaise = await resolveAmountPaise(supabase, job.id, job.booking_id);
-  } catch (err) {
+  // ── 5. Amount due, computed in SQL ──────────────────────────────────────────
+  // job_payment_amount re-checks ownership and the completed state, then returns the latest
+  // approved quote total, else the booking's base amount, in paise.
+  const { data: amountPaise, error: amountErr } = await supabase.rpc('job_payment_amount', {
+    p_job_id: job.id,
+  });
+  if (amountErr || amountPaise === null) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Could not determine payment amount.',
+      error: amountErr?.code === '22023'
+        ? 'This job has no approved quote or booking price to pay yet.'
+        : 'Could not determine the payment amount. Please try again.',
     };
   }
 
@@ -188,12 +154,15 @@ export async function createUPIIntentPayment(
     .maybeSingle();
 
   // ── 7. Create Razorpay order ─────────────────────────────────────────────────
-  let razorpayOrder: any;
+  let razorpayOrder: Orders.RazorpayOrder;
   try {
     const rzp = getRazorpayClient();
-    razorpayOrder = await (rzp.orders as any).create({
+    razorpayOrder = await rzp.orders.create({
       amount:   amountPaise,
       currency: 'INR',
+      // Capture automatically so the webhook receives payment.captured. An authorized but
+      // uncaptured payment is not money received and is ignored by the webhook.
+      payment_capture: true,
       // receipt must be ≤ 40 chars
       receipt:  `job_${jobId.replace(/-/g, '').slice(0, 30)}`,
       notes: {
@@ -207,27 +176,23 @@ export async function createUPIIntentPayment(
   }
 
   // ── 8. Persist pending payment record ───────────────────────────────────────
-  // provider_reference has a UNIQUE constraint — use the Razorpay order_id as
-  // the initial value; the webhook will update it to the payment_id on capture.
-  const { data: payment, error: insertErr } = await supabase
-    .from('payments')
-    .insert({
-      customer_id:        user.id,
-      job_id:             jobId,
-      payment_type:       'service',
-      amount:             amountPaise / 100,   // schema stores rupees (numeric 10,2)
-      currency:           'INR',
-      provider:           'razorpay',
-      provider_reference: razorpayOrder.id,    // unique; updated to payment_id on capture
-      status:             'pending',
-    })
-    .select('id')
-    .single();
+  // create_pending_payment recomputes the amount and refuses the insert if it no longer
+  // matches the order, so the stored amount never comes from this process. provider_reference
+  // (UNIQUE) holds the Razorpay order id; the webhook looks the payment up by it.
+  const { data: paymentId, error: insertErr } = await supabase.rpc('create_pending_payment', {
+    p_job_id:             job.id,
+    p_provider_reference: razorpayOrder.id,
+    p_amount_paise:       amountPaise,
+  });
 
-  if (insertErr || !payment) {
+  if (insertErr || !paymentId) {
     return {
       success: false,
-      error: `Failed to record payment: ${insertErr?.message ?? 'unknown error'}`,
+      error: insertErr?.code === '23505'
+        ? 'A payment for this job is already in progress. Please refresh the page.'
+        : insertErr?.code === '22023'
+          ? 'The amount due changed. Please refresh the page and try again.'
+          : 'Failed to record payment. Please try again.',
     };
   }
 
@@ -237,7 +202,7 @@ export async function createUPIIntentPayment(
     amount:         amountPaise,
     currency:       'INR',
     key_id:         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-    payment_db_id:  payment.id,
+    payment_db_id:  paymentId,
     customer_name:  profile?.full_name  ?? 'Customer',
     customer_phone: profile?.phone      ?? null,
   };

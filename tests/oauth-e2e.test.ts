@@ -174,11 +174,11 @@ describe.each(configs)('OAuth E2E Tests - $name', ({ baseUrl, isProduction }) =>
 
     it('should verify Supabase connectivity', async () => {
       // Make a simple request that depends on Supabase
-      const response = await page.request.get(`${baseUrl}/auth/debug`, {
+      const response = await page.request.get(`${baseUrl}/auth/login`, {
         timeout: 5000,
       });
 
-      // Debug endpoint should load (may have auth errors, but shouldn't have Vercel gate)
+      // Login page should load without a Vercel gate
       const content = await response.text();
       expect(content).not.toContain('You Need Access');
     });

@@ -43,8 +43,8 @@ export function QuoteForm({ jobId, onSuccess, onCancel }: QuoteFormProps) {
     (acc, item) => acc + item.quantity * item.unitPrice,
     0
   );
-  const platformFee = Number((subtotal * 0.05).toFixed(2));
-  const total = Number((subtotal + platformFee).toFixed(2));
+  // No fee is added on top of line items; none is configured.
+  const total = Number(subtotal.toFixed(2));
 
   const isValid =
     reason.trim().length > 0 &&
@@ -113,14 +113,14 @@ export function QuoteForm({ jobId, onSuccess, onCancel }: QuoteFormProps) {
         })),
       });
 
-      if (res.success) {
+      if (res.success === false) {
+        setErrorMessage(res.error || 'Failed to submit quote');
+      } else {
         setSuccessMessage('Quote submitted for customer approval.');
         router.refresh();
         setTimeout(() => {
           onSuccess?.();
         }, 1500);
-      } else {
-        setErrorMessage(res.error || 'Failed to submit quote');
       }
     });
   }
@@ -306,10 +306,6 @@ export function QuoteForm({ jobId, onSuccess, onCancel }: QuoteFormProps) {
             <span className="font-bold text-[#18211F]">
               ₹{subtotal.toFixed(2)}
             </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-[#5A6661]">Platform Fee (5%):</span>
-            <span className="font-bold text-[#18211F]">₹{platformFee.toFixed(2)}</span>
           </div>
           <div className="pt-2 border-t border-[#D9DED8] flex justify-between text-base">
             <span className="font-bold text-[#18211F]">Total Quote:</span>

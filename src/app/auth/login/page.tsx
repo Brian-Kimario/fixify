@@ -3,8 +3,8 @@ import { Suspense } from 'react';
 import { LoginPageClient } from '@/components/pages/LoginPageClient';
 
 export const metadata: Metadata = {
-  title: 'Sign In | Fixify',
-  description: 'Sign in to your Fixify account to manage property maintenance requests',
+  title: 'Sign In | Feasy',
+  description: 'Sign in to your Feasy account to manage property maintenance requests',
   robots: {
     index: false,
     follow: false,

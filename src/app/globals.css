@@ -1,6 +1,57 @@
 @import "tailwindcss";
 
-/* ===== FIXIFY LIGHT-FIRST DESIGN SYSTEM ===== */
+/* Tailwind 4 does not read tailwind.config.ts; design tokens are registered here
+   so utilities like bg-paper, text-ink-3 and border-line generate CSS. */
+@theme {
+  --font-sans: var(--font-dm-sans), ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-editorial: var(--font-fraunces), Georgia, "Times New Roman", serif;
+
+  --color-porcelain: #F7F4EC;
+  --color-paper: #FFFEFA;
+  --color-paper-2: #F1EEE5;
+  --color-sand: #E7E1D5;
+  --color-ink: #18211F;
+  --color-ink-2: #34413D;
+  --color-ink-3: #5A6661;
+  --color-ink-4: #7C8681;
+  --color-teal: #176B5B;
+  --color-teal-deep: #0D5144;
+  --color-teal-soft: #E2EEE9;
+  --color-teal-wash: #EFF6F2;
+  --color-blue: #416B84;
+  --color-blue-soft: #E6EEF2;
+  --color-ochre: #9B6A1E;
+  --color-ochre-soft: #F5EBD7;
+  --color-clay: #A9523D;
+  --color-clay-soft: #F3E1DA;
+  --color-success: #2F7D5B;
+  --color-success-soft: #E3F0E8;
+  --color-warning: #9B6A1E;
+  --color-warning-soft: #F5EBD7;
+  --color-info: #416B84;
+  --color-info-soft: #E6EEF2;
+  --color-danger: #B94A43;
+  --color-danger-soft: #F6E3E1;
+  --color-line: #D9DED8;
+  --color-line-strong: #C7CEC8;
+
+  /* Aliases used by older components */
+  --color-background: #F7F4EC;
+  --color-foreground: #18211F;
+  --color-card: #FFFEFA;
+  --color-muted: #F1EEE5;
+  --color-muted-foreground: #5A6661;
+  --color-primary: #176B5B;
+  --color-primary-foreground: #FFFEFA;
+  --color-destructive: #B94A43;
+  --color-border: #D9DED8;
+  --color-teal-dark: #0D5144;
+  --color-brand-soft: #E2EEE9;
+  --color-yellow: #9B6A1E;
+  --color-yellow-dark: #7A5217;
+}
+
+/* ===== FEASY LIGHT-FIRST DESIGN SYSTEM ===== */
 
 :root {
   /* Reference Design Colors - Light First (WCAG AAA Compliant) */
@@ -17,11 +68,11 @@
   --color-teal-soft: #E2EEE9;
   --color-line: #D9DED8;
   --color-line-strong: #B8C3BC;  /* FIXED: 2.1:1 → 4.2:1 (was #C6CEC7) for better button border visibility */
-  --color-danger: #DC2626;
-  --color-danger-soft: #FEE2E2;
+  --color-danger: #B94A43;
+  --color-danger-soft: #F6E3E1;
   
   /* Typography */
-  --font-sans: "DM Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Instrument Serif", Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   
@@ -65,7 +116,7 @@
 body {
   background: var(--color-porcelain);
   color: var(--color-ink);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: 1.5;
 }
@@ -1844,7 +1895,7 @@ a:focus-visible {
 
 
 /* ======================================================
-   FIXIFY ANIMATION SYSTEM
+   FEASY ANIMATION SYSTEM
    Scroll-driven reveals, micro-interactions, transitions
    ====================================================== */
 
@@ -2105,4 +2156,10 @@ a:focus-visible {
 html,
 body {
   overflow-x: clip;
+}
+
+/* Homepage: job ticket entrance */
+@keyframes ticketIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }

@@ -43,7 +43,7 @@ export function SettingToggle({
           {label}
         </div>
         {description && (
-          <div className={`text-xs ${disabled ? 'text-ink-4' : 'text-line'}`}>
+          <div className={`text-xs ${disabled ? 'text-ink-4' : 'text-ink-3'}`}>
             {description}
           </div>
         )}

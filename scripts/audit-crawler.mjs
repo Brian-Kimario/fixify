@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Fixify Automated Full-System Audit Crawler
+ * Feasy Automated Full-System Audit Crawler
  * Captures visual screenshots, clean DOM structures, console errors,
- * and network failures across all Fixify routes for ChatGPT/Codex audit.
+ * and network failures across all Feasy routes for ChatGPT/Codex audit.
  */
 
 import { chromium } from 'playwright';
@@ -65,7 +65,7 @@ function cleanDom(html) {
 
 async function runAudit() {
   console.log(`\n======================================================`);
-  console.log(`🚀 Starting Fixify Full-System Audit Crawler`);
+  console.log(`🚀 Starting Feasy Full-System Audit Crawler`);
   console.log(`🌐 Target: ${TARGET_URL}`);
   console.log(`📁 Output: ${OUTPUT_DIR}`);
   console.log(`======================================================\n`);
@@ -165,21 +165,21 @@ async function runAudit() {
 
   // 2. Audit Customer Portal
   console.log(`\n--- Step 2: Customer Authenticated Routes ---`);
-  await tryLogin('customer.a@fixify.dev', 'Test@123456', 'Customer');
+  await tryLogin('customer.a@fixify.dev', process.env.E2E_TEST_PASSWORD ?? '', 'Customer');
   for (const r of CUSTOMER_ROUTES) {
     await auditRoute(r);
   }
 
   // 3. Audit Professional Portal
   console.log(`\n--- Step 3: Professional Authenticated Routes ---`);
-  await tryLogin('pro.a@fixify.dev', 'Test@123456', 'Professional');
+  await tryLogin('pro.a@fixify.dev', process.env.E2E_TEST_PASSWORD ?? '', 'Professional');
   for (const r of PRO_ROUTES) {
     await auditRoute(r);
   }
 
   // 4. Audit Admin Operations
   console.log(`\n--- Step 4: Admin Console Routes ---`);
-  await tryLogin('admin.test@fixify.dev', 'Test@123456', 'Admin');
+  await tryLogin('admin.test@fixify.dev', process.env.E2E_TEST_PASSWORD ?? '', 'Admin');
   for (const r of ADMIN_ROUTES) {
     await auditRoute(r);
   }
@@ -192,7 +192,7 @@ async function runAudit() {
   );
 
   // Generate a consolidated single text summary for ChatGPT
-  let promptContext = `# FIXIFY DEPLOYMENT AUDIT DATA DUMP\n\n`;
+  let promptContext = `# FEASY DEPLOYMENT AUDIT DATA DUMP\n\n`;
   promptContext += `- **Target URL:** ${TARGET_URL}\n`;
   promptContext += `- **Audit Date:** ${manifest.timestamp}\n`;
   promptContext += `- **Routes Captured:** ${manifest.routesAudited.length}\n`;

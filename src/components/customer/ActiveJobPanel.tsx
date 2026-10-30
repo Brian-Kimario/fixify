@@ -8,7 +8,6 @@ import {
   Clock, 
   MapPin, 
   Phone, 
-  MessageSquare, 
   ShieldCheck, 
   FileText, 
   ChevronRight,
@@ -16,18 +15,11 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
-import { VerificationBadge } from './VerificationBadge';
-
-export type JobRailState = 
-  | 'REQUEST' 
-  | 'ASSIGNED' 
-  | 'ON_THE_WAY' 
-  | 'ARRIVED' 
-  | 'IN_PROGRESS' 
-  | 'COMPLETED';
+import { RAIL_STEPS, STATE_META, isJobState } from '@/lib/jobs/states';
 
 export interface ActiveJobData {
   id: string;
+  bookingId?: string;
   referenceNumber: string;
   serviceTitle: string;
   category: string;
@@ -35,7 +27,6 @@ export interface ActiveJobData {
   propertyAddress: string;
   currentState: string;
   scheduledTime?: string;
-  etaMinutes?: number;
   hasPendingQuote?: boolean;
   pendingQuoteTotal?: number;
   professional?: {
@@ -55,38 +46,10 @@ interface ActiveJobPanelProps {
   className?: string;
 }
 
-const RAIL_STEPS: { id: JobRailState; label: string; subLabel: string }[] = [
-  { id: 'REQUEST', label: 'Request', subLabel: 'Logged' },
-  { id: 'ASSIGNED', label: 'Assigned', subLabel: 'Expert matched' },
-  { id: 'ON_THE_WAY', label: 'On way', subLabel: 'En route' },
-  { id: 'ARRIVED', label: 'Arrived', subLabel: 'On site' },
-  { id: 'IN_PROGRESS', label: 'Work', subLabel: 'Repairing' },
-  { id: 'COMPLETED', label: 'Complete', subLabel: 'Verified' },
-];
-
-function mapDbStateToRail(state: string): JobRailState {
-  const normalized = (state || '').toUpperCase();
-  if (normalized.includes('COMPLETE') || normalized.includes('CLOSED')) return 'COMPLETED';
-  if (normalized.includes('PROGRESS') || normalized.includes('WORK') || normalized.includes('INSPECTION') || normalized.includes('APPROVAL')) return 'IN_PROGRESS';
-  if (normalized.includes('ARRIV')) return 'ARRIVED';
-  if (normalized.includes('WAY') || normalized.includes('ROUTE')) return 'ON_THE_WAY';
-  if (normalized.includes('ASSIGN') || normalized.includes('ACCEPT')) return 'ASSIGNED';
-  return 'REQUEST';
-}
-
 export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: ActiveJobPanelProps) {
-  // If no job is provided, show calm reassuring state
-  const currentRailState = job ? mapDbStateToRail(job.currentState) : 'REQUEST';
-  const [simulatedState, setSimulatedState] = useState<JobRailState>(currentRailState);
-
-  // Sync with prop when job updates
-  useEffect(() => {
-    if (job) {
-      setSimulatedState(mapDbStateToRail(job.currentState));
-    }
-  }, [job]);
-
-  const activeIndex = RAIL_STEPS.findIndex((s) => s.id === simulatedState);
+  // Read-only: the rail reflects the stored job state, nothing is simulated locally
+  const meta = job && isJobState(job.currentState) ? STATE_META[job.currentState] : null;
+  const activeIndex = meta?.step ?? -1;
   const progressPercent = activeIndex >= 0 ? (activeIndex / (RAIL_STEPS.length - 1)) * 100 : 0;
 
   // Refs for Anime.js
@@ -110,7 +73,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
         ease: 'outBack',
       });
     }
-  }, [progressPercent, simulatedState]);
+  }, [progressPercent, activeIndex]);
 
   if (!job) {
     return (
@@ -181,20 +144,13 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
         <div className="flex flex-col items-end">
           <div className="px-3 py-1.5 rounded-full border border-[#E7BE78]/30 bg-[#E7BE78]/10 text-[#E7BE78] text-xs font-bold tracking-wide flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
-            <span>
-              {simulatedState === 'ON_THE_WAY' && (job.etaMinutes ? `ETA ~${job.etaMinutes} mins` : 'ETA ~14 mins')}
-              {simulatedState === 'ARRIVED' && 'Arrived on site'}
-              {simulatedState === 'IN_PROGRESS' && 'Work underway'}
-              {simulatedState === 'COMPLETED' && 'Job verified complete'}
-              {simulatedState === 'ASSIGNED' && 'Confirmed for appointment'}
-              {simulatedState === 'REQUEST' && 'Matching technician'}
-            </span>
+            <span>{meta?.customerCopy ?? job.currentState}</span>
           </div>
         </div>
       </div>
 
       {/* Horizontal State Rail (Anime.js animated) */}
-      <div className="relative z-10 my-7 pt-2">
+      <div className="relative z-10 my-7 pt-2 pointer-events-none">
         <div className="relative">
           {/* Base Track */}
           <div className="absolute left-[3%] right-[3%] top-3 h-[3px] bg-white/10 rounded-full" />
@@ -207,18 +163,17 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
           />
 
           {/* Rail Steps */}
-          <div className="relative flex justify-between">
+          <div className="relative flex justify-between pointer-events-none">
             {RAIL_STEPS.map((step, idx) => {
               const isPast = idx < activeIndex;
               const isCurrent = idx === activeIndex;
 
               return (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => setSimulatedState(step.id)}
-                  title={`Click to preview state: ${step.label}`}
-                  className="flex flex-col items-center group cursor-pointer text-left focus:outline-none"
+                <div
+                  key={step.step}
+                  className="flex flex-col items-center text-left"
+                  role="presentation"
+                  aria-disabled="true"
                 >
                   {/* Step Marker */}
                   <div
@@ -228,7 +183,7 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
                         ? 'bg-[#72D0B7] border-[#72D0B7] text-[#18211F] shadow-[0_0_0_4px_rgba(114,208,183,0.15)]'
                         : isCurrent
                         ? 'bg-[#E7BE78] border-[#E7BE78] text-[#18211F] ring-4 ring-[#E7BE78]/20 ring-offset-2 ring-offset-[#18211F] scale-110'
-                        : 'bg-[#18211F] border-white/25 text-white/40 group-hover:border-white/50'
+                        : 'bg-[#18211F] border-white/25 text-white/40'
                     }`}
                   >
                     {isPast ? (
@@ -251,11 +206,8 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
                     >
                       {step.label}
                     </span>
-                    <span className="hidden sm:block text-[9px] text-white/40">
-                      {step.subLabel}
-                    </span>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -263,16 +215,16 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
       </div>
 
       {/* Quote Approval Alert Banner (High Urgency) */}
-      {(job.hasPendingQuote || simulatedState === 'IN_PROGRESS') && onOpenQuoteDrawer && (
+      {(job.hasPendingQuote || job.currentState === 'quote_pending') && onOpenQuoteDrawer && (
         <div className="relative z-10 my-4 p-4 rounded-xl bg-gradient-to-r from-[#9B6A1E]/30 to-[#9B6A1E]/10 border border-[#E7BE78]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-[#E7BE78] flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-bold text-[#E7BE78] uppercase tracking-wider">
-                Extra Work Authorization Requested
+                Quote awaiting your approval
               </p>
               <p className="text-xs text-white/80 mt-0.5">
-                Pro identified additional required repairs ({job.pendingQuoteTotal ? formatCurrency(job.pendingQuoteTotal) : formatCurrency(108.00)}). Review line items to proceed.
+                Your professional sent a quote{job.pendingQuoteTotal !== undefined ? ` for ${formatCurrency(job.pendingQuoteTotal)}` : ''}. Review the line items to proceed.
               </p>
             </div>
           </div>
@@ -306,9 +258,13 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
               <ShieldCheck className="w-3.5 h-3.5 text-[#72D0B7]" />
             </div>
             <div className="text-[11px] text-white/50 flex items-center gap-2 mt-0.5">
-              <span>★ {pro?.rating ? pro.rating.toFixed(1) : '4.9'} rating</span>
-              <span>·</span>
-              <span>{pro?.completedJobs ?? 48} jobs completed</span>
+              {pro?.rating ? (
+                <>
+                  <span>★ {pro.rating.toFixed(1)} rating</span>
+                  <span>·</span>
+                </>
+              ) : null}
+              <span>{pro?.completedJobs ?? 0} jobs completed</span>
             </div>
           </div>
         </div>
@@ -325,17 +281,9 @@ export function ActiveJobPanel({ job, onOpenQuoteDrawer, className = '' }: Activ
             </a>
           )}
 
-          <button
-            type="button"
-            onClick={() => alert(`Starting secure message thread with ${pro?.name || 'Professional'}`)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/15 text-white text-xs font-medium rounded-[10px] border border-white/10 transition-colors"
-          >
-            <MessageSquare className="w-3.5 h-3.5 text-[#72D0B7]" />
-            <span>Message</span>
-          </button>
 
           <Link
-            href={`/customer/bookings/${job.id}`}
+            href={`/customer/bookings/${job.bookingId || job.id}`}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#176B5B] hover:bg-[#0D5144] text-white text-xs font-bold rounded-[10px] transition-colors"
           >
             <span>Full details</span>

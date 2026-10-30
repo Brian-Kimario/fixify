@@ -3,7 +3,7 @@ import { Card, Button } from '@/components/ui';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Professional Setup - Fixify',
+  title: 'Professional Setup - Feasy',
 };
 
 export default async function ProfessionalOnboardingPage() {
@@ -65,7 +65,7 @@ export default async function ProfessionalOnboardingPage() {
           <h1 className="font-display font-bold text-4xl text-ink mb-2">
             Get Your Profile Ready
           </h1>
-          <p className="text-line text-lg">
+          <p className="text-ink-3 text-lg">
             Complete these steps to start bidding on jobs and earning
           </p>
         </div>
@@ -85,7 +85,7 @@ export default async function ProfessionalOnboardingPage() {
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>
-            <p className="text-line text-sm">
+            <p className="text-ink-3 text-sm">
               {progressPercent === 100
                 ? '🎉 You\'re all set! Start browsing jobs.'
                 : `Complete ${checklistItems.length - completedCount} more step${checklistItems.length - completedCount !== 1 ? 's' : ''} to get started`}
@@ -115,7 +115,7 @@ export default async function ProfessionalOnboardingPage() {
                     <div className="flex items-center gap-2">
                       <h3
                         className={`font-display font-bold text-lg ${
-                          item.completed ? 'text-line line-through' : 'text-ink'
+                          item.completed ? 'text-ink-3 line-through' : 'text-ink'
                         }`}
                       >
                         {item.title}
@@ -126,14 +126,14 @@ export default async function ProfessionalOnboardingPage() {
                         </span>
                       )}
                     </div>
-                    <p className={item.completed ? 'text-line/60' : 'text-line'}>
+                    <p className={item.completed ? 'text-ink-3/60' : 'text-ink-3'}>
                       {item.description}
                     </p>
                   </div>
 
                   {/* Arrow */}
                   {!item.completed && (
-                    <div className="flex-shrink-0 text-line group-hover:text-teal transition-colors mt-1">
+                    <div className="flex-shrink-0 text-ink-3 group-hover:text-teal transition-colors mt-1">
                       →
                     </div>
                   )}
@@ -148,7 +148,7 @@ export default async function ProfessionalOnboardingPage() {
           <Card className="bg-teal-soft border-teal/30">
             <div className="space-y-4">
               <h2 className="font-display font-bold text-xl text-ink">Ready to Start!</h2>
-              <p className="text-line">
+              <p className="text-ink-3">
                 Your profile is complete and verified. You can now browse jobs and start submitting bids.
               </p>
               <Link href="/professional/jobs">
@@ -164,7 +164,7 @@ export default async function ProfessionalOnboardingPage() {
         <Card className="bg-paper">
           <div className="space-y-3">
             <h3 className="font-display font-bold text-lg text-ink">Need Help?</h3>
-            <p className="text-line text-sm">
+            <p className="text-ink-3 text-sm">
               Check out our guides on how to create an effective profile and win more bids.
             </p>
             <div className="flex gap-2">

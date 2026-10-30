@@ -1,98 +1,107 @@
 import type { Metadata } from 'next';
-import { getCurrentUser, getCurrentProfile } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { SignOutMenu } from '@/components/shared/SignOutMenu';
-import { Symbol } from '@/components/brand/Symbol';
+import { createClient } from '@/lib/supabase/server';
+import { getProfessionalShell } from '@/lib/services/shell';
+import { getNotificationFeed } from '@/lib/services/notifications';
+import { getUnreadMessageCount } from '@/lib/services/messages';
+import { stateLabel } from '@/lib/jobs/states';
+import { initialsOf, isLiveState, verificationNotice } from '@/lib/shell/rules';
+import { RoleShell } from '@/components/shell/RoleShell';
+import { UserMenu } from '@/components/shell/UserMenu';
+import { NotificationBell } from '@/components/shell/NotificationBell';
+import { ActiveJobChip, ActiveJobStrip, type ActiveJob } from '@/components/shell/ActiveJobChip';
+import { AvailabilitySwitch } from '@/components/shell/AvailabilitySwitch';
+import { VerificationBanner } from '@/components/shell/primitives';
+import type { NavItem } from '@/components/shell/nav';
 
 export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
-  title: 'Professional Dashboard — Fixify',
-  description: 'Manage your professional profile, jobs, bids, and earnings',
+  robots: { index: false, follow: false },
+  title: 'Professional Dashboard — Feasy',
+  description: 'Manage your requests, jobs and earnings',
 };
 
-interface ProLayoutProps {
-  children: React.ReactNode;
-}
+export default async function ProLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) redirect('/auth/login');
 
-export default async function ProLayout({ children }: ProLayoutProps) {
-  const user = await getCurrentUser();
-  const profile = await getCurrentProfile();
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, full_name')
+    .eq('id', user.id)
+    .single();
+  if (!profile || profile.role !== 'professional') redirect('/customer');
 
-  if (!user) redirect('/auth/login');
+  const [shell, feed, unreadMessages] = await Promise.all([
+    getProfessionalShell(user.id),
+    getNotificationFeed(),
+    getUnreadMessageCount(),
+  ]);
+  const displayName =
+    shell.displayName?.trim() || profile.full_name?.trim() || user.email?.split('@')[0] || 'Professional';
 
-  if (profile?.role !== 'professional') redirect('/customer');
+  const notice = verificationNotice(shell.verificationStatus, shell.rejectionReason);
+  const locked = notice !== null;
+  const requestCount = locked ? 0 : shell.requests.length;
 
-  const displayName = profile?.full_name || user.email?.split('@')[0] || 'Professional';
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  const requestsItem: NavItem = {
+    href: '/professional/requests',
+    label: 'Requests',
+    icon: 'requests',
+    count: requestCount,
+    countLabel: 'waiting',
+    locked,
+  };
+  const topItems: NavItem[] = [
+    { href: '/professional', label: 'Today', icon: 'today', exact: true },
+    requestsItem,
+    { href: '/professional/jobs', label: 'Jobs', icon: 'jobs' },
+    { href: '/professional/messages', label: 'Messages', icon: 'messages', count: unreadMessages ?? 0, countLabel: 'unread' },
+    { href: '/professional/earnings', label: 'Earnings', icon: 'earnings' },
+  ];
+  const bottomItems: NavItem[] = [...topItems, { href: '/professional/profile', label: 'Account', icon: 'account' }];
+
+  const live = shell.liveJob;
+  const liveCount = shell.upcoming.filter((j) => isLiveState(j.state)).length;
+  const activeJob: ActiveJob | null = live
+    ? {
+        href: `/professional/jobs/${live.id}`,
+        title: live.serviceName,
+        status: stateLabel(live.state),
+        more: Math.max(0, liveCount - 1),
+      }
+    : null;
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC]">
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-[#FFFEFA] border-b border-[#D9DED8]">
-        <div className="flex items-center justify-between px-4 md:px-6 py-3.5 h-16">
-          {/* Logo */}
-          <Link href="/professional" className="inline-flex items-center gap-2 md:gap-2.5 font-bold text-sm md:text-[18px] tracking-[-0.035em] text-[#18211F] flex-shrink-0">
-            <span className="w-[24px] h-[24px] md:w-[29px] md:h-[29px] flex items-center justify-center">
-              <Symbol size="sm" className="w-full h-full" />
-            </span>
-            <span>Fixify</span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            <a href="/professional" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Today</a>
-            <a href="/professional/jobs" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Jobs</a>
-            <a href="/professional/earnings" className="text-sm font-semibold text-[#5A6661] hover:text-[#0D5144] transition">Earnings</a>
-          </nav>
-
-          {/* Profile Section (Desktop only) */}
-          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
-            <SignOutMenu 
-              user={user} 
-              displayName={displayName}
-              initials={initials}
-              role="professional"
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main id="main-content" className="pb-20 md:pb-0 px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto">
-        {children}
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFEFA] border-t border-[#D9DED8] flex items-center justify-around h-20">
-        <a href="/professional" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>
-          </svg>
-          <span className="text-xs font-semibold">Today</span>
-        </a>
-        <a href="/professional/jobs" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <path d="m4 10 8-6 8 6v9H4zM9 19v-5h6v5"/>
-          </svg>
-          <span className="text-xs font-semibold">Jobs</span>
-        </a>
-        <a href="/professional/earnings" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <circle cx="12" cy="12" r="8"/><path d="M12 8v8M9 12h6"/>
-          </svg>
-          <span className="text-xs font-semibold">Earnings</span>
-        </a>
-        <a href="/professional/profile" className="flex flex-col items-center justify-center gap-1 text-[#5A6661] hover:text-[#0D5144] transition py-2 px-3 flex-1">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.65">
-            <circle cx="12" cy="8" r="3"/><path d="M5 20c1.2-3.5 3.5-5 7-5s5.8 1.5 7 5"/>
-          </svg>
-          <span className="text-xs font-semibold">Profile</span>
-        </a>
-      </nav>
-    </div>
+    <RoleShell
+      homeHref="/professional"
+      navLabel="Professional navigation"
+      topItems={topItems}
+      bottomItems={bottomItems}
+      strip={activeJob && <ActiveJobStrip job={activeJob} />}
+      banner={notice && <VerificationBanner notice={notice} />}
+      actions={
+        <>
+          {activeJob && <ActiveJobChip job={activeJob} />}
+          <AvailabilitySwitch initial={shell.isAvailable} lockedReason={notice?.title ?? null} compact />
+          <NotificationBell items={feed.items} unread={feed.unread} failed={feed.failed} />
+          <UserMenu
+            displayName={displayName}
+            email={user.email ?? null}
+            initials={initialsOf(displayName)}
+            roleLabel="Professional"
+            links={[
+              { label: 'Profile', href: '/professional/profile' },
+              { label: 'Help & support', href: '/professional/support' },
+            ]}
+          />
+        </>
+      }
+    >
+      {children}
+    </RoleShell>
   );
 }

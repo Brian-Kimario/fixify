@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { type AuthResponse } from '@/types/auth';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/supabase/database.types';
 
 /**
  * Server Action: Register a new professional
@@ -59,7 +61,7 @@ export async function registerProfessional(data: {
     // (must bypass RLS since authenticated user just signed up and might not have permissions yet)
     const adminClient = await createAdminClient();
 
-    const { error: profileError } = await (adminClient as any)
+    const { error: profileError } = await (adminClient as unknown as SupabaseClient<Database>)
       .from('professional_profiles')
       .insert({
         user_id: authData.user.id,

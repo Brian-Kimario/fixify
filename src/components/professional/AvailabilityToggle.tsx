@@ -17,16 +17,14 @@ export function AvailabilityToggle({ initialStatus }: AvailabilityToggleProps) {
     setIsAvailable(nextStatus);
 
     startTransition(async () => {
-      try {
-        await updateAvailabilityStatus(nextStatus);
-        setToastMessage(nextStatus ? 'Status: You are now Online' : 'Status: You are now Offline');
-        setTimeout(() => setToastMessage(null), 3000);
-      } catch (err) {
-        // Rollback on error
+      const res = await updateAvailabilityStatus(nextStatus);
+      if (res.success === false) {
         setIsAvailable(!nextStatus);
-        setToastMessage('Failed to update status. Please try again.');
-        setTimeout(() => setToastMessage(null), 3000);
+        setToastMessage(res.error);
+      } else {
+        setToastMessage(nextStatus ? 'Status: You are now Online' : 'Status: You are now Offline');
       }
+      setTimeout(() => setToastMessage(null), 3000);
     });
   }
 
@@ -53,7 +51,7 @@ export function AvailabilityToggle({ initialStatus }: AvailabilityToggleProps) {
             </div>
             <div className="text-xs text-[#5A6661] mt-1">
               {isAvailable 
-                ? 'Available for new customer jobs · live route active' 
+                ? 'Available for new customer jobs' 
                 : 'Not receiving new nearby service alerts'}
             </div>
           </div>

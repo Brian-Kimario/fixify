@@ -32,7 +32,7 @@ export interface WhatsAppSendPayload {
   to: string;
   /** Template name exactly as registered with Meta via Razorpay. */
   templateName: string;
-  /** Language code, always "en" for Fixify's English templates. */
+  /** Language code, always "en" for Feasy's English templates. */
   languageCode?: string;
   /** Ordered list of {{1}}, {{2}}, … variable values for the template body. */
   bodyParams: string[];

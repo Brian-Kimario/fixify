@@ -40,7 +40,7 @@ export function SettingsSection({
           {title}
         </h2>
         {description && (
-          <p className="text-sm text-line mt-1">{description}</p>
+          <p className="text-sm text-ink-3 mt-1">{description}</p>
         )}
       </div>
 

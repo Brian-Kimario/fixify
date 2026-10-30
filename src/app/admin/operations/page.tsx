@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { fetchNeedsAttention, type AttentionItem } from '@/app/admin/actions';
 import { OperationsQueue } from '@/components/admin/OperationsQueue';
 import { CaseDrawer } from '@/components/admin/CaseDrawer';
@@ -63,69 +64,68 @@ export default function OperationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F4EC]">
-      {/* Header */}
-      <div className="bg-white border-b border-[#E8E6E0] sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <h1 className="text-3xl font-bold text-[#18211F]">Operations Queue</h1>
-          <p className="text-sm text-[#666] mt-1">Manage exceptions and operational decisions</p>
+    <div className="px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto">
+      {/* Page header */}
+      <div className="mb-6">
+        <div className="text-xs font-bold uppercase tracking-[0.11em] text-[#7C8681] mb-2">
+          ADMIN · OPERATIONS
         </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-[#18211F] mb-2">Operations Queue</h1>
+        <p className="text-[#5A6661]">Manage exceptions and operational decisions.</p>
+        <Link href="/admin/operations/unmatched" className="mt-2 inline-block text-sm font-semibold text-teal hover:underline">
+          Unmatched bookings →
+        </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b border-[#E8E6E0] sticky top-16 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row gap-4">
-          {/* Type filter */}
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-[#999] mb-2">Type</label>
-            <select
-              value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value as any);
-                loadCases();
-              }}
-              className="w-full px-3 py-2 border border-[#E8E6E0] rounded text-sm bg-white"
-            >
-              <option value="all">All Cases</option>
-              <option value="dispute">Disputes</option>
-              <option value="reassignment">Reassignments</option>
-              <option value="verification">Verifications</option>
-            </select>
-          </div>
+      <div className="bg-[#FFFEFA] border border-[#D9DED8] rounded-2xl p-4 mb-6 flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-[#7C8681] mb-2">Type</label>
+          <select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value as any);
+              loadCases();
+            }}
+            className="w-full px-3 py-2.5 border border-[#D9DED8] rounded-lg text-sm bg-white text-[#18211F] focus:outline-none focus:ring-2 focus:ring-[#176B5B]"
+          >
+            <option value="all">All Cases</option>
+            <option value="dispute">Disputes</option>
+            <option value="reassignment">Reassignments</option>
+            <option value="verification">Verifications</option>
+          </select>
+        </div>
 
-          {/* Priority filter */}
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-[#999] mb-2">Priority</label>
-            <select
-              value={priorityFilter}
-              onChange={(e) => {
-                setPriorityFilter(e.target.value as any);
-                loadCases();
-              }}
-              className="w-full px-3 py-2 border border-[#E8E6E0] rounded text-sm bg-white"
-            >
-              <option value="all">All Priorities</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
+        <div className="flex-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-[#7C8681] mb-2">Priority</label>
+          <select
+            value={priorityFilter}
+            onChange={(e) => {
+              setPriorityFilter(e.target.value as any);
+              loadCases();
+            }}
+            className="w-full px-3 py-2.5 border border-[#D9DED8] rounded-lg text-sm bg-white text-[#18211F] focus:outline-none focus:ring-2 focus:ring-[#176B5B]"
+          >
+            <option value="all">All Priorities</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
 
-          {/* Refresh button */}
-          <div className="flex items-end">
-            <button
-              onClick={loadCases}
-              disabled={isLoading}
-              className="w-full sm:w-auto px-4 py-2 text-sm font-bold text-[#176B5B] bg-[#E6EEF2] hover:bg-[#D0E5E0] disabled:opacity-50 rounded transition-colors"
-            >
-              {isLoading ? 'Refreshing...' : 'Refresh'}
-            </button>
-          </div>
+        <div className="flex items-end">
+          <button
+            onClick={loadCases}
+            disabled={isLoading}
+            className="w-full sm:w-auto px-4 py-2.5 text-sm font-bold text-[#176B5B] bg-[#E2EEE9] hover:bg-[#D0E5E0] disabled:opacity-50 rounded-lg transition-colors"
+          >
+            {isLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div>
         {error && (
           <div className="bg-[#FDF5F3] border border-[#D9534F] rounded-lg p-4 mb-6 text-sm text-[#D9534F]">
             {error}

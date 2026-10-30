@@ -1,40 +1,13 @@
 import React from 'react';
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   Job status types
-───────────────────────────────────────────────────────────────────────────── */
-export type JobState =
-  | 'REQUESTED'
-  | 'MATCHING'
-  | 'ASSIGNED'
-  | 'ACCEPTED'
-  | 'ON_THE_WAY'
-  | 'ARRIVED'
-  | 'INSPECTION'
-  | 'AWAITING_APPROVAL'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'PAYMENT_PENDING'
-  | 'CLOSED'
-  | 'CANCELLED'
-  | 'DISPUTED'
-  | 'REJECTED'
-  | 'SUSPENDED';
+import { isJobState, stateLabel, stateTone, type JobState, type JobStateTone } from '@/lib/jobs/states';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Badge
 ───────────────────────────────────────────────────────────────────────────── */
-type BadgeVariant =
-  | 'neutral'
-  | 'teal'
-  | 'blue'
-  | 'clay'
-  | 'ochre'
-  | 'success'
-  | 'danger';
+type BadgeVariant = JobStateTone;
 
 interface BadgeProps {
-  /** Job state — drives auto color selection when `variant` is not set */
+  /** Job state — drives colour and label when `variant`/`label` are not set */
   state?: JobState | string;
   /** Explicit display label — defaults to humanised `state` */
   label?: string;
@@ -73,40 +46,7 @@ const sizeStyles = {
   base: 'px-3 py-1 text-sm',
 };
 
-const activePulseStates: ReadonlySet<string> = new Set([
-  'ON_THE_WAY', 'AWAITING_APPROVAL', 'IN_PROGRESS',
-]);
-
-function stateToVariant(state: string): BadgeVariant {
-  switch (state) {
-    case 'REQUESTED':
-    case 'MATCHING':
-      return 'blue';
-    case 'ASSIGNED':
-    case 'ACCEPTED':
-    case 'ON_THE_WAY':
-    case 'ARRIVED':
-      return 'teal';
-    case 'INSPECTION':
-      return 'ochre';
-    case 'AWAITING_APPROVAL':
-      return 'clay';
-    case 'IN_PROGRESS':
-      return 'teal';
-    case 'PAYMENT_PENDING':
-      return 'ochre';
-    case 'COMPLETED':
-    case 'CLOSED':
-      return 'success';
-    case 'CANCELLED':
-    case 'DISPUTED':
-    case 'REJECTED':
-    case 'SUSPENDED':
-      return 'danger';
-    default:
-      return 'neutral';
-  }
-}
+const activePulseStates: ReadonlySet<string> = new Set(['on_the_way', 'in_progress', 'quote_pending']);
 
 /**
  * Badge — status / category label chip
@@ -114,7 +54,7 @@ function stateToVariant(state: string): BadgeVariant {
  * Pass `state` for automatic job-status colouring, or `variant` to override.
  *
  * @example
- * <Badge state="IN_PROGRESS" />
+ * <Badge state="in_progress" />
  * <Badge label="Plumbing" variant="teal" size="sm" />
  */
 export function Badge({
@@ -126,13 +66,11 @@ export function Badge({
   className = '',
 }: BadgeProps) {
   const computedVariant: BadgeVariant =
-    variant ?? (state ? stateToVariant(state) : 'neutral');
+    variant ?? (state ? stateTone(state) : 'neutral');
 
-  const displayLabel = label ?? state?.replace(/_/g, ' ') ?? '';
+  const displayLabel = label ?? (state ? (isJobState(state) ? stateLabel(state) : state.replace(/_/g, ' ')) : '');
 
-  const shouldPulse =
-    (dot || activePulseStates.has(state ?? '')) &&
-    activePulseStates.has(state ?? '');
+  const shouldPulse = activePulseStates.has(state ?? '');
 
   const showDot = dot || activePulseStates.has(state ?? '');
 

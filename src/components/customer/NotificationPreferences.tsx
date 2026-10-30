@@ -89,7 +89,7 @@ export function NotificationPreferences({
             {whatsappNumber ? (
               <p className="text-xs text-teal mt-0.5">✅ Linked to {whatsappNumber}</p>
             ) : (
-              <p className="text-xs text-line mt-0.5">
+              <p className="text-xs text-ink-3 mt-0.5">
                 Add your WhatsApp number in profile settings to enable.
               </p>
             )}
@@ -102,7 +102,7 @@ export function NotificationPreferences({
           />
         </div>
 
-        <p className="text-xs text-line pt-1">
+        <p className="text-xs text-ink-3 pt-1">
           Receive job updates, arrival alerts, and quote notifications on WhatsApp.
         </p>
       </SettingsSection>
@@ -115,7 +115,7 @@ export function NotificationPreferences({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-ink">Enable SMS notifications</p>
-            <p className="text-xs text-line mt-0.5">
+            <p className="text-xs text-ink-3 mt-0.5">
               Used for urgent alerts (payment failures, cancellations).
             </p>
           </div>
@@ -135,7 +135,7 @@ export function NotificationPreferences({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-ink">Email notifications</p>
-            <p className="text-xs text-line mt-0.5">
+            <p className="text-xs text-ink-3 mt-0.5">
               Invoices, service reports, and account updates are always sent via email
               as required by our{' '}
               <a
@@ -156,7 +156,7 @@ export function NotificationPreferences({
             aria-label="Email notifications (required)"
           />
         </div>
-        <p className="text-xs bg-line/10 rounded px-3 py-2 text-line">
+        <p className="text-xs bg-line/10 rounded px-3 py-2 text-ink-3">
           Email cannot be disabled. It is required under India&apos;s Digital Personal Data
           Protection Act (DPDP) for service communications.
         </p>
@@ -195,7 +195,7 @@ export function NotificationPreferences({
           </div>
         </div>
 
-        <p className="text-xs text-line">
+        <p className="text-xs text-ink-3">
           Default: 7:00 PM – 9:00 AM. All times are in Indian Standard Time (IST).
         </p>
       </SettingsSection>

@@ -1,5 +1,5 @@
 /**
- * Fixify Lockup
+ * Feasy Lockup
  * Complete logo mark + wordmark combination
  */
 

@@ -438,7 +438,7 @@ function VerificationButtons({
       <ConfirmationModal
         isOpen={showApprove}
         title="Approve Professional"
-        message="This will verify and approve the professional for Fixify. They'll receive a welcome notification."
+        message="This will verify and approve the professional for Feasy. They'll receive a welcome notification."
         confirmText="Approve"
         confirmVariant="primary"
         onConfirm={handleApprove}

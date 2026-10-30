@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!email.trim()) {
-      setError('Enter the email address attached to your Fixify account.');
+      setError('Enter the email address attached to your Feasy account.');
       return;
     }
     setIsLoading(true);
@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <main id="main-content" className="page">
-      <section className="visual" aria-label="Fixify home maintenance introduction">
+      <section className="visual" aria-label="Feasy home maintenance introduction">
         <Image 
           src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1800&q=88" 
           alt="Calm bedroom interior"
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
 
       <section className="form-side">
         <div className="form-wrap">
-          <Link className="brand auth-brand" href="/"><Symbol size="lg" className="brand-mark" /><span>FIXIFY</span></Link>
+          <Link className="brand auth-brand" href="/"><Symbol size="lg" className="brand-mark" /><span>FEASY</span></Link>
           {sent ? (
             <div className="success-state">
               <div className="success-icon" aria-hidden="true"><CheckCircle2 /></div>
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
               <Link className="back-link top-back" href="/auth/login"><ArrowLeft size={15} /> Back to sign in</Link>
               <p className="form-eyebrow">ACCOUNT ACCESS</p>
               <h2>Reset your password.</h2>
-              <p className="sub">Enter your email and we&apos;ll send you a secure link to get back into your Fixify account.</p>
+              <p className="sub">Enter your email and we&apos;ll send you a secure link to get back into your Feasy account.</p>
               <form className="form" onSubmit={handleSubmit} noValidate>
                 {error && <div className="status-msg error-msg" role="alert">{error}</div>}
                 <div className="field">
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
                 </button>
               </form>
               <p className="signup">Remember your password? <Link href="/auth/login">Sign in</Link></p>
-              <p className="fineprint">For your security, Fixify never asks you to share your password by email or message.</p>
+              <p className="fineprint">For your security, Feasy never asks you to share your password by email or message.</p>
             </>
           )}
         </div>
