@@ -12,9 +12,9 @@
 const BASE = 'http://localhost:3000';
 
 const CREDS = {
-  customer: { email: 'customer.a@fixify.dev', password: 'Test@123456' },
-  professional: { email: 'pro.a@fixify.dev', password: 'Test@123456' },
-  admin: { email: 'admin.test@fixify.dev', password: 'Test@123456' },
+  customer: { email: 'customer.a@fixify.dev', password: process.env.E2E_TEST_PASSWORD ?? '' },
+  professional: { email: 'pro.a@fixify.dev', password: process.env.E2E_TEST_PASSWORD ?? '' },
+  admin: { email: 'admin.test@fixify.dev', password: process.env.E2E_TEST_PASSWORD ?? '' },
 };
 
 const results: Array<{ test: string; passed: boolean; detail: string }> = [];

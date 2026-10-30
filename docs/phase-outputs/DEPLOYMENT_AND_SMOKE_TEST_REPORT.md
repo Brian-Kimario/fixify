@@ -56,10 +56,10 @@ cb06638 (tag: v1.0.0-mvp)
 
 | Email | Role | UUID | Password | Status |
 |-------|------|------|----------|--------|
-| customer.a@fixify.dev | Customer | 9b681bca-520d-462a-bd50-521c42f2b098 | Test@123456 | ✅ Ready |
-| customer.b@fixify.dev | Customer | 70738ef6-019e-4c3c-877f-8e6490d0399e | Test@123456 | ✅ Ready |
-| pro.a@fixify.dev | Professional | 12307078-87f0-4cd2-90b4-e88426a1011b | Test@123456 | ✅ Ready |
-| pro.b@fixify.dev | Professional | 3e86d907-43e8-4b5f-80a3-fd17da3932bd | Test@123456 | ✅ Ready |
+| customer.a@fixify.dev | Customer | 9b681bca-520d-462a-bd50-521c42f2b098 | <redacted> | ✅ Ready |
+| customer.b@fixify.dev | Customer | 70738ef6-019e-4c3c-877f-8e6490d0399e | <redacted> | ✅ Ready |
+| pro.a@fixify.dev | Professional | 12307078-87f0-4cd2-90b4-e88426a1011b | <redacted> | ✅ Ready |
+| pro.b@fixify.dev | Professional | 3e86d907-43e8-4b5f-80a3-fd17da3932bd | <redacted> | ✅ Ready |
 
 ### Properties Created
 
@@ -189,7 +189,7 @@ All smoke test sequences are documented and ready for browser-based execution:
 
 **Quick Reference:**
 - Test Accounts: Provided above (see table)
-- Passwords: All accounts use `Test@123456`
+- Passwords: All accounts use `<redacted - see owner>`
 - Production URL: https://fixify-amber.verify.app/
 
 ---
@@ -206,7 +206,7 @@ customer.b@fixify.dev  → 1 property, 1 request
 pro.a@fixify.dev       → 2 assigned jobs
 pro.b@fixify.dev       → No jobs (isolation test)
 
-Password for all: Test@123456
+Password for all: <redacted>
 ```
 
 ---

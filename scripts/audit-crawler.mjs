@@ -165,21 +165,21 @@ async function runAudit() {
 
   // 2. Audit Customer Portal
   console.log(`\n--- Step 2: Customer Authenticated Routes ---`);
-  await tryLogin('customer.a@fixify.dev', 'Test@123456', 'Customer');
+  await tryLogin('customer.a@fixify.dev', process.env.E2E_TEST_PASSWORD ?? '', 'Customer');
   for (const r of CUSTOMER_ROUTES) {
     await auditRoute(r);
   }
 
   // 3. Audit Professional Portal
   console.log(`\n--- Step 3: Professional Authenticated Routes ---`);
-  await tryLogin('pro.a@fixify.dev', 'Test@123456', 'Professional');
+  await tryLogin('pro.a@fixify.dev', process.env.E2E_TEST_PASSWORD ?? '', 'Professional');
   for (const r of PRO_ROUTES) {
     await auditRoute(r);
   }
 
   // 4. Audit Admin Operations
   console.log(`\n--- Step 4: Admin Console Routes ---`);
-  await tryLogin('admin.test@fixify.dev', 'Test@123456', 'Admin');
+  await tryLogin('admin.test@fixify.dev', process.env.E2E_TEST_PASSWORD ?? '', 'Admin');
   for (const r of ADMIN_ROUTES) {
     await auditRoute(r);
   }
