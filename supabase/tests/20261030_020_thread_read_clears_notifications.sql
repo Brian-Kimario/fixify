@@ -1,9 +1,9 @@
 -- Reading a thread reads only the caller's own new_message notifications for that job.
--- Needs two parties with an open job; builds its own inside a transaction that is rolled back.
+-- Uses any existing job that has both parties (reading a thread is allowed in every state); all writes are rolled back.
 BEGIN;
 CREATE TEMP TABLE _f AS
 SELECT j.id AS job_id, j.customer_id, j.professional_id
-FROM public.jobs j WHERE j.professional_id IS NOT NULL AND j.current_state = 'accepted' LIMIT 1;
+FROM public.jobs j WHERE j.professional_id IS NOT NULL ORDER BY j.id LIMIT 1;
 CREATE TEMP TABLE _r (check_name text, ok boolean);
 GRANT ALL ON _f, _r TO authenticated;
 

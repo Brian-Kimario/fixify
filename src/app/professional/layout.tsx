@@ -87,7 +87,7 @@ export default async function ProLayout({ children }: { children: React.ReactNod
         <>
           {activeJob && <ActiveJobChip job={activeJob} />}
           <AvailabilitySwitch initial={shell.isAvailable} lockedReason={notice?.title ?? null} compact />
-          <NotificationBell userId={user.id} items={feed.items} unread={feed.unread} failed={feed.failed} />
+          <NotificationBell items={feed.items} unread={feed.unread} failed={feed.failed} />
           <UserMenu
             displayName={displayName}
             email={user.email ?? null}
