@@ -57,7 +57,7 @@ test.describe('customer shell', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/customer');
     const bar = page.getByRole('navigation', { name: 'Customer navigation' });
-    for (const name of [/^Home/, /Bookings/, /^Book$/, /^Properties/, /Messages/, /^Account/]) {
+    for (const name of [/^Home/, /Bookings/, /^Book a service$/, /^Properties/, /Messages/]) {
       await expect(bar.getByRole('link', { name })).toBeVisible();
     }
     // The tab bar has its own Book button, so the top-bar one is hidden.

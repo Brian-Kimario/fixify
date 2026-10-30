@@ -66,16 +66,16 @@ export function BottomNavLinks({ items, label }: { items: NavItem[]; label: stri
 
           if (item.primary) {
             return (
-              <li key={item.href} className="flex justify-center">
+              <li key={item.href} className="flex items-center justify-center">
                 <Link
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
-                  className="-mt-5 flex flex-col items-center gap-1 rounded-2xl px-2 pb-1.5 text-[11px] font-semibold text-teal-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+                  className="-mt-6 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
                 >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-teal text-paper shadow-lg shadow-teal/25 ring-4 ring-paper">
-                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-teal text-paper shadow-lg shadow-teal/25 ring-4 ring-paper transition-colors hover:bg-teal-deep">
+                    <Icon className="h-7 w-7" aria-hidden="true" />
                   </span>
-                  <span>{item.label}</span>
+                  <span className="sr-only">{item.label}</span>
                 </Link>
               </li>
             );

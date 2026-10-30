@@ -58,13 +58,13 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     { href: '/customer/properties', label: 'Properties', icon: 'properties' },
     messagesItem,
   ];
+  // Two items either side keep the Book button centred. Account lives in the header's user menu.
   const bottomItems: NavItem[] = [
     { href: '/customer', label: 'Home', icon: 'home', exact: true },
     { href: '/customer/bookings', label: 'Bookings', icon: 'bookings', count: activeCount, countLabel: 'active' },
-    { href: '/customer/bookings/new', label: 'Book', icon: 'book', primary: true },
+    { href: '/customer/bookings/new', label: 'Book a service', icon: 'book', primary: true },
     { href: '/customer/properties', label: 'Properties', icon: 'properties' },
     messagesItem,
-    { href: '/customer/profile', label: 'Account', icon: 'account' },
   ];
 
   const first = shell.activeJobs[0];
