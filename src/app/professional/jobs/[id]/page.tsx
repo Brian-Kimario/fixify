@@ -22,6 +22,7 @@ import { StateTransitionButtons } from '@/components/professional/StateTransitio
 import { RequestCardActions } from '@/components/professional/RequestCardActions';
 import { JobInspectionAndQuote } from '@/components/professional/JobInspectionAndQuote';
 import { ArrivalWindowForm } from '@/components/professional/ArrivalWindowForm';
+import { JobMessages } from '@/components/messages/JobMessages';
 import { JobMediaUploader } from '@/components/professional/JobMediaUploader';
 
 export const metadata: Metadata = {
@@ -199,6 +200,13 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
               </div>
             </CaseCard>
           </div>
+
+          <JobMessages
+            userId={user.id}
+            jobId={job.id}
+            jobState={job.state}
+            otherName={contact?.full_name ?? 'the customer'}
+          />
 
           <CaseCard title="Job">
             <FactList

@@ -21,6 +21,7 @@ import {
 } from '@/components/case/CaseFile';
 import { ProfessionalCard } from '@/components/customer/ProfessionalCard';
 import { QuoteReviewButton } from '@/components/customer/QuoteReviewButton';
+import { JobMessages } from '@/components/messages/JobMessages';
 import { UPIIntentCheckout } from '@/components/customer/UPIIntentCheckout';
 
 export const metadata: Metadata = {
@@ -237,6 +238,10 @@ export default async function BookingDetailPage({ params, searchParams }: Bookin
               awaitingAcceptance={jobState === 'assigned'}
               phone={isOpen ? professional.phone : null}
             />
+          )}
+
+          {job && professional && (
+            <JobMessages userId={user.id} jobId={job.id} jobState={job.state} otherName={proName} />
           )}
 
           <CaseCard title="Booking">

@@ -431,6 +431,98 @@ export type Database = {
           },
         ]
       }
+      job_message_reads: {
+        Row: {
+          job_id: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          job_id: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          job_id?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_message_reads_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_message_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_messages: {
+        Row: {
+          body: string
+          client_key: string
+          created_at: string
+          id: string
+          job_id: string
+          professional_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          client_key: string
+          created_at?: string
+          id?: string
+          job_id: string
+          professional_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          client_key?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          professional_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_messages_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_messages_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_metrics"
+            referencedColumns: ["professional_id"]
+          },
+          {
+            foreignKeyName: "job_messages_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "job_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           accepted_at: string | null
@@ -662,6 +754,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messaging_config: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
       }
       notification_logs: {
         Row: {
@@ -1814,6 +1927,16 @@ export type Database = {
           postal_code: string
         }[]
       }
+      get_message_threads: {
+        Args: never
+        Returns: {
+          job_id: string
+          last_body: string
+          last_message_at: string
+          last_sender_id: string
+          unread_count: number
+        }[]
+      }
       get_offer_localities: {
         Args: { p_job_ids: string[] }
         Returns: {
@@ -1829,6 +1952,7 @@ export type Database = {
         Args: { p_older_than?: string }
         Returns: string[]
       }
+      mark_job_thread_read: { Args: { p_job_id: string }; Returns: undefined }
       process_assignment_queue: { Args: never; Returns: Json }
       report_job_eta: {
         Args: {
@@ -1843,6 +1967,10 @@ export type Database = {
       respond_to_quote: {
         Args: { p_decision: string; p_quote_id: string; p_reason?: string }
         Returns: boolean
+      }
+      send_job_message: {
+        Args: { p_body: string; p_client_key: string; p_job_id: string }
+        Returns: string
       }
       submit_inspection: {
         Args: {
